@@ -19,967 +19,1237 @@
 // ==/UserScript==
 
 (async () => {
-'use strict';
+  'use strict';
 
-const MIRRORS=['2ch.org','2ch.su','2ch.life'];
-// Keep the v4 cache/state identifiers so an upgrade does not discard an existing tab cache.
-const PREFIX='tm2ch-media-v4:', CONCURRENCY=6, MIRROR_TTL=60_000, PROBE_BYTES=256*1024;
-const PROBE_TIMEOUT=8000, DOWNLOAD_TIMEOUT=30_000, CLEANUP_INTERVAL=60_000, RECENT_DOWNLOADS=8;
-const MEDIA_EXT=/\.(?:mp4|webm|m4v|mov|ogv)$/i;
-const ANALYSIS_VERSION=1, ANALYSIS_WINDOW=.05, ANALYSIS_TARGET_RATE=16_000;
-const BASELINE_WINDOWS=60, BASELINE_GAP=2, MIN_BASELINE_WINDOWS=20, EVENT_WINDOWS=6;
-const EVENT_LOOKAHEAD=10, SCREAMER_CONFIDENCE=.80;
+  const MIRRORS = ['2ch.org', '2ch.su', '2ch.life'];
+  // Keep the v4 cache/state identifiers so an upgrade does not discard an existing tab cache.
+  const PREFIX = 'tm2ch-media-v4:',
+    CONCURRENCY = 6,
+    MIRROR_TTL = 60_000,
+    PROBE_BYTES = 256 * 1024;
+  const PROBE_TIMEOUT = 8000,
+    DOWNLOAD_TIMEOUT = 30_000,
+    CLEANUP_INTERVAL = 60_000,
+    RECENT_DOWNLOADS = 8;
+  const MEDIA_EXT = /\.(?:mp4|webm|m4v|mov|ogv)$/i;
+  const ANALYSIS_VERSION = 1,
+    ANALYSIS_WINDOW = 0.05,
+    ANALYSIS_TARGET_RATE = 16_000;
+  const BASELINE_WINDOWS = 60,
+    BASELINE_GAP = 2,
+    MIN_BASELINE_WINDOWS = 20,
+    EVENT_WINDOWS = 6;
+  const EVENT_LOOKAHEAD = 10,
+    SCREAMER_CONFIDENCE = 0.8;
 
-if(!window.caches){
-  console.error('[spokoyno] CacheStorage unavailable');
-  return;
-}
-
-const gmGetTab=()=>new Promise(r=>GM_getTab(x=>r(x||{})));
-const gmSaveTab=t=>new Promise(r=>GM_saveTab(t,r));
-const gmGetTabs=()=>new Promise(r=>GM_getTabs(x=>r(x||{})));
-const yieldMain=()=>window.scheduler?.yield?window.scheduler.yield():new Promise(r=>setTimeout(r,0));
-
-const tab=await gmGetTab();
-
-if(!tab.tm2chMediaV4){
-  const token=crypto.randomUUID?.()||`${Date.now()}-${Math.random().toString(36).slice(2)}`;
-  tab.tm2chMediaV4={token,cacheName:`${PREFIX}${token}`,mirror:null,mirrorCheckedAt:0,screamer:{}};
-  await gmSaveTab(tab);
-}
-
-const state=tab.tm2chMediaV4;
-state.screamer ||= {};
-
-const cacheName=state.cacheName;
-let cache=await caches.open(cacheName), mirrorPromise=null, running=0, errors=0;
-let decoderContext=null;
-
-const cached=new Set(), seen=new Set(), queued=new Set(), queue=[];
-const activeDownloads=new Map(), recentDownloads=[];
-const analysisResults=new Map(
-  Object.entries(state.screamer).filter(([,r])=>r?.analysisVersion===ANALYSIS_VERSION)
-);
-const analysisQueued=new Set(), analysisQueue=[];
-const screamerBadges=new Map();
-
-let analysisRunning=false, analysisGeneration=0;
-let uiRoot=null, summaryBox=null, speedBox=null, uiScheduled=false;
-
-try{
-  for(const r of await cache.keys()) cached.add(r.url);
-}catch(e){
-  console.warn('[spokoyno] cache restore failed:',e);
-}
-
-const mediaPath=url=>{
-  const u=new URL(url,location.href);
-  return u.pathname+u.search;
-};
-
-// This canonicalizes mirrors only inside the current page origin's CacheStorage.
-const canonicalKey=url=>location.origin+'/__tm2ch_cache_v4__'+mediaPath(url);
-const screamerKey=url=>mediaPath(url);
-const mirrorUrl=(domain,path)=>`https://${domain}${path}`;
-
-const filenameFromUrl=url=>{
-  try{return decodeURIComponent(new URL(url,location.href).pathname.split('/').pop());}
-  catch{return 'media';}
-};
-
-const mediaUrl=a=>{
-  try{
-    const u=new URL(a.href,location.href);
-    if(!MIRRORS.includes(u.hostname)||!u.pathname.includes('/src/')||!MEDIA_EXT.test(u.pathname)) return null;
-    u.hash='';
-    return u.href;
-  }catch{return null;}
-};
-
-const formatRate=b=>
-  !Number.isFinite(b)||b<=0 ? '0 KB/s' :
-  b>=1073741824 ? `${(b/1073741824).toFixed(2)} GB/s` :
-  b>=1048576 ? `${(b/1048576).toFixed(1)} MB/s` : `${(b/1024).toFixed(0)} KB/s`;
-
-const formatBytes=b=>
-  !Number.isFinite(b)||b<=0 ? '0 B' :
-  b>=1073741824 ? `${(b/1073741824).toFixed(2)} GB` :
-  b>=1048576 ? `${(b/1048576).toFixed(1)} MB` : `${(b/1024).toFixed(0)} KB`;
-
-const shortName=n=>n.length<=25?n:n.slice(0,11)+'…'+n.slice(-11);
-
-const formatTime=s=>{
-  const m=Math.floor(s/60), x=s-m*60;
-  return m?`${m}:${x.toFixed(1).padStart(4,'0')}`:`${x.toFixed(1)}s`;
-};
-
-function probeMirror(domain,path){
-  return new Promise(resolve=>{
-    const started=performance.now();
-    let done=false,lastLoaded=0,req;
-    const finish=x=>{if(!done){done=true;resolve(x);}};
-
-    try{
-      req=GM_xmlhttpRequest({
-        method:'GET',url:mirrorUrl(domain,path),headers:{Range:`bytes=0-${PROBE_BYTES-1}`},
-        responseType:'arraybuffer',timeout:PROBE_TIMEOUT,
-        onprogress:e=>{
-          if(done)return;
-          lastLoaded=e.loaded||0;
-          if(lastLoaded>=PROBE_BYTES){
-            const elapsed=performance.now()-started;
-            finish({domain,ok:true,elapsed,bytes:lastLoaded,score:elapsed/lastLoaded});
-            try{req.abort();}catch{}
-          }
-        },
-        onload:r=>{
-          if(done)return;
-          if(r.status<200||r.status>=400) return finish({domain,ok:false,score:Infinity});
-          const bytes=r.response?.byteLength||lastLoaded||1, elapsed=performance.now()-started;
-          finish({domain,ok:true,elapsed,bytes,score:elapsed/bytes});
-        },
-        onerror:()=>finish({domain,ok:false,score:Infinity}),
-        ontimeout:()=>finish({domain,ok:false,score:Infinity})
-      });
-    }catch{finish({domain,ok:false,score:Infinity});}
-  });
-}
-
-async function benchmarkMirrors(sampleUrl){
-  const results=await Promise.all(MIRRORS.map(d=>probeMirror(d,mediaPath(sampleUrl))));
-  const ok=results.filter(x=>x.ok).sort((a,b)=>a.score-b.score);
-  const winner=ok[0]?.domain||(MIRRORS.includes(location.hostname)?location.hostname:MIRRORS[0]);
-  state.mirror=winner;
-  state.mirrorCheckedAt=Date.now();
-  await gmSaveTab(tab);
-  console.table(results.map(x=>({mirror:x.domain,ok:x.ok,speed:x.ok?formatRate(1000/x.score):'-'})));
-  scheduleUI();
-  return winner;
-}
-
-async function getPreferredMirror(url){
-  if(state.mirror&&MIRRORS.includes(state.mirror)&&Date.now()-state.mirrorCheckedAt<MIRROR_TTL)
-    return state.mirror;
-  if(!mirrorPromise) mirrorPromise=benchmarkMirrors(url).finally(()=>mirrorPromise=null);
-  return mirrorPromise;
-}
-
-function beginSpeedTracking(key,url,domain){
-  const now=performance.now();
-  const item={key,name:filenameFromUrl(url),domain,loaded:0,total:0,bps:0,started:now,lastBytes:0,lastTime:now};
-  activeDownloads.set(key,item);
-  scheduleUI();
-  return item;
-}
-
-function updateSpeedTracking(item,e){
-  const now=performance.now(), loaded=e.loaded||0;
-  item.loaded=loaded;
-  if(e.lengthComputable&&e.total) item.total=e.total;
-  const dt=now-item.lastTime;
-  if(dt>=150){
-    const instant=(loaded-item.lastBytes)/(dt/1000);
-    if(Number.isFinite(instant)&&instant>=0) item.bps=item.bps<=0?instant:item.bps*.65+instant*.35;
-    item.lastBytes=loaded;
-    item.lastTime=now;
+  if (!window.caches) {
+    console.error('[spokoyno] CacheStorage unavailable');
+    return;
   }
-  scheduleUI();
-}
 
-function finishSpeedTracking(key,bytes,domain){
-  const x=activeDownloads.get(key);
-  if(!x)return;
-  const duration=(performance.now()-x.started)/1000, finalBytes=bytes||x.loaded;
-  recentDownloads.unshift({name:x.name,domain,bytes:finalBytes,avgBps:duration>0?finalBytes/duration:0,duration});
-  recentDownloads.length=Math.min(recentDownloads.length,RECENT_DOWNLOADS);
-  activeDownloads.delete(key);
-  scheduleUI();
-}
+  const gmGetTab = () => new Promise((r) => GM_getTab((x) => r(x || {})));
+  const gmSaveTab = (t) => new Promise((r) => GM_saveTab(t, r));
+  const gmGetTabs = () => new Promise((r) => GM_getTabs((x) => r(x || {})));
+  const yieldMain = () => (window.scheduler?.yield ? window.scheduler.yield() : new Promise((r) => setTimeout(r, 0)));
 
-function cancelSpeedTracking(key){
-  activeDownloads.delete(key);
-  scheduleUI();
-}
+  const tab = await gmGetTab();
 
-const parseContentType=h=>h?.match(/^content-type:\s*([^\r\n]+)/im)?.[1]?.trim()||'';
+  if (!tab.tm2chMediaV4) {
+    const token = crypto.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    tab.tm2chMediaV4 = {
+      token,
+      cacheName: `${PREFIX}${token}`,
+      mirror: null,
+      mirrorCheckedAt: 0,
+      screamer: {}
+    };
+    await gmSaveTab(tab);
+  }
 
-function downloadBlob(domain,path,key,originalUrl){
-  return new Promise((resolve,reject)=>{
-    const speed=beginSpeedTracking(key,originalUrl,domain);
-    GM_xmlhttpRequest({
-      method:'GET',url:mirrorUrl(domain,path),responseType:'blob',timeout:DOWNLOAD_TIMEOUT,
-      onprogress:e=>updateSpeedTracking(speed,e),
-      onload:r=>{
-        if(r.status<200||r.status>=400){
-          cancelSpeedTracking(key);
-          return reject(new Error(`${domain}: HTTP ${r.status}`));
-        }
-        const blob=r.response;
-        if(!blob){
-          cancelSpeedTracking(key);
-          return reject(new Error(`${domain}: empty response`));
-        }
-        finishSpeedTracking(key,blob.size,domain);
-        resolve({blob,contentType:blob.type||parseContentType(r.responseHeaders),domain});
-      },
-      onerror:()=>{cancelSpeedTracking(key);reject(new Error(`${domain}: network error`));},
-      ontimeout:()=>{cancelSpeedTracking(key);reject(new Error(`${domain}: timeout`));}
-    });
-  });
-}
+  const state = tab.tm2chMediaV4;
+  state.screamer ||= {};
 
-async function downloadFromBestMirror(url,key){
-  const path=mediaPath(url), preferred=await getPreferredMirror(url);
-  const order=[preferred,...MIRRORS.filter(x=>x!==preferred)];
-  let lastError;
-  for(const domain of order){
-    try{
-      const r=await downloadBlob(domain,path,key,url);
-      if(domain!==preferred){
-        state.mirror=domain;
-        state.mirrorCheckedAt=0;
-        gmSaveTab(tab);
-      }
-      return r;
-    }catch(e){
-      lastError=e;
-      console.warn('[spokoyno] mirror failed:',domain,path,e);
+  const cacheName = state.cacheName;
+  let cache = await caches.open(cacheName),
+    mirrorPromise = null,
+    running = 0,
+    errors = 0;
+  let decoderContext = null;
+
+  const cached = new Set(),
+    seen = new Set(),
+    queued = new Set(),
+    queue = [];
+  const activeDownloads = new Map(),
+    recentDownloads = [];
+  const analysisResults = new Map(
+    Object.entries(state.screamer).filter(([, r]) => r?.analysisVersion === ANALYSIS_VERSION)
+  );
+  const analysisQueued = new Set(),
+    analysisQueue = [];
+  const screamerBadges = new Map();
+
+  let analysisRunning = false,
+    analysisGeneration = 0;
+  let uiRoot = null,
+    summaryBox = null,
+    speedBox = null,
+    uiScheduled = false;
+
+  try {
+    for (const r of await cache.keys()) cached.add(r.url);
+  } catch (e) {
+    console.warn('[spokoyno] cache restore failed:', e);
+  }
+
+  const mediaPath = (url) => {
+    const u = new URL(url, location.href);
+    return u.pathname + u.search;
+  };
+
+  // This canonicalizes mirrors only inside the current page origin's CacheStorage.
+  const canonicalKey = (url) => location.origin + '/__tm2ch_cache_v4__' + mediaPath(url);
+  const screamerKey = (url) => mediaPath(url);
+  const mirrorUrl = (domain, path) => `https://${domain}${path}`;
+
+  const filenameFromUrl = (url) => {
+    try {
+      return decodeURIComponent(new URL(url, location.href).pathname.split('/').pop());
+    } catch {
+      return 'media';
     }
-  }
-  throw lastError||new Error('all mirrors failed');
-}
+  };
 
-function installPageStyles(){
-  if(document.getElementById('tm2ch-extra-style'))return;
-  const s=document.createElement('style');
-  s.id='tm2ch-extra-style';
-  s.textContent=`
+  const mediaUrl = (a) => {
+    try {
+      const u = new URL(a.href, location.href);
+      if (!MIRRORS.includes(u.hostname) || !u.pathname.includes('/src/') || !MEDIA_EXT.test(u.pathname)) return null;
+      u.hash = '';
+      return u.href;
+    } catch {
+      return null;
+    }
+  };
+
+  const formatRate = (b) =>
+    !Number.isFinite(b) || b <= 0
+      ? '0 KB/s'
+      : b >= 1073741824
+        ? `${(b / 1073741824).toFixed(2)} GB/s`
+        : b >= 1048576
+          ? `${(b / 1048576).toFixed(1)} MB/s`
+          : `${(b / 1024).toFixed(0)} KB/s`;
+
+  const formatBytes = (b) =>
+    !Number.isFinite(b) || b <= 0
+      ? '0 B'
+      : b >= 1073741824
+        ? `${(b / 1073741824).toFixed(2)} GB`
+        : b >= 1048576
+          ? `${(b / 1048576).toFixed(1)} MB`
+          : `${(b / 1024).toFixed(0)} KB`;
+
+  const shortName = (n) => (n.length <= 25 ? n : n.slice(0, 11) + '…' + n.slice(-11));
+
+  const formatTime = (s) => {
+    const m = Math.floor(s / 60),
+      x = s - m * 60;
+    return m ? `${m}:${x.toFixed(1).padStart(4, '0')}` : `${x.toFixed(1)}s`;
+  };
+
+  function probeMirror(domain, path) {
+    return new Promise((resolve) => {
+      const started = performance.now();
+      let done = false,
+        lastLoaded = 0,
+        req;
+      const finish = (x) => {
+        if (!done) {
+          done = true;
+          resolve(x);
+        }
+      };
+
+      try {
+        req = GM_xmlhttpRequest({
+          method: 'GET',
+          url: mirrorUrl(domain, path),
+          headers: { Range: `bytes=0-${PROBE_BYTES - 1}` },
+          responseType: 'arraybuffer',
+          timeout: PROBE_TIMEOUT,
+          onprogress: (e) => {
+            if (done) return;
+            lastLoaded = e.loaded || 0;
+            if (lastLoaded >= PROBE_BYTES) {
+              const elapsed = performance.now() - started;
+              finish({
+                domain,
+                ok: true,
+                elapsed,
+                bytes: lastLoaded,
+                score: elapsed / lastLoaded
+              });
+              try {
+                req.abort();
+              } catch {}
+            }
+          },
+          onload: (r) => {
+            if (done) return;
+            if (r.status < 200 || r.status >= 400) return finish({ domain, ok: false, score: Infinity });
+            const bytes = r.response?.byteLength || lastLoaded || 1,
+              elapsed = performance.now() - started;
+            finish({
+              domain,
+              ok: true,
+              elapsed,
+              bytes,
+              score: elapsed / bytes
+            });
+          },
+          onerror: () => finish({ domain, ok: false, score: Infinity }),
+          ontimeout: () => finish({ domain, ok: false, score: Infinity })
+        });
+      } catch {
+        finish({ domain, ok: false, score: Infinity });
+      }
+    });
+  }
+
+  async function benchmarkMirrors(sampleUrl) {
+    const results = await Promise.all(MIRRORS.map((d) => probeMirror(d, mediaPath(sampleUrl))));
+    const ok = results.filter((x) => x.ok).sort((a, b) => a.score - b.score);
+    const winner = ok[0]?.domain || (MIRRORS.includes(location.hostname) ? location.hostname : MIRRORS[0]);
+    state.mirror = winner;
+    state.mirrorCheckedAt = Date.now();
+    await gmSaveTab(tab);
+    console.table(
+      results.map((x) => ({
+        mirror: x.domain,
+        ok: x.ok,
+        speed: x.ok ? formatRate(1000 / x.score) : '-'
+      }))
+    );
+    scheduleUI();
+    return winner;
+  }
+
+  async function getPreferredMirror(url) {
+    if (state.mirror && MIRRORS.includes(state.mirror) && Date.now() - state.mirrorCheckedAt < MIRROR_TTL)
+      return state.mirror;
+    if (!mirrorPromise) mirrorPromise = benchmarkMirrors(url).finally(() => (mirrorPromise = null));
+    return mirrorPromise;
+  }
+
+  function beginSpeedTracking(key, url, domain) {
+    const now = performance.now();
+    const item = {
+      key,
+      name: filenameFromUrl(url),
+      domain,
+      loaded: 0,
+      total: 0,
+      bps: 0,
+      started: now,
+      lastBytes: 0,
+      lastTime: now
+    };
+    activeDownloads.set(key, item);
+    scheduleUI();
+    return item;
+  }
+
+  function updateSpeedTracking(item, e) {
+    const now = performance.now(),
+      loaded = e.loaded || 0;
+    item.loaded = loaded;
+    if (e.lengthComputable && e.total) item.total = e.total;
+    const dt = now - item.lastTime;
+    if (dt >= 150) {
+      const instant = (loaded - item.lastBytes) / (dt / 1000);
+      if (Number.isFinite(instant) && instant >= 0)
+        item.bps = item.bps <= 0 ? instant : item.bps * 0.65 + instant * 0.35;
+      item.lastBytes = loaded;
+      item.lastTime = now;
+    }
+    scheduleUI();
+  }
+
+  function finishSpeedTracking(key, bytes, domain) {
+    const x = activeDownloads.get(key);
+    if (!x) return;
+    const duration = (performance.now() - x.started) / 1000,
+      finalBytes = bytes || x.loaded;
+    recentDownloads.unshift({
+      name: x.name,
+      domain,
+      bytes: finalBytes,
+      avgBps: duration > 0 ? finalBytes / duration : 0,
+      duration
+    });
+    recentDownloads.length = Math.min(recentDownloads.length, RECENT_DOWNLOADS);
+    activeDownloads.delete(key);
+    scheduleUI();
+  }
+
+  function cancelSpeedTracking(key) {
+    activeDownloads.delete(key);
+    scheduleUI();
+  }
+
+  const parseContentType = (h) => h?.match(/^content-type:\s*([^\r\n]+)/im)?.[1]?.trim() || '';
+
+  function downloadBlob(domain, path, key, originalUrl) {
+    return new Promise((resolve, reject) => {
+      const speed = beginSpeedTracking(key, originalUrl, domain);
+      GM_xmlhttpRequest({
+        method: 'GET',
+        url: mirrorUrl(domain, path),
+        responseType: 'blob',
+        timeout: DOWNLOAD_TIMEOUT,
+        onprogress: (e) => updateSpeedTracking(speed, e),
+        onload: (r) => {
+          if (r.status < 200 || r.status >= 400) {
+            cancelSpeedTracking(key);
+            return reject(new Error(`${domain}: HTTP ${r.status}`));
+          }
+          const blob = r.response;
+          if (!blob) {
+            cancelSpeedTracking(key);
+            return reject(new Error(`${domain}: empty response`));
+          }
+          finishSpeedTracking(key, blob.size, domain);
+          resolve({
+            blob,
+            contentType: blob.type || parseContentType(r.responseHeaders),
+            domain
+          });
+        },
+        onerror: () => {
+          cancelSpeedTracking(key);
+          reject(new Error(`${domain}: network error`));
+        },
+        ontimeout: () => {
+          cancelSpeedTracking(key);
+          reject(new Error(`${domain}: timeout`));
+        }
+      });
+    });
+  }
+
+  async function downloadFromBestMirror(url, key) {
+    const path = mediaPath(url),
+      preferred = await getPreferredMirror(url);
+    const order = [preferred, ...MIRRORS.filter((x) => x !== preferred)];
+    let lastError;
+    for (const domain of order) {
+      try {
+        const r = await downloadBlob(domain, path, key, url);
+        if (domain !== preferred) {
+          state.mirror = domain;
+          state.mirrorCheckedAt = 0;
+          gmSaveTab(tab);
+        }
+        return r;
+      } catch (e) {
+        lastError = e;
+        console.warn('[spokoyno] mirror failed:', domain, path, e);
+      }
+    }
+    throw lastError || new Error('all mirrors failed');
+  }
+
+  function installPageStyles() {
+    if (document.getElementById('tm2ch-extra-style')) return;
+    const s = document.createElement('style');
+    s.id = 'tm2ch-extra-style';
+    s.textContent = `
     .tm2ch-screamer{display:inline-block;margin-left:6px;padding:1px 5px;border-radius:4px;font:11px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;vertical-align:middle;background:rgba(0,0,0,.10);cursor:default;user-select:none}
     .tm2ch-screamer[data-state="bad"]{font-weight:700;background:rgba(220,35,35,.22);color:#c22}
     .tm2ch-screamer[data-state="ok"]{background:rgba(40,150,60,.12)}
     .tm2ch-screamer[data-state="error"]{opacity:.65}
   `;
-  document.documentElement.append(s);
-}
-
-function renderScreamerResult(badge,r){
-  badge.dataset.state='';
-  if(!r){
-    badge.textContent='🔊 analyzing…';
-    badge.title='Audio analysis is queued';
-    return;
-  }
-  if(r.status==='no-audio'){
-    badge.textContent='🔇 no audio';
-    badge.title='No audio track was detected';
-    badge.dataset.state='ok';
-    return;
-  }
-  if(r.status==='unsupported'){
-    badge.textContent='❔ audio analysis unavailable';
-    badge.title='Web Audio decoding is unavailable in this browser';
-    badge.dataset.state='error';
-    return;
-  }
-  if(r.status==='decode-error'){
-    badge.textContent='❔ audio analysis failed';
-    badge.title='The browser could play the video container but could not expose its complete audio track for offline analysis. This is unknown, not safe.';
-    badge.dataset.state='error';
-    return;
+    document.documentElement.append(s);
   }
 
-  const confidence=Math.round(r.confidence*100);
-  if(r.suspicious){
-    badge.textContent=`⚠ SCREAMER ${confidence}% · +${r.jumpDb.toFixed(0)} dB @ ${formatTime(r.eventAt||0)}`;
-    badge.dataset.state='bad';
-  }else{
-    badge.textContent=`🔊 normal · ${confidence}%`;
-    badge.dataset.state='ok';
-  }
-
-  badge.title=[
-    `Suspicion: ${confidence}%`,
-    `Event: ${formatTime(r.eventAt||0)}`,
-    `Baseline (previous 1–3 s): ${r.baselineDb.toFixed(1)} dB`,
-    `Sustained event level: ${r.eventDb.toFixed(1)} dB`,
-    `Jump: +${r.jumpDb.toFixed(1)} dB`,
-    `Event duration: ${r.eventDuration.toFixed(2)} s`,
-    `Event peak: ${r.eventPeakDb.toFixed(1)} dBFS`,
-    `Event near-clipping: ${r.eventNearClipPct.toFixed(2)}%`,
-    `Onset spectral flux: ${r.spectralFlux.toFixed(3)}`,
-    `Track median: ${r.medianDb.toFixed(1)} dB`,
-    `Track peak: ${r.peakDb.toFixed(1)} dBFS`,
-    r.reason
-  ].filter(Boolean).join('\n');
-}
-
-function attachScreamerBadge(anchor,url){
-  const sk=screamerKey(url), existing=screamerBadges.get(sk);
-  if(existing?.isConnected)return;
-  const b=document.createElement('span');
-  b.className='tm2ch-screamer';
-  b.dataset.sk=sk;
-  anchor.insertAdjacentElement('afterend',b);
-  screamerBadges.set(sk,b);
-  renderScreamerResult(b,analysisResults.get(sk));
-}
-
-function publishScreamerResult(sk,r){
-  r.analysisVersion=ANALYSIS_VERSION;
-  analysisResults.set(sk,r);
-  state.screamer[sk]=r;
-  gmSaveTab(tab).catch?.(()=>{});
-  const b=screamerBadges.get(sk);
-  if(b?.isConnected) renderScreamerResult(b,r);
-}
-
-const dbPower=x=>10*Math.log10(Math.max(x,1e-9));
-const dbAmp=x=>20*Math.log10(Math.max(x,10**(-90/20)));
-const sigmoid=x=>1/(1+Math.exp(-Math.max(-30,Math.min(30,x))));
-
-function percentile(values,p){
-  if(!values.length)return -90;
-  const a=Array.from(values).sort((x,y)=>x-y), at=(a.length-1)*p;
-  const lo=Math.floor(at), hi=Math.ceil(at), f=at-lo;
-  return a[lo]*(1-f)+a[hi]*f;
-}
-
-function makeHighPass(fs,f0=70,q=Math.SQRT1_2){
-  const w=2*Math.PI*f0/fs, c=Math.cos(w), alpha=Math.sin(w)/(2*q), a0=1+alpha;
-  return {b0:(1+c)/2/a0,b1:-(1+c)/a0,b2:(1+c)/2/a0,a1:-2*c/a0,a2:(1-alpha)/a0,z1:0,z2:0};
-}
-
-function makeHighShelf(fs,f0=1500,gainDb=4,q=Math.SQRT1_2){
-  const a=10**(gainDb/40), w=2*Math.PI*f0/fs, c=Math.cos(w), alpha=Math.sin(w)/(2*q);
-  const beta=2*Math.sqrt(a)*alpha, a0=(a+1)-(a-1)*c+beta;
-  return {
-    b0:a*((a+1)+(a-1)*c+beta)/a0,
-    b1:-2*a*((a-1)+(a+1)*c)/a0,
-    b2:a*((a+1)+(a-1)*c-beta)/a0,
-    a1:2*((a-1)-(a+1)*c)/a0,
-    a2:((a+1)-(a-1)*c-beta)/a0,z1:0,z2:0
-  };
-}
-
-function biquad(x,s){
-  const y=s.b0*x+s.z1;
-  s.z1=s.b1*x-s.a1*y+s.z2;
-  s.z2=s.b2*x-s.a2*y;
-  return y;
-}
-
-async function extractTimeline(buf){
-  const stride=Math.max(1,Math.floor(buf.sampleRate/ANALYSIS_TARGET_RATE));
-  const effectiveRate=buf.sampleRate/stride;
-  const windowFrames=Math.max(stride,Math.round(buf.sampleRate*ANALYSIS_WINDOW/stride)*stride);
-  const windowSeconds=windowFrames/buf.sampleRate, count=Math.ceil(buf.length/windowFrames);
-  const levels=new Float32Array(count), peaks=new Float32Array(count);
-  const clipCounts=new Uint32Array(count), sampleCounts=new Uint32Array(count);
-  const channels=Array.from({length:buf.numberOfChannels},(_,ch)=>buf.getChannelData(ch));
-  const filters=channels.map(()=>[makeHighPass(effectiveRate),makeHighShelf(effectiveRate)]);
-  let trackPeak=0,totalSq=0,totalN=0,totalClip=0;
-
-  for(let wi=0;wi<count;wi++){
-    const start=wi*windowFrames, end=Math.min(buf.length,start+windowFrames);
-    let rawSq=0,weightedSq=0,n=0,peak=0,clips=0;
-    for(let i=start;i<end;i+=stride){
-      for(let ch=0;ch<channels.length;ch++){
-        const v=channels[ch][i]||0, av=Math.abs(v);
-        rawSq+=v*v;
-        if(av>peak)peak=av;
-        if(av>=10**(-1/20))clips++;
-        const weighted=biquad(biquad(v,filters[ch][0]),filters[ch][1]);
-        weightedSq+=weighted*weighted;
-        n++;
-      }
+  function renderScreamerResult(badge, r) {
+    badge.dataset.state = '';
+    if (!r) {
+      badge.textContent = '🔊 analyzing…';
+      badge.title = 'Audio analysis is queued';
+      return;
     }
-    levels[wi]=Math.max(-90,-.691+dbPower(weightedSq/Math.max(1,n)));
-    peaks[wi]=dbAmp(peak);
-    clipCounts[wi]=clips;
-    sampleCounts[wi]=n;
-    if(peak>trackPeak)trackPeak=peak;
-    totalSq+=rawSq;
-    totalN+=n;
-    totalClip+=clips;
-    if(wi%100===99) await yieldMain();
-  }
-  return {levels,peaks,clipCounts,sampleCounts,windowFrames,windowSeconds,
-    peakDb:dbAmp(trackPeak),rmsDb:dbPower(totalSq/Math.max(1,totalN)),nearClipPct:totalClip/Math.max(1,totalN)*100};
-}
-
-function fft(re,im){
-  const n=re.length;
-  for(let i=1,j=0;i<n;i++){
-    let bit=n>>1;
-    for(;j&bit;bit>>=1)j^=bit;
-    j^=bit;
-    if(i<j){
-      [re[i],re[j]]=[re[j],re[i]];
-      [im[i],im[j]]=[im[j],im[i]];
+    if (r.status === 'no-audio') {
+      badge.textContent = '🔇 no audio';
+      badge.title = 'No audio track was detected';
+      badge.dataset.state = 'ok';
+      return;
     }
-  }
-  for(let len=2;len<=n;len<<=1){
-    const angle=-2*Math.PI/len, wlenR=Math.cos(angle), wlenI=Math.sin(angle);
-    for(let i=0;i<n;i+=len){
-      let wr=1,wi=0;
-      for(let j=0;j<len/2;j++){
-        const uR=re[i+j],uI=im[i+j], k=i+j+len/2;
-        const vR=re[k]*wr-im[k]*wi, vI=re[k]*wi+im[k]*wr;
-        re[i+j]=uR+vR; im[i+j]=uI+vI;
-        re[k]=uR-vR; im[k]=uI-vI;
-        const nextR=wr*wlenR-wi*wlenI;
-        wi=wr*wlenI+wi*wlenR;
-        wr=nextR;
-      }
+    if (r.status === 'unsupported') {
+      badge.textContent = '❔ audio analysis unavailable';
+      badge.title = 'Web Audio decoding is unavailable in this browser';
+      badge.dataset.state = 'error';
+      return;
     }
-  }
-}
+    if (r.status === 'decode-error') {
+      badge.textContent = '❔ audio analysis failed';
+      badge.title =
+        'The browser could play the video container but could not expose its complete audio track for offline analysis. This is unknown, not safe.';
+      badge.dataset.state = 'error';
+      return;
+    }
 
-function spectrumProfile(buf,windowIndex,windowFrames){
-  const start=windowIndex*windowFrames, end=Math.min(buf.length,start+windowFrames);
-  if(start<0||start>=end)return null;
-  let n=1;
-  while(n<end-start)n<<=1;
-  const re=new Float64Array(n), im=new Float64Array(n);
-  for(let i=start;i<end;i++){
-    let v=0;
-    for(let ch=0;ch<buf.numberOfChannels;ch++) v+=buf.getChannelData(ch)[i];
-    const j=i-start, hann=(end-start)>1?.5-.5*Math.cos(2*Math.PI*j/(end-start-1)):1;
-    re[j]=v/buf.numberOfChannels*hann;
-  }
-  fft(re,im);
-  const bins=Math.min(n/2+1,Math.floor(7800*n/buf.sampleRate)+1), out=new Float64Array(bins);
-  let total=0;
-  for(let i=0;i<bins;i++){
-    const p=re[i]*re[i]+im[i]*im[i]+1e-12;
-    out[i]=p;
-    total+=p;
-  }
-  for(let i=0;i<bins;i++)out[i]/=total;
-  return out;
-}
+    const confidence = Math.round(r.confidence * 100);
+    if (r.suspicious) {
+      badge.textContent = `⚠ SCREAMER ${confidence}% · +${r.jumpDb.toFixed(0)} dB @ ${formatTime(r.eventAt || 0)}`;
+      badge.dataset.state = 'bad';
+    } else {
+      badge.textContent = `🔊 normal · ${confidence}%`;
+      badge.dataset.state = 'ok';
+    }
 
-function onsetSpectralFlux(buf,index,windowFrames){
-  if(index<1)return 0;
-  const before=spectrumProfile(buf,index-1,windowFrames), current=spectrumProfile(buf,index,windowFrames);
-  if(!before||!current)return 0;
-  const n=Math.min(before.length,current.length);
-  let sum=0;
-  for(let i=0;i<n;i++){
-    const d=current[i]-before[i];
-    if(d>0)sum+=d*d;
+    badge.title = [
+      `Suspicion: ${confidence}%`,
+      `Event: ${formatTime(r.eventAt || 0)}`,
+      `Baseline (previous 1–3 s): ${r.baselineDb.toFixed(1)} dB`,
+      `Sustained event level: ${r.eventDb.toFixed(1)} dB`,
+      `Jump: +${r.jumpDb.toFixed(1)} dB`,
+      `Event duration: ${r.eventDuration.toFixed(2)} s`,
+      `Event peak: ${r.eventPeakDb.toFixed(1)} dBFS`,
+      `Event near-clipping: ${r.eventNearClipPct.toFixed(2)}%`,
+      `Onset spectral flux: ${r.spectralFlux.toFixed(3)}`,
+      `Track median: ${r.medianDb.toFixed(1)} dB`,
+      `Track peak: ${r.peakDb.toFixed(1)} dBFS`,
+      r.reason
+    ]
+      .filter(Boolean)
+      .join('\n');
   }
-  return Math.sqrt(sum);
-}
 
-function eventDuration(levels,start,threshold,windowSeconds){
-  let end=start,misses=0;
-  while(end<levels.length&&end<start+60){
-    if(levels[end]>=threshold)misses=0;
-    else if(++misses>=2)break;
-    end++;
+  function attachScreamerBadge(anchor, url) {
+    const sk = screamerKey(url),
+      existing = screamerBadges.get(sk);
+    if (existing?.isConnected) return;
+    const b = document.createElement('span');
+    b.className = 'tm2ch-screamer';
+    b.dataset.sk = sk;
+    anchor.insertAdjacentElement('afterend', b);
+    screamerBadges.set(sk, b);
+    renderScreamerResult(b, analysisResults.get(sk));
   }
-  return Math.max(0,(end-start-Math.max(0,misses-1))*windowSeconds);
-}
 
-function maxChange(levels,seconds,windowSeconds){
-  const d=Math.max(1,Math.round(seconds/windowSeconds));
-  let max=0;
-  for(let i=0;i+d<levels.length;i++){
-    const before=(levels[i]+(levels[i+1]??levels[i]))/2;
-    const after=(levels[i+d]+(levels[i+d+1]??levels[i+d]))/2;
-    max=Math.max(max,after-before);
+  function publishScreamerResult(sk, r) {
+    r.analysisVersion = ANALYSIS_VERSION;
+    analysisResults.set(sk, r);
+    state.screamer[sk] = r;
+    gmSaveTab(tab).catch?.(() => {});
+    const b = screamerBadges.get(sk);
+    if (b?.isConnected) renderScreamerResult(b, r);
   }
-  return max;
-}
 
-async function nativeNoAudioProbe(blob){
-  return new Promise(resolve=>{
-    const video=document.createElement('video'), objectUrl=URL.createObjectURL(blob);
-    let done=false;
-    const finish=value=>{
-      if(done)return;
-      done=true;
-      clearTimeout(timer);
-      video.removeAttribute('src');
-      video.load();
-      URL.revokeObjectURL(objectUrl);
-      resolve(value);
+  const dbPower = (x) => 10 * Math.log10(Math.max(x, 1e-9));
+  const dbAmp = (x) => 20 * Math.log10(Math.max(x, 10 ** (-90 / 20)));
+  const sigmoid = (x) => 1 / (1 + Math.exp(-Math.max(-30, Math.min(30, x))));
+
+  function percentile(values, p) {
+    if (!values.length) return -90;
+    const a = Array.from(values).sort((x, y) => x - y),
+      at = (a.length - 1) * p;
+    const lo = Math.floor(at),
+      hi = Math.ceil(at),
+      f = at - lo;
+    return a[lo] * (1 - f) + a[hi] * f;
+  }
+
+  function makeHighPass(fs, f0 = 70, q = Math.SQRT1_2) {
+    const w = (2 * Math.PI * f0) / fs,
+      c = Math.cos(w),
+      alpha = Math.sin(w) / (2 * q),
+      a0 = 1 + alpha;
+    return {
+      b0: (1 + c) / 2 / a0,
+      b1: -(1 + c) / a0,
+      b2: (1 + c) / 2 / a0,
+      a1: (-2 * c) / a0,
+      a2: (1 - alpha) / a0,
+      z1: 0,
+      z2: 0
     };
-    const timer=setTimeout(()=>finish(null),5000);
-    video.preload='metadata';
-    video.muted=true;
-    video.onloadedmetadata=()=>{
-      if(typeof video.mozHasAudio==='boolean') return finish(!video.mozHasAudio);
-      if('audioTracks' in video&&video.audioTracks) return finish(video.audioTracks.length===0);
-      finish(null);
-    };
-    video.onerror=()=>finish(null);
-    video.src=objectUrl;
-  });
-}
-
-function bytesContain(bytes,text,start=0,limit=bytes.length){
-  const needle=Array.from(text,c=>c.charCodeAt(0)), end=Math.min(bytes.length,limit)-needle.length;
-  outer:for(let i=start;i<=end;i++){
-    for(let j=0;j<needle.length;j++)if(bytes[i+j]!==needle[j])continue outer;
-    return true;
   }
-  return false;
-}
 
-function ebmlVint(bytes,at,keepMarker=false,maxBytes=8){
-  if(at>=bytes.length)return null;
-  let mask=0x80,length=1;
-  while(length<=maxBytes&&!(bytes[at]&mask)){mask>>=1;length++;}
-  if(length>maxBytes||at+length>bytes.length)return null;
-  let value=keepMarker?bytes[at]:(bytes[at]&(mask-1));
-  for(let i=1;i<length;i++)value=value*256+bytes[at+i];
-  return {length,value};
-}
+  function makeHighShelf(fs, f0 = 1500, gainDb = 4, q = Math.SQRT1_2) {
+    const a = 10 ** (gainDb / 40),
+      w = (2 * Math.PI * f0) / fs,
+      c = Math.cos(w),
+      alpha = Math.sin(w) / (2 * q);
+    const beta = 2 * Math.sqrt(a) * alpha,
+      a0 = a + 1 - (a - 1) * c + beta;
+    return {
+      b0: (a * (a + 1 + (a - 1) * c + beta)) / a0,
+      b1: (-2 * a * (a - 1 + (a + 1) * c)) / a0,
+      b2: (a * (a + 1 + (a - 1) * c - beta)) / a0,
+      a1: (2 * (a - 1 - (a + 1) * c)) / a0,
+      a2: (a + 1 - (a - 1) * c - beta) / a0,
+      z1: 0,
+      z2: 0
+    };
+  }
 
-function webmHasAudio(bytes){
-  const limit=Math.min(bytes.length,2*1024*1024);
-  for(let i=0;i+5<limit;i++){
-    if(bytes[i]!==0x16||bytes[i+1]!==0x54||bytes[i+2]!==0xae||bytes[i+3]!==0x6b)continue;
-    const tracksSize=ebmlVint(bytes,i+4);
-    if(!tracksSize)continue;
-    let at=i+4+tracksSize.length, end=Math.min(limit,at+tracksSize.value), sawTrack=false;
-    while(at<end){
-      const id=ebmlVint(bytes,at,true,4);
-      if(!id)break;
-      const size=ebmlVint(bytes,at+id.length);
-      if(!size)break;
-      const data=at+id.length+size.length, next=data+size.value;
-      if(next>end||next<=data)break;
-      if(id.value===0xae){
-        sawTrack=true;
-        for(let p=data;p<next;){
-          const childId=ebmlVint(bytes,p,true,4);
-          if(!childId)break;
-          const childSize=ebmlVint(bytes,p+childId.length);
-          if(!childSize)break;
-          const childData=p+childId.length+childSize.length, childEnd=childData+childSize.value;
-          if(childEnd>next||childEnd<=childData)break;
-          if(childId.value===0x83){
-            let type=0;
-            for(let q=childData;q<childEnd;q++)type=type*256+bytes[q];
-            if(type===2)return true;
-          }
-          p=childEnd;
+  function biquad(x, s) {
+    const y = s.b0 * x + s.z1;
+    s.z1 = s.b1 * x - s.a1 * y + s.z2;
+    s.z2 = s.b2 * x - s.a2 * y;
+    return y;
+  }
+
+  async function extractTimeline(buf) {
+    const stride = Math.max(1, Math.floor(buf.sampleRate / ANALYSIS_TARGET_RATE));
+    const effectiveRate = buf.sampleRate / stride;
+    const windowFrames = Math.max(stride, Math.round((buf.sampleRate * ANALYSIS_WINDOW) / stride) * stride);
+    const windowSeconds = windowFrames / buf.sampleRate,
+      count = Math.ceil(buf.length / windowFrames);
+    const levels = new Float32Array(count),
+      peaks = new Float32Array(count);
+    const clipCounts = new Uint32Array(count),
+      sampleCounts = new Uint32Array(count);
+    const channels = Array.from({ length: buf.numberOfChannels }, (_, ch) => buf.getChannelData(ch));
+    const filters = channels.map(() => [makeHighPass(effectiveRate), makeHighShelf(effectiveRate)]);
+    let trackPeak = 0,
+      totalSq = 0,
+      totalN = 0,
+      totalClip = 0;
+
+    for (let wi = 0; wi < count; wi++) {
+      const start = wi * windowFrames,
+        end = Math.min(buf.length, start + windowFrames);
+      let rawSq = 0,
+        weightedSq = 0,
+        n = 0,
+        peak = 0,
+        clips = 0;
+      for (let i = start; i < end; i += stride) {
+        for (let ch = 0; ch < channels.length; ch++) {
+          const v = channels[ch][i] || 0,
+            av = Math.abs(v);
+          rawSq += v * v;
+          if (av > peak) peak = av;
+          if (av >= 10 ** (-1 / 20)) clips++;
+          const weighted = biquad(biquad(v, filters[ch][0]), filters[ch][1]);
+          weightedSq += weighted * weighted;
+          n++;
         }
       }
-      at=next;
+      levels[wi] = Math.max(-90, -0.691 + dbPower(weightedSq / Math.max(1, n)));
+      peaks[wi] = dbAmp(peak);
+      clipCounts[wi] = clips;
+      sampleCounts[wi] = n;
+      if (peak > trackPeak) trackPeak = peak;
+      totalSq += rawSq;
+      totalN += n;
+      totalClip += clips;
+      if (wi % 100 === 99) await yieldMain();
     }
-    if(sawTrack)return false;
+    return {
+      levels,
+      peaks,
+      clipCounts,
+      sampleCounts,
+      windowFrames,
+      windowSeconds,
+      peakDb: dbAmp(trackPeak),
+      rmsDb: dbPower(totalSq / Math.max(1, totalN)),
+      nearClipPct: (totalClip / Math.max(1, totalN)) * 100
+    };
   }
-  return null;
-}
 
-function sniffContainerAudio(arrayBuffer){
-  const bytes=new Uint8Array(arrayBuffer), isMp4=bytes.length>=12&&bytesContain(bytes,'ftyp',0,16);
-  if(isMp4){
-    const view=new DataView(arrayBuffer);
-    for(let at=0;at+8<=bytes.length;){
-      let size=view.getUint32(at), header=8;
-      const type=String.fromCharCode(bytes[at+4],bytes[at+5],bytes[at+6],bytes[at+7]);
-      if(size===1&&at+16<=bytes.length){
-        size=Number(view.getBigUint64(at+8));
-        header=16;
-      }else if(size===0)size=bytes.length-at;
-      if(size<header||at+size>bytes.length)break;
-      if(type==='moov')return bytesContain(bytes,'soun',at+header,at+size);
-      at+=size;
+  function fft(re, im) {
+    const n = re.length;
+    for (let i = 1, j = 0; i < n; i++) {
+      let bit = n >> 1;
+      for (; j & bit; bit >>= 1) j ^= bit;
+      j ^= bit;
+      if (i < j) {
+        [re[i], re[j]] = [re[j], re[i]];
+        [im[i], im[j]] = [im[j], im[i]];
+      }
+    }
+    for (let len = 2; len <= n; len <<= 1) {
+      const angle = (-2 * Math.PI) / len,
+        wlenR = Math.cos(angle),
+        wlenI = Math.sin(angle);
+      for (let i = 0; i < n; i += len) {
+        let wr = 1,
+          wi = 0;
+        for (let j = 0; j < len / 2; j++) {
+          const uR = re[i + j],
+            uI = im[i + j],
+            k = i + j + len / 2;
+          const vR = re[k] * wr - im[k] * wi,
+            vI = re[k] * wi + im[k] * wr;
+          re[i + j] = uR + vR;
+          im[i + j] = uI + vI;
+          re[k] = uR - vR;
+          im[k] = uI - vI;
+          const nextR = wr * wlenR - wi * wlenI;
+          wi = wr * wlenI + wi * wlenR;
+          wr = nextR;
+        }
+      }
+    }
+  }
+
+  function spectrumProfile(buf, windowIndex, windowFrames) {
+    const start = windowIndex * windowFrames,
+      end = Math.min(buf.length, start + windowFrames);
+    if (start < 0 || start >= end) return null;
+    let n = 1;
+    while (n < end - start) n <<= 1;
+    const re = new Float64Array(n),
+      im = new Float64Array(n);
+    for (let i = start; i < end; i++) {
+      let v = 0;
+      for (let ch = 0; ch < buf.numberOfChannels; ch++) v += buf.getChannelData(ch)[i];
+      const j = i - start,
+        hann = end - start > 1 ? 0.5 - 0.5 * Math.cos((2 * Math.PI * j) / (end - start - 1)) : 1;
+      re[j] = (v / buf.numberOfChannels) * hann;
+    }
+    fft(re, im);
+    const bins = Math.min(n / 2 + 1, Math.floor((7800 * n) / buf.sampleRate) + 1),
+      out = new Float64Array(bins);
+    let total = 0;
+    for (let i = 0; i < bins; i++) {
+      const p = re[i] * re[i] + im[i] * im[i] + 1e-12;
+      out[i] = p;
+      total += p;
+    }
+    for (let i = 0; i < bins; i++) out[i] /= total;
+    return out;
+  }
+
+  function onsetSpectralFlux(buf, index, windowFrames) {
+    if (index < 1) return 0;
+    const before = spectrumProfile(buf, index - 1, windowFrames),
+      current = spectrumProfile(buf, index, windowFrames);
+    if (!before || !current) return 0;
+    const n = Math.min(before.length, current.length);
+    let sum = 0;
+    for (let i = 0; i < n; i++) {
+      const d = current[i] - before[i];
+      if (d > 0) sum += d * d;
+    }
+    return Math.sqrt(sum);
+  }
+
+  function eventDuration(levels, start, threshold, windowSeconds) {
+    let end = start,
+      misses = 0;
+    while (end < levels.length && end < start + 60) {
+      if (levels[end] >= threshold) misses = 0;
+      else if (++misses >= 2) break;
+      end++;
+    }
+    return Math.max(0, (end - start - Math.max(0, misses - 1)) * windowSeconds);
+  }
+
+  function maxChange(levels, seconds, windowSeconds) {
+    const d = Math.max(1, Math.round(seconds / windowSeconds));
+    let max = 0;
+    for (let i = 0; i + d < levels.length; i++) {
+      const before = (levels[i] + (levels[i + 1] ?? levels[i])) / 2;
+      const after = (levels[i + d] + (levels[i + d + 1] ?? levels[i + d])) / 2;
+      max = Math.max(max, after - before);
+    }
+    return max;
+  }
+
+  async function nativeNoAudioProbe(blob) {
+    return new Promise((resolve) => {
+      const video = document.createElement('video'),
+        objectUrl = URL.createObjectURL(blob);
+      let done = false;
+      const finish = (value) => {
+        if (done) return;
+        done = true;
+        clearTimeout(timer);
+        video.removeAttribute('src');
+        video.load();
+        URL.revokeObjectURL(objectUrl);
+        resolve(value);
+      };
+      const timer = setTimeout(() => finish(null), 5000);
+      video.preload = 'metadata';
+      video.muted = true;
+      video.onloadedmetadata = () => {
+        if (typeof video.mozHasAudio === 'boolean') return finish(!video.mozHasAudio);
+        if ('audioTracks' in video && video.audioTracks) return finish(video.audioTracks.length === 0);
+        finish(null);
+      };
+      video.onerror = () => finish(null);
+      video.src = objectUrl;
+    });
+  }
+
+  function bytesContain(bytes, text, start = 0, limit = bytes.length) {
+    const needle = Array.from(text, (c) => c.charCodeAt(0)),
+      end = Math.min(bytes.length, limit) - needle.length;
+    outer: for (let i = start; i <= end; i++) {
+      for (let j = 0; j < needle.length; j++) if (bytes[i + j] !== needle[j]) continue outer;
+      return true;
+    }
+    return false;
+  }
+
+  function ebmlVint(bytes, at, keepMarker = false, maxBytes = 8) {
+    if (at >= bytes.length) return null;
+    let mask = 0x80,
+      length = 1;
+    while (length <= maxBytes && !(bytes[at] & mask)) {
+      mask >>= 1;
+      length++;
+    }
+    if (length > maxBytes || at + length > bytes.length) return null;
+    let value = keepMarker ? bytes[at] : bytes[at] & (mask - 1);
+    for (let i = 1; i < length; i++) value = value * 256 + bytes[at + i];
+    return { length, value };
+  }
+
+  function webmHasAudio(bytes) {
+    const limit = Math.min(bytes.length, 2 * 1024 * 1024);
+    for (let i = 0; i + 5 < limit; i++) {
+      if (bytes[i] !== 0x16 || bytes[i + 1] !== 0x54 || bytes[i + 2] !== 0xae || bytes[i + 3] !== 0x6b) continue;
+      const tracksSize = ebmlVint(bytes, i + 4);
+      if (!tracksSize) continue;
+      let at = i + 4 + tracksSize.length,
+        end = Math.min(limit, at + tracksSize.value),
+        sawTrack = false;
+      while (at < end) {
+        const id = ebmlVint(bytes, at, true, 4);
+        if (!id) break;
+        const size = ebmlVint(bytes, at + id.length);
+        if (!size) break;
+        const data = at + id.length + size.length,
+          next = data + size.value;
+        if (next > end || next <= data) break;
+        if (id.value === 0xae) {
+          sawTrack = true;
+          for (let p = data; p < next; ) {
+            const childId = ebmlVint(bytes, p, true, 4);
+            if (!childId) break;
+            const childSize = ebmlVint(bytes, p + childId.length);
+            if (!childSize) break;
+            const childData = p + childId.length + childSize.length,
+              childEnd = childData + childSize.value;
+            if (childEnd > next || childEnd <= childData) break;
+            if (childId.value === 0x83) {
+              let type = 0;
+              for (let q = childData; q < childEnd; q++) type = type * 256 + bytes[q];
+              if (type === 2) return true;
+            }
+            p = childEnd;
+          }
+        }
+        at = next;
+      }
+      if (sawTrack) return false;
     }
     return null;
   }
-  const isWebm=bytes.length>=4&&bytes[0]===0x1a&&bytes[1]===0x45&&bytes[2]===0xdf&&bytes[3]===0xa3;
-  if(isWebm)return webmHasAudio(bytes);
-  return null;
-}
 
-async function analyzeScreamer(blob){
-  const DecoderCtx=window.AudioContext||window.webkitAudioContext||window.OfflineAudioContext||window.webkitOfflineAudioContext;
-  if(!DecoderCtx)return {status:'unsupported'};
-
-  let buf,encoded;
-  try{
-    encoded=await blob.arrayBuffer();
-    if(sniffContainerAudio(encoded)===false)return {status:'no-audio'};
-    if(!decoderContext){
-      try{decoderContext=new DecoderCtx();}
-      catch{decoderContext=new DecoderCtx(1,1,44100);}
-    }
-    buf=await decoderContext.decodeAudioData(encoded);
-  }catch(e){
-    console.warn('[spokoyno screamer] decode failed:',e);
-    return {status:(await nativeNoAudioProbe(blob))===true?'no-audio':'decode-error'};
-  }
-  if(!buf?.numberOfChannels||!buf.length)return {status:'no-audio'};
-
-  const timeline=await extractTimeline(buf), {levels,peaks,clipCounts,sampleCounts,windowSeconds}=timeline;
-  if(!levels.length)return {status:'no-audio'};
-
-  let best=-1,bestEnvelope=-1,bestBaseline=-90,bestEvent=-90,bestJump=0;
-  for(let i=0;i+EVENT_WINDOWS<=levels.length;i++){
-    const lo=Math.max(0,i-BASELINE_WINDOWS), hi=i-BASELINE_GAP;
-    if(hi-lo<MIN_BASELINE_WINDOWS)continue;
-    const baseline=percentile(levels.slice(lo,hi),.5);
-    const event=percentile(levels.slice(i,i+EVENT_WINDOWS),.25);
-    const jump=event-baseline;
-    const envelope=sigmoid((event+10.5)/2.5)**.9*sigmoid((jump-13)/3.5)**1.25;
-    if(envelope>bestEnvelope){
-      best=i; bestEnvelope=envelope; bestBaseline=baseline; bestEvent=event; bestJump=jump;
-    }
-  }
-
-  if(best<0){
-    best=0;
-    bestBaseline=percentile(levels,.5);
-    bestEvent=levels[0];
-    bestJump=bestEvent-bestBaseline;
-  }
-
-  const threshold=Math.max(-13,bestBaseline+9);
-  const duration=eventDuration(levels,best,threshold,windowSeconds);
-  const lookEnd=Math.min(levels.length,best+EVENT_LOOKAHEAD);
-  let eventPeak=-90,eventClips=0,eventSamples=0;
-  for(let i=best;i<lookEnd;i++){
-    eventPeak=Math.max(eventPeak,peaks[i]);
-    eventClips+=clipCounts[i];
-    eventSamples+=sampleCounts[i];
-  }
-  const eventNearClip=eventClips/Math.max(1,eventSamples), spectralFlux=onsetSpectralFlux(buf,best,timeline.windowFrames);
-  const loudComponent=sigmoid((bestEvent+10.5)/2.5);
-  const jumpComponent=sigmoid((bestJump-13)/3.5);
-  const durationComponent=sigmoid((duration-.18)/.09);
-  const quietComponent=sigmoid((-bestBaseline-15)/5);
-  const clipComponent=sigmoid((eventNearClip-.005)/.012);
-  const fluxComponent=sigmoid((spectralFlux-.22)/.08);
-  let confidence=loudComponent**.9*jumpComponent**1.25*durationComponent**.65;
-  confidence*=.87+.10*quietComponent+.03*clipComponent;
-  confidence*=.65+.35*fluxComponent;
-  confidence=Math.max(0,Math.min(1,confidence));
-  const suspicious=confidence>=SCREAMER_CONFIDENCE&&bestEvent>=-6&&bestJump>=14&&duration>=.15;
-  const median=percentile(levels,.5);
-  const reason=suspicious
-    ? 'Sustained near-full-scale event after a quieter baseline, with a changed onset spectrum'
-    : bestJump<14?'No sufficiently large sustained local transition':
-      bestEvent<-6?'The strongest transition did not become near-full-scale':
-      spectralFlux<.22?'The loudness changed, but the onset spectrum remained similar':'Combined evidence stayed below the warning threshold';
-
-  return {
-    status:'ok',suspicious,confidence,eventAt:best*windowSeconds,jumpDb:bestJump,eventDb:bestEvent,
-    baselineDb:bestBaseline,eventDuration:duration,eventPeakDb:eventPeak,eventNearClipPct:eventNearClip*100,
-    spectralFlux,medianDb:median,p10Db:percentile(levels,.10),p25Db:percentile(levels,.25),
-    p75Db:percentile(levels,.75),p90Db:percentile(levels,.90),p95Db:percentile(levels,.95),
-    p99Db:percentile(levels,.99),peakDb:timeline.peakDb,rmsDb:timeline.rmsDb,
-    crestDb:timeline.peakDb-timeline.rmsDb,nearClipPct:timeline.nearClipPct,
-    maxChange50Db:maxChange(levels,.05,windowSeconds),maxChange100Db:maxChange(levels,.10,windowSeconds),
-    maxChange250Db:maxChange(levels,.25,windowSeconds),maxChange500Db:maxChange(levels,.50,windowSeconds),
-    maxChange1000Db:maxChange(levels,1,windowSeconds),duration:buf.duration,reason
-  };
-}
-
-function queueScreamerAnalysis(url,key,blob=null){
-  const sk=screamerKey(url);
-  if(analysisResults.has(sk)||analysisQueued.has(sk))return;
-  analysisQueued.add(sk);
-  analysisQueue.push({url,key,sk,blob,generation:analysisGeneration});
-  runAnalysisQueue();
-}
-
-async function runAnalysisQueue(){
-  if(analysisRunning)return;
-  analysisRunning=true;
-  try{
-    while(analysisQueue.length){
-      const item=analysisQueue.shift();
-      analysisQueued.delete(item.sk);
-      if(item.generation!==analysisGeneration||analysisResults.has(item.sk))continue;
-      try{
-        let blob=item.blob;
-        if(!blob){
-          const r=await cache.match(item.key);
-          if(!r)continue;
-          blob=await r.blob();
-        }
-        const result=await analyzeScreamer(blob);
-        if(item.generation===analysisGeneration) publishScreamerResult(item.sk,result);
-      }catch(e){
-        console.warn('[spokoyno screamer] analysis failed:',item.url,e);
-        if(item.generation===analysisGeneration) publishScreamerResult(item.sk,{status:'decode-error'});
+  function sniffContainerAudio(arrayBuffer) {
+    const bytes = new Uint8Array(arrayBuffer),
+      isMp4 = bytes.length >= 12 && bytesContain(bytes, 'ftyp', 0, 16);
+    if (isMp4) {
+      const view = new DataView(arrayBuffer);
+      for (let at = 0; at + 8 <= bytes.length; ) {
+        let size = view.getUint32(at),
+          header = 8;
+        const type = String.fromCharCode(bytes[at + 4], bytes[at + 5], bytes[at + 6], bytes[at + 7]);
+        if (size === 1 && at + 16 <= bytes.length) {
+          size = Number(view.getBigUint64(at + 8));
+          header = 16;
+        } else if (size === 0) size = bytes.length - at;
+        if (size < header || at + size > bytes.length) break;
+        if (type === 'moov') return bytesContain(bytes, 'soun', at + header, at + size);
+        at += size;
       }
-      await yieldMain();
+      return null;
     }
-  }finally{analysisRunning=false;}
-}
+    const isWebm =
+      bytes.length >= 4 && bytes[0] === 0x1a && bytes[1] === 0x45 && bytes[2] === 0xdf && bytes[3] === 0xa3;
+    if (isWebm) return webmHasAudio(bytes);
+    return null;
+  }
 
-function discover(root){
-  const links=[];
-  if(root.matches?.('a[href]'))links.push(root);
-  if(root.querySelectorAll)links.push(...root.querySelectorAll('a[href]'));
-  for(const a of links){
-    const url=mediaUrl(a);
-    if(!url)continue;
-    a.dataset.tm2chMediaUrl=url;
-    const key=canonicalKey(url);
-    seen.add(key);
-    attachScreamerBadge(a,url);
-    if(cached.has(key)){
-      queueScreamerAnalysis(url,key);
-      continue;
+  async function analyzeScreamer(blob) {
+    const DecoderCtx =
+      window.AudioContext ||
+      window.webkitAudioContext ||
+      window.OfflineAudioContext ||
+      window.webkitOfflineAudioContext;
+    if (!DecoderCtx) return { status: 'unsupported' };
+
+    let buf, encoded;
+    try {
+      encoded = await blob.arrayBuffer();
+      if (sniffContainerAudio(encoded) === false) return { status: 'no-audio' };
+      if (!decoderContext) {
+        try {
+          decoderContext = new DecoderCtx();
+        } catch {
+          decoderContext = new DecoderCtx(1, 1, 44100);
+        }
+      }
+      buf = await decoderContext.decodeAudioData(encoded);
+    } catch (e) {
+      console.warn('[spokoyno screamer] decode failed:', e);
+      return {
+        status: (await nativeNoAudioProbe(blob)) === true ? 'no-audio' : 'decode-error'
+      };
     }
-    if(queued.has(key))continue;
-    queued.add(key);
-    queue.push({url,key});
-  }
-  scheduleUI();
-  pump();
-}
+    if (!buf?.numberOfChannels || !buf.length) return { status: 'no-audio' };
 
-function pump(){
-  while(running<CONCURRENCY&&queue.length){
-    const item=queue.shift();
-    running++;
-    preload(item).catch(e=>{
-      errors++;
-      console.warn('[spokoyno] preload failed:',item.url,e);
-    }).finally(()=>{
-      queued.delete(item.key);
-      running--;
-      scheduleUI();
-      pump();
-    });
-  }
-}
+    const timeline = await extractTimeline(buf),
+      { levels, peaks, clipCounts, sampleCounts, windowSeconds } = timeline;
+    if (!levels.length) return { status: 'no-audio' };
 
-async function preload({url,key}){
-  const existing=await cache.match(key);
-  if(existing){
-    cached.add(key);
-    queueScreamerAnalysis(url,key);
+    let best = -1,
+      bestEnvelope = -1,
+      bestBaseline = -90,
+      bestEvent = -90,
+      bestJump = 0;
+    for (let i = 0; i + EVENT_WINDOWS <= levels.length; i++) {
+      const lo = Math.max(0, i - BASELINE_WINDOWS),
+        hi = i - BASELINE_GAP;
+      if (hi - lo < MIN_BASELINE_WINDOWS) continue;
+      const baseline = percentile(levels.slice(lo, hi), 0.5);
+      const event = percentile(levels.slice(i, i + EVENT_WINDOWS), 0.25);
+      const jump = event - baseline;
+      const envelope = sigmoid((event + 10.5) / 2.5) ** 0.9 * sigmoid((jump - 13) / 3.5) ** 1.25;
+      if (envelope > bestEnvelope) {
+        best = i;
+        bestEnvelope = envelope;
+        bestBaseline = baseline;
+        bestEvent = event;
+        bestJump = jump;
+      }
+    }
+
+    if (best < 0) {
+      best = 0;
+      bestBaseline = percentile(levels, 0.5);
+      bestEvent = levels[0];
+      bestJump = bestEvent - bestBaseline;
+    }
+
+    const threshold = Math.max(-13, bestBaseline + 9);
+    const duration = eventDuration(levels, best, threshold, windowSeconds);
+    const lookEnd = Math.min(levels.length, best + EVENT_LOOKAHEAD);
+    let eventPeak = -90,
+      eventClips = 0,
+      eventSamples = 0;
+    for (let i = best; i < lookEnd; i++) {
+      eventPeak = Math.max(eventPeak, peaks[i]);
+      eventClips += clipCounts[i];
+      eventSamples += sampleCounts[i];
+    }
+    const eventNearClip = eventClips / Math.max(1, eventSamples),
+      spectralFlux = onsetSpectralFlux(buf, best, timeline.windowFrames);
+    const loudComponent = sigmoid((bestEvent + 10.5) / 2.5);
+    const jumpComponent = sigmoid((bestJump - 13) / 3.5);
+    const durationComponent = sigmoid((duration - 0.18) / 0.09);
+    const quietComponent = sigmoid((-bestBaseline - 15) / 5);
+    const clipComponent = sigmoid((eventNearClip - 0.005) / 0.012);
+    const fluxComponent = sigmoid((spectralFlux - 0.22) / 0.08);
+    let confidence = loudComponent ** 0.9 * jumpComponent ** 1.25 * durationComponent ** 0.65;
+    confidence *= 0.87 + 0.1 * quietComponent + 0.03 * clipComponent;
+    confidence *= 0.65 + 0.35 * fluxComponent;
+    confidence = Math.max(0, Math.min(1, confidence));
+    const suspicious = confidence >= SCREAMER_CONFIDENCE && bestEvent >= -6 && bestJump >= 14 && duration >= 0.15;
+    const median = percentile(levels, 0.5);
+    const reason = suspicious
+      ? 'Sustained near-full-scale event after a quieter baseline, with a changed onset spectrum'
+      : bestJump < 14
+        ? 'No sufficiently large sustained local transition'
+        : bestEvent < -6
+          ? 'The strongest transition did not become near-full-scale'
+          : spectralFlux < 0.22
+            ? 'The loudness changed, but the onset spectrum remained similar'
+            : 'Combined evidence stayed below the warning threshold';
+
+    return {
+      status: 'ok',
+      suspicious,
+      confidence,
+      eventAt: best * windowSeconds,
+      jumpDb: bestJump,
+      eventDb: bestEvent,
+      baselineDb: bestBaseline,
+      eventDuration: duration,
+      eventPeakDb: eventPeak,
+      eventNearClipPct: eventNearClip * 100,
+      spectralFlux,
+      medianDb: median,
+      p10Db: percentile(levels, 0.1),
+      p25Db: percentile(levels, 0.25),
+      p75Db: percentile(levels, 0.75),
+      p90Db: percentile(levels, 0.9),
+      p95Db: percentile(levels, 0.95),
+      p99Db: percentile(levels, 0.99),
+      peakDb: timeline.peakDb,
+      rmsDb: timeline.rmsDb,
+      crestDb: timeline.peakDb - timeline.rmsDb,
+      nearClipPct: timeline.nearClipPct,
+      maxChange50Db: maxChange(levels, 0.05, windowSeconds),
+      maxChange100Db: maxChange(levels, 0.1, windowSeconds),
+      maxChange250Db: maxChange(levels, 0.25, windowSeconds),
+      maxChange500Db: maxChange(levels, 0.5, windowSeconds),
+      maxChange1000Db: maxChange(levels, 1, windowSeconds),
+      duration: buf.duration,
+      reason
+    };
+  }
+
+  function queueScreamerAnalysis(url, key, blob = null) {
+    const sk = screamerKey(url);
+    if (analysisResults.has(sk) || analysisQueued.has(sk)) return;
+    analysisQueued.add(sk);
+    analysisQueue.push({ url, key, sk, blob, generation: analysisGeneration });
+    runAnalysisQueue();
+  }
+
+  async function runAnalysisQueue() {
+    if (analysisRunning) return;
+    analysisRunning = true;
+    try {
+      while (analysisQueue.length) {
+        const item = analysisQueue.shift();
+        analysisQueued.delete(item.sk);
+        if (item.generation !== analysisGeneration || analysisResults.has(item.sk)) continue;
+        try {
+          let blob = item.blob;
+          if (!blob) {
+            const r = await cache.match(item.key);
+            if (!r) continue;
+            blob = await r.blob();
+          }
+          const result = await analyzeScreamer(blob);
+          if (item.generation === analysisGeneration) publishScreamerResult(item.sk, result);
+        } catch (e) {
+          console.warn('[spokoyno screamer] analysis failed:', item.url, e);
+          if (item.generation === analysisGeneration) publishScreamerResult(item.sk, { status: 'decode-error' });
+        }
+        await yieldMain();
+      }
+    } finally {
+      analysisRunning = false;
+    }
+  }
+
+  function discover(root) {
+    const links = [];
+    if (root.matches?.('a[href]')) links.push(root);
+    if (root.querySelectorAll) links.push(...root.querySelectorAll('a[href]'));
+    for (const a of links) {
+      const url = mediaUrl(a);
+      if (!url) continue;
+      a.dataset.tm2chMediaUrl = url;
+      const key = canonicalKey(url);
+      seen.add(key);
+      attachScreamerBadge(a, url);
+      if (cached.has(key)) {
+        queueScreamerAnalysis(url, key);
+        continue;
+      }
+      if (queued.has(key)) continue;
+      queued.add(key);
+      queue.push({ url, key });
+    }
     scheduleUI();
-    return;
-  }
-  const {blob,contentType,domain}=await downloadFromBestMirror(url,key);
-  const headers=new Headers();
-  if(contentType)headers.set('Content-Type',contentType);
-  headers.set('X-TM-2ch-Mirror',domain);
-  headers.set('X-TM-2ch-Original-Path',mediaPath(url));
-  await cache.put(key,new Response(blob,{status:200,headers}));
-  cached.add(key);
-  queueScreamerAnalysis(url,key,blob);
-  scheduleUI();
-}
-
-function installClickHandler(){
-  window.addEventListener('click',async e=>{
-    if(e.defaultPrevented||e.button!==0||e.ctrlKey||e.metaKey||e.shiftKey||e.altKey)return;
-    const a=e.target?.closest?.('a[href]');
-    if(!a)return;
-    const url=a.dataset.tm2chMediaUrl||mediaUrl(a);
-    if(!url)return;
-    const key=canonicalKey(url);
-    if(!cached.has(key))return;
-    e.preventDefault();
-    e.stopImmediatePropagation();
-    try{await showFromCache(url);}
-    catch(err){console.warn('[spokoyno] viewer:',err);location.href=url;}
-  },true);
-}
-
-async function showFromCache(url){
-  const key=canonicalKey(url), r=await cache.match(key);
-  if(!r){cached.delete(key);throw new Error('cache miss');}
-  const blob=await r.blob(), objectUrl=URL.createObjectURL(blob);
-  const old=document.getElementById('tm2ch-cache-viewer');
-  if(old?._tmClose)old._tmClose(); else old?.remove();
-  const overlay=document.createElement('div');
-  overlay.id='tm2ch-cache-viewer';
-  overlay.style.cssText='position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;background:rgba(0,0,0,.94);cursor:zoom-out';
-  const media=document.createElement('video');
-  media.controls=true;
-  media.autoplay=true;
-  media.loop=true;
-  media.src=objectUrl;
-  media.style.cssText='max-width:100%;max-height:100%;object-fit:contain;cursor:default';
-  media.addEventListener('click',e=>e.stopPropagation());
-  let closed=false;
-  const close=()=>{
-    if(closed)return;
-    closed=true;
-    document.removeEventListener('keydown',keydown,true);
-    try{media.pause();}catch{}
-    overlay.remove();
-    URL.revokeObjectURL(objectUrl);
-  };
-  const keydown=e=>{if(e.key==='Escape')close();};
-  overlay._tmClose=close;
-  overlay.addEventListener('click',close);
-  document.addEventListener('keydown',keydown,true);
-  overlay.append(media);
-  document.documentElement.append(overlay);
-}
-
-function installUI(){
-  if(uiRoot)return;
-  uiRoot=document.createElement('div');
-  uiRoot.style.cssText='position:fixed;right:10px;bottom:10px;z-index:2147483646;display:flex;gap:8px;align-items:flex-end;font:12px/1.35 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:white;pointer-events:none;user-select:none';
-  speedBox=document.createElement('div');
-  speedBox.style.cssText='width:330px;padding:8px;box-sizing:border-box;border-radius:7px;background:rgba(0,0,0,.86);backdrop-filter:blur(4px)';
-  summaryBox=document.createElement('div');
-  summaryBox.style.cssText='padding:6px 8px;border-radius:7px;white-space:nowrap;background:rgba(0,0,0,.86)';
-  uiRoot.append(speedBox,summaryBox);
-  document.documentElement.append(uiRoot);
-  renderUI();
-}
-
-function scheduleUI(){
-  if(uiScheduled)return;
-  uiScheduled=true;
-  setTimeout(()=>{uiScheduled=false;renderUI();},100);
-}
-
-function renderUI(){
-  if(!summaryBox||!speedBox)return;
-  let threadDone=0;
-  for(const key of seen)if(cached.has(key))threadDone++;
-  const mirror=state.mirror?state.mirror.replace('2ch.',''):'?';
-  summaryBox.textContent=`thread ${threadDone}/${seen.size} · tab ${cached.size} · via ${mirror}`+
-    `${queue.length?` · q${queue.length}`:''}`+`${errors?` · err ${errors}`:''}`;
-  const active=[...activeDownloads.values()];
-  const totalBps=active.reduce((s,x)=>s+(Number.isFinite(x.bps)?x.bps:0),0);
-  speedBox.replaceChildren();
-  const header=document.createElement('div');
-  header.style.cssText='display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:6px;font-weight:700';
-  const total=document.createElement('span'), count=document.createElement('span');
-  total.textContent=`Σ ${formatRate(totalBps)}`;
-  count.style.opacity='.65';
-  count.textContent=`${active.length} active`;
-  header.append(total,count);
-  speedBox.append(header);
-
-  if(active.length){
-    const max=Math.max(1,...active.map(x=>x.bps||0));
-    for(const x of active){
-      const row=document.createElement('div');
-      row.style.cssText='position:relative;margin-top:4px;height:29px;overflow:hidden;border-radius:4px;background:rgba(255,255,255,.075)';
-      const bar=document.createElement('div');
-      bar.style.cssText=`position:absolute;left:0;top:0;bottom:0;width:${Math.max(0,Math.min(100,x.bps/max*100))}%;background:rgba(255,255,255,.13);transition:width .15s linear`;
-      const c=document.createElement('div');
-      c.style.cssText='position:relative;z-index:1;height:100%;display:flex;align-items:center;gap:7px;padding:0 6px;box-sizing:border-box';
-      const n=document.createElement('span'), p=document.createElement('span'), s=document.createElement('span');
-      n.style.cssText='flex:1;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;opacity:.82';
-      n.textContent=shortName(x.name);
-      n.title=x.name;
-      p.style.cssText='opacity:.55;white-space:nowrap';
-      p.textContent=x.total>0?`${Math.floor(x.loaded/x.total*100)}%`:formatBytes(x.loaded);
-      s.style.cssText='min-width:78px;text-align:right;white-space:nowrap;font-weight:700';
-      s.textContent=formatRate(x.bps);
-      c.append(n,p,s);
-      row.append(bar,c);
-      speedBox.append(row);
-    }
-  }else{
-    const idle=document.createElement('div');
-    idle.style.cssText='padding:4px 0;opacity:.5';
-    idle.textContent=queue.length?'waiting for downloads…':'idle';
-    speedBox.append(idle);
+    pump();
   }
 
-  if(recentDownloads.length){
-    const sep=document.createElement('div');
-    sep.style.cssText='margin:7px 0 4px;padding-top:5px;border-top:1px solid rgba(255,255,255,.12);opacity:.55';
-    sep.textContent='recent avg';
-    speedBox.append(sep);
-    for(const x of recentDownloads.slice(0,4)){
-      const row=document.createElement('div'), n=document.createElement('span');
-      const d=document.createElement('span'), s=document.createElement('span');
-      row.style.cssText='display:flex;gap:6px;padding:1px 0;opacity:.68';
-      n.style.cssText='flex:1;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis';
-      n.textContent=shortName(x.name);
-      d.style.opacity='.6';
-      d.textContent=x.domain.replace('2ch.','');
-      s.style.cssText='min-width:78px;text-align:right';
-      s.textContent=formatRate(x.avgBps);
-      row.append(n,d,s);
-      speedBox.append(row);
+  function pump() {
+    while (running < CONCURRENCY && queue.length) {
+      const item = queue.shift();
+      running++;
+      preload(item)
+        .catch((e) => {
+          errors++;
+          console.warn('[spokoyno] preload failed:', item.url, e);
+        })
+        .finally(() => {
+          queued.delete(item.key);
+          running--;
+          scheduleUI();
+          pump();
+        });
     }
   }
-}
 
-async function cleanupOrphanCaches(){
-  try{
-    const tabs=await gmGetTabs(), states=Object.values(tabs);
-    if(!states.some(x=>x?.tm2chMediaV4?.cacheName===cacheName))return;
-    const alive=new Set(states.map(x=>x?.tm2chMediaV4?.cacheName)
-      .filter(x=>typeof x==='string'&&x.startsWith(PREFIX)));
-    for(const name of await caches.keys())if(name.startsWith(PREFIX)&&!alive.has(name))await caches.delete(name);
-  }catch(e){console.warn('[spokoyno] cleanup skipped:',e);}
-}
+  async function preload({ url, key }) {
+    const existing = await cache.match(key);
+    if (existing) {
+      cached.add(key);
+      queueScreamerAnalysis(url, key);
+      scheduleUI();
+      return;
+    }
+    const { blob, contentType, domain } = await downloadFromBestMirror(url, key);
+    const headers = new Headers();
+    if (contentType) headers.set('Content-Type', contentType);
+    headers.set('X-TM-2ch-Mirror', domain);
+    headers.set('X-TM-2ch-Original-Path', mediaPath(url));
+    await cache.put(key, new Response(blob, { status: 200, headers }));
+    cached.add(key);
+    queueScreamerAnalysis(url, key, blob);
+    scheduleUI();
+  }
 
-GM_registerMenuCommand('Перетестировать зеркала',async()=>{
-  state.mirror=null;
-  state.mirrorCheckedAt=0;
-  await gmSaveTab(tab);
-  mirrorPromise=null;
-  const a=[...document.querySelectorAll('a[href]')].find(x=>mediaUrl(x));
-  if(a)await getPreferredMirror(mediaUrl(a));
-  scheduleUI();
-});
+  function installClickHandler() {
+    window.addEventListener(
+      'click',
+      async (e) => {
+        if (e.defaultPrevented || e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
+        const a = e.target?.closest?.('a[href]');
+        if (!a) return;
+        const url = a.dataset.tm2chMediaUrl || mediaUrl(a);
+        if (!url) return;
+        const key = canonicalKey(url);
+        if (!cached.has(key)) return;
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        try {
+          await showFromCache(url);
+        } catch (err) {
+          console.warn('[spokoyno] viewer:', err);
+          location.href = url;
+        }
+      },
+      true
+    );
+  }
 
-GM_registerMenuCommand('Очистить media-cache этой вкладки',async()=>{
-  queue.length=0;
-  queued.clear();
-  analysisQueue.length=0;
-  analysisQueued.clear();
-  analysisGeneration++;
-  await caches.delete(cacheName);
-  cache=await caches.open(cacheName);
-  cached.clear();
-  recentDownloads.length=0;
-  errors=0;
-  state.screamer={};
-  analysisResults.clear();
-  await gmSaveTab(tab);
-  for(const b of screamerBadges.values())if(b.isConnected)renderScreamerResult(b,null);
-  discover(document);
-});
+  async function showFromCache(url) {
+    const key = canonicalKey(url),
+      r = await cache.match(key);
+    if (!r) {
+      cached.delete(key);
+      throw new Error('cache miss');
+    }
+    const blob = await r.blob(),
+      objectUrl = URL.createObjectURL(blob);
+    const old = document.getElementById('tm2ch-cache-viewer');
+    if (old?._tmClose) old._tmClose();
+    else old?.remove();
+    const overlay = document.createElement('div');
+    overlay.id = 'tm2ch-cache-viewer';
+    overlay.style.cssText =
+      'position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;background:rgba(0,0,0,.94);cursor:zoom-out';
+    const media = document.createElement('video');
+    media.controls = true;
+    media.autoplay = true;
+    media.loop = true;
+    media.src = objectUrl;
+    media.style.cssText = 'max-width:100%;max-height:100%;object-fit:contain;cursor:default';
+    media.addEventListener('click', (e) => e.stopPropagation());
+    let closed = false;
+    const close = () => {
+      if (closed) return;
+      closed = true;
+      document.removeEventListener('keydown', keydown, true);
+      try {
+        media.pause();
+      } catch {}
+      overlay.remove();
+      URL.revokeObjectURL(objectUrl);
+    };
+    const keydown = (e) => {
+      if (e.key === 'Escape') close();
+    };
+    overlay._tmClose = close;
+    overlay.addEventListener('click', close);
+    document.addEventListener('keydown', keydown, true);
+    overlay.append(media);
+    document.documentElement.append(overlay);
+  }
 
-GM_registerMenuCommand('Сбросить результаты screamer detector',async()=>{
-  analysisQueue.length=0;
-  analysisQueued.clear();
-  analysisGeneration++;
-  state.screamer={};
-  analysisResults.clear();
-  await gmSaveTab(tab);
-  for(const [sk,b] of screamerBadges){
-    if(!b.isConnected)continue;
-    renderScreamerResult(b,null);
-    const a=[...document.querySelectorAll('a[href]')]
-      .find(x=>x.dataset.tm2chMediaUrl&&screamerKey(x.dataset.tm2chMediaUrl)===sk);
-    if(a){
-      const url=a.dataset.tm2chMediaUrl;
-      queueScreamerAnalysis(url,canonicalKey(url));
+  function installUI() {
+    if (uiRoot) return;
+    uiRoot = document.createElement('div');
+    uiRoot.style.cssText =
+      'position:fixed;right:10px;bottom:10px;z-index:2147483646;display:flex;gap:8px;align-items:flex-end;font:12px/1.35 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:white;pointer-events:none;user-select:none';
+    speedBox = document.createElement('div');
+    speedBox.style.cssText =
+      'width:330px;padding:8px;box-sizing:border-box;border-radius:7px;background:rgba(0,0,0,.86);backdrop-filter:blur(4px)';
+    summaryBox = document.createElement('div');
+    summaryBox.style.cssText = 'padding:6px 8px;border-radius:7px;white-space:nowrap;background:rgba(0,0,0,.86)';
+    uiRoot.append(speedBox, summaryBox);
+    document.documentElement.append(uiRoot);
+    renderUI();
+  }
+
+  function scheduleUI() {
+    if (uiScheduled) return;
+    uiScheduled = true;
+    setTimeout(() => {
+      uiScheduled = false;
+      renderUI();
+    }, 100);
+  }
+
+  function renderUI() {
+    if (!summaryBox || !speedBox) return;
+    let threadDone = 0;
+    for (const key of seen) if (cached.has(key)) threadDone++;
+    const mirror = state.mirror ? state.mirror.replace('2ch.', '') : '?';
+    summaryBox.textContent =
+      `thread ${threadDone}/${seen.size} · tab ${cached.size} · via ${mirror}` +
+      `${queue.length ? ` · q${queue.length}` : ''}` +
+      `${errors ? ` · err ${errors}` : ''}`;
+    const active = [...activeDownloads.values()];
+    const totalBps = active.reduce((s, x) => s + (Number.isFinite(x.bps) ? x.bps : 0), 0);
+    speedBox.replaceChildren();
+    const header = document.createElement('div');
+    header.style.cssText =
+      'display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:6px;font-weight:700';
+    const total = document.createElement('span'),
+      count = document.createElement('span');
+    total.textContent = `Σ ${formatRate(totalBps)}`;
+    count.style.opacity = '.65';
+    count.textContent = `${active.length} active`;
+    header.append(total, count);
+    speedBox.append(header);
+
+    if (active.length) {
+      const max = Math.max(1, ...active.map((x) => x.bps || 0));
+      for (const x of active) {
+        const row = document.createElement('div');
+        row.style.cssText =
+          'position:relative;margin-top:4px;height:29px;overflow:hidden;border-radius:4px;background:rgba(255,255,255,.075)';
+        const bar = document.createElement('div');
+        bar.style.cssText = `position:absolute;left:0;top:0;bottom:0;width:${Math.max(0, Math.min(100, (x.bps / max) * 100))}%;background:rgba(255,255,255,.13);transition:width .15s linear`;
+        const c = document.createElement('div');
+        c.style.cssText =
+          'position:relative;z-index:1;height:100%;display:flex;align-items:center;gap:7px;padding:0 6px;box-sizing:border-box';
+        const n = document.createElement('span'),
+          p = document.createElement('span'),
+          s = document.createElement('span');
+        n.style.cssText = 'flex:1;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;opacity:.82';
+        n.textContent = shortName(x.name);
+        n.title = x.name;
+        p.style.cssText = 'opacity:.55;white-space:nowrap';
+        p.textContent = x.total > 0 ? `${Math.floor((x.loaded / x.total) * 100)}%` : formatBytes(x.loaded);
+        s.style.cssText = 'min-width:78px;text-align:right;white-space:nowrap;font-weight:700';
+        s.textContent = formatRate(x.bps);
+        c.append(n, p, s);
+        row.append(bar, c);
+        speedBox.append(row);
+      }
+    } else {
+      const idle = document.createElement('div');
+      idle.style.cssText = 'padding:4px 0;opacity:.5';
+      idle.textContent = queue.length ? 'waiting for downloads…' : 'idle';
+      speedBox.append(idle);
+    }
+
+    if (recentDownloads.length) {
+      const sep = document.createElement('div');
+      sep.style.cssText = 'margin:7px 0 4px;padding-top:5px;border-top:1px solid rgba(255,255,255,.12);opacity:.55';
+      sep.textContent = 'recent avg';
+      speedBox.append(sep);
+      for (const x of recentDownloads.slice(0, 4)) {
+        const row = document.createElement('div'),
+          n = document.createElement('span');
+        const d = document.createElement('span'),
+          s = document.createElement('span');
+        row.style.cssText = 'display:flex;gap:6px;padding:1px 0;opacity:.68';
+        n.style.cssText = 'flex:1;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis';
+        n.textContent = shortName(x.name);
+        d.style.opacity = '.6';
+        d.textContent = x.domain.replace('2ch.', '');
+        s.style.cssText = 'min-width:78px;text-align:right';
+        s.textContent = formatRate(x.avgBps);
+        row.append(n, d, s);
+        speedBox.append(row);
+      }
     }
   }
-});
 
-function start(){
-  installPageStyles();
-  installUI();
-  discover(document);
-  new MutationObserver(rs=>{
-    for(const r of rs)for(const n of r.addedNodes)
-      if(n.nodeType===Node.ELEMENT_NODE)discover(n);
-  }).observe(document.documentElement,{childList:true,subtree:true});
-  cleanupOrphanCaches();
-  setInterval(cleanupOrphanCaches,CLEANUP_INTERVAL);
-}
+  async function cleanupOrphanCaches() {
+    try {
+      const tabs = await gmGetTabs(),
+        states = Object.values(tabs);
+      if (!states.some((x) => x?.tm2chMediaV4?.cacheName === cacheName)) return;
+      const alive = new Set(
+        states.map((x) => x?.tm2chMediaV4?.cacheName).filter((x) => typeof x === 'string' && x.startsWith(PREFIX))
+      );
+      for (const name of await caches.keys())
+        if (name.startsWith(PREFIX) && !alive.has(name)) await caches.delete(name);
+    } catch (e) {
+      console.warn('[spokoyno] cleanup skipped:', e);
+    }
+  }
 
-installClickHandler();
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});
-else start();
+  GM_registerMenuCommand('Перетестировать зеркала', async () => {
+    state.mirror = null;
+    state.mirrorCheckedAt = 0;
+    await gmSaveTab(tab);
+    mirrorPromise = null;
+    const a = [...document.querySelectorAll('a[href]')].find((x) => mediaUrl(x));
+    if (a) await getPreferredMirror(mediaUrl(a));
+    scheduleUI();
+  });
 
+  GM_registerMenuCommand('Очистить media-cache этой вкладки', async () => {
+    queue.length = 0;
+    queued.clear();
+    analysisQueue.length = 0;
+    analysisQueued.clear();
+    analysisGeneration++;
+    await caches.delete(cacheName);
+    cache = await caches.open(cacheName);
+    cached.clear();
+    recentDownloads.length = 0;
+    errors = 0;
+    state.screamer = {};
+    analysisResults.clear();
+    await gmSaveTab(tab);
+    for (const b of screamerBadges.values()) if (b.isConnected) renderScreamerResult(b, null);
+    discover(document);
+  });
+
+  GM_registerMenuCommand('Сбросить результаты screamer detector', async () => {
+    analysisQueue.length = 0;
+    analysisQueued.clear();
+    analysisGeneration++;
+    state.screamer = {};
+    analysisResults.clear();
+    await gmSaveTab(tab);
+    for (const [sk, b] of screamerBadges) {
+      if (!b.isConnected) continue;
+      renderScreamerResult(b, null);
+      const a = [...document.querySelectorAll('a[href]')].find(
+        (x) => x.dataset.tm2chMediaUrl && screamerKey(x.dataset.tm2chMediaUrl) === sk
+      );
+      if (a) {
+        const url = a.dataset.tm2chMediaUrl;
+        queueScreamerAnalysis(url, canonicalKey(url));
+      }
+    }
+  });
+
+  function start() {
+    installPageStyles();
+    installUI();
+    discover(document);
+    new MutationObserver((rs) => {
+      for (const r of rs) for (const n of r.addedNodes) if (n.nodeType === Node.ELEMENT_NODE) discover(n);
+    }).observe(document.documentElement, { childList: true, subtree: true });
+    cleanupOrphanCaches();
+    setInterval(cleanupOrphanCaches, CLEANUP_INTERVAL);
+  }
+
+  installClickHandler();
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, { once: true });
+  else start();
 })();
