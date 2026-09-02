@@ -1,0 +1,353 @@
+#!/usr/bin/env python3
+"""Extract full-track, event-oriented audio features from the supplied 2ch thread."""
+
+from __future__ import annotations
+
+import argparse
+import csv
+import json
+import math
+import subprocess
+import sys
+from pathlib import Path
+
+import numpy as np
+from scipy.ndimage import maximum_filter1d
+from scipy.signal import butter, sosfilt
+
+RATE = 16_000
+WINDOW_S = 0.05
+WINDOW = round(RATE * WINDOW_S)
+FLOOR_DB = -90.0
+POSITIVE_NAMES = {
+    "17883557324650588814.webm": "confirmed positive #1",
+    "17883557325462786367.mp4": "confirmed positive #2",
+}
+
+
+def db_power(x: np.ndarray | float) -> np.ndarray | float:
+    return 10.0 * np.log10(np.maximum(x, 1e-9))
+
+
+def db_amp(x: np.ndarray | float) -> np.ndarray | float:
+    return 20.0 * np.log10(np.maximum(x, 10 ** (FLOOR_DB / 20)))
+
+
+def sigmoid(x: np.ndarray | float) -> np.ndarray | float:
+    x = np.clip(x, -30, 30)
+    return 1.0 / (1.0 + np.exp(-x))
+
+
+def high_shelf_sos(fs: int, f0: float = 1500.0, gain_db: float = 4.0, q: float = 1 / math.sqrt(2)) -> np.ndarray:
+    """RBJ high-shelf biquad, used with a high-pass as a cheap K-like weighting."""
+    a = 10 ** (gain_db / 40)
+    w0 = 2 * math.pi * f0 / fs
+    alpha = math.sin(w0) / (2 * q)
+    c = math.cos(w0)
+    beta = 2 * math.sqrt(a) * alpha
+    b0 = a * ((a + 1) + (a - 1) * c + beta)
+    b1 = -2 * a * ((a - 1) + (a + 1) * c)
+    b2 = a * ((a + 1) + (a - 1) * c - beta)
+    a0 = (a + 1) - (a - 1) * c + beta
+    a1 = 2 * ((a - 1) - (a + 1) * c)
+    a2 = (a + 1) - (a - 1) * c - beta
+    return np.array([[b0 / a0, b1 / a0, b2 / a0, 1.0, a1 / a0, a2 / a0]])
+
+
+def decode(path: Path) -> tuple[np.ndarray | None, str | None]:
+    cmd = [
+        "ffmpeg", "-v", "error", "-i", str(path), "-map", "0:a:0?", "-vn",
+        "-ac", "2", "-ar", str(RATE), "-f", "f32le", "pipe:1",
+    ]
+    p = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if p.returncode:
+        if "does not contain any stream" in p.stderr.decode("utf-8", "replace"):
+            return np.empty((0, 2), dtype=np.float32), None
+        return None, p.stderr.decode("utf-8", "replace").strip() or f"ffmpeg exit {p.returncode}"
+    if not p.stdout:
+        return np.empty((0, 2), dtype=np.float32), None
+    x = np.frombuffer(p.stdout, dtype="<f4")
+    x = x[: len(x) // 2 * 2].reshape(-1, 2)
+    return x, None
+
+
+def rolling_event_arrays(level: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    n = len(level)
+    baseline = np.full(n, np.nan)
+    event = np.full(n, np.nan)
+    for i in range(n):
+        # Ignore the immediately preceding 100 ms so the baseline is not polluted by onset ramps.
+        lo, hi = max(0, i - 60), i - 2
+        if hi - lo >= 20:
+            baseline[i] = np.median(level[lo:hi])
+        if i + 6 <= n:
+            # P25 over 300 ms rejects clicks and single-window spikes.
+            event[i] = np.percentile(level[i:i + 6], 25)
+    return baseline, event
+
+
+def duration_above(level: np.ndarray, start: int, threshold: float) -> float:
+    end = start
+    # Bridge one 50 ms dip, but stop after 3 s; a screamer event need not occupy the whole tail.
+    misses = 0
+    while end < len(level) and end < start + 60:
+        if level[end] >= threshold:
+            misses = 0
+        else:
+            misses += 1
+            if misses >= 2:
+                break
+        end += 1
+    return max(0.0, (end - start - max(0, misses - 1)) * WINDOW_S)
+
+
+def max_changes(level: np.ndarray) -> dict[str, float]:
+    out = {}
+    smooth = np.convolve(level, np.ones(2) / 2, mode="same")
+    for seconds in (0.05, 0.1, 0.25, 0.5, 1.0):
+        d = max(1, round(seconds / WINDOW_S))
+        out[f"change_{int(seconds * 1000)}ms_db"] = float(np.max(smooth[d:] - smooth[:-d])) if len(level) > d else 0.0
+    return out
+
+
+def analyze(path: Path, meta: dict) -> dict:
+    row = {
+        "file": path.name,
+        "path": meta["path"],
+        "md5": meta.get("md5", ""),
+        "api_duration_s": meta.get("duration_secs"),
+        "api_size_kib": meta.get("size"),
+        "label": POSITIVE_NAMES.get(path.name, "unlabeled"),
+    }
+    samples, error = decode(path)
+    if error:
+        return row | {"status": "decode-error", "error": error}
+    if samples is None or not len(samples):
+        return row | {"status": "no-audio", "score": 0.0, "old_score": 0, "classification": "no audio"}
+
+    frame_count = len(samples)
+    usable = frame_count // WINDOW * WINDOW
+    if not usable:
+        return row | {"status": "no-audio", "score": 0.0, "old_score": 0, "classification": "no audio"}
+    x = samples[:usable]
+    frames = x.reshape(-1, WINDOW, 2)
+    raw_energy = np.mean(frames.astype(np.float64) ** 2, axis=(1, 2))
+    raw_level = np.maximum(FLOOR_DB, db_power(raw_energy))
+    frame_peak = np.max(np.abs(frames), axis=(1, 2))
+    frame_peak_db = db_amp(frame_peak)
+
+    hp = butter(2, 70, btype="highpass", fs=RATE, output="sos")
+    shelf = high_shelf_sos(RATE)
+    weighted = np.empty_like(x)
+    for ch in range(2):
+        weighted[:, ch] = sosfilt(shelf, sosfilt(hp, x[:, ch]))
+    wframes = weighted.reshape(-1, WINDOW, 2)
+    weighted_energy = np.mean(wframes.astype(np.float64) ** 2, axis=(1, 2))
+    # Same offset as BS.1770's gated loudness convention; this is an approximation, not true LUFS.
+    level = np.maximum(FLOOR_DB, -0.691 + db_power(weighted_energy))
+    del weighted, wframes
+
+    # Coarse spectral bands are deliberately limited to interpretable broadband-change evidence.
+    mono = np.mean(frames, axis=2)
+    mono_energy = np.mean(mono.astype(np.float64) ** 2, axis=1)
+    diff_energy = np.mean(np.diff(mono, axis=1).astype(np.float64) ** 2, axis=1)
+    brightness_db = db_power(diff_energy / np.maximum(mono_energy, 1e-12))
+    zcr = np.mean(np.signbit(mono[:, 1:]) != np.signbit(mono[:, :-1]), axis=1)
+    fft_size = 1 << (WINDOW - 1).bit_length()
+    fft = np.fft.rfft(mono * np.hanning(WINDOW), n=fft_size, axis=1)
+    power = np.abs(fft) ** 2 + 1e-12
+    freqs = np.fft.rfftfreq(fft_size, 1 / RATE)
+    keep = freqs <= 7800
+    power, freqs = power[:, keep], freqs[keep]
+    bands = []
+    for low, high in ((80, 500), (500, 3000), (3000, 7800)):
+        bands.append(db_power(np.mean(power[:, (freqs >= low) & (freqs < high)], axis=1)))
+    band_db = np.stack(bands, axis=1)
+    norm_spec = power / np.maximum(np.sum(power, axis=1, keepdims=True), 1e-12)
+    spectral_flux = np.zeros(len(level))
+    if len(level) > 1:
+        spectral_flux[1:] = np.sqrt(np.sum(np.maximum(norm_spec[1:] - norm_spec[:-1], 0) ** 2, axis=1))
+    spectral_flatness = np.exp(np.mean(np.log(power), axis=1)) / np.mean(power, axis=1)
+    flux_near = maximum_filter1d(spectral_flux, size=5, mode="nearest")
+
+    baseline, event = rolling_event_arrays(level)
+    jump = event - baseline
+    valid = np.isfinite(jump)
+    if not np.any(valid):
+        best = 0
+        baseline = np.where(np.isfinite(baseline), baseline, np.median(level))
+        event = np.where(np.isfinite(event), event, level)
+        jump = event - baseline
+    else:
+        # Event score: loud + large contrast + sustained; quiet history and clipping are modest evidence.
+        base_score = (
+            sigmoid((event + 10.5) / 2.5) ** 0.9
+            * sigmoid((jump - 13.0) / 3.5) ** 1.25
+        )
+        base_score[~valid] = -1
+        best = int(np.argmax(base_score))
+
+    base = float(baseline[best])
+    event_level = float(event[best])
+    event_jump = float(jump[best])
+    raw_base = float(np.median(raw_level[max(0, best - 60):max(0, best - 2)]))
+    raw_event = float(np.percentile(raw_level[best:best + 6], 25))
+    look_end = min(len(level), best + 10)
+    event_peak_db = float(np.max(frame_peak_db[best:look_end]))
+    threshold = max(-13.0, base + 9.0)
+    event_duration = duration_above(level, best, threshold)
+    persistence = float(np.mean(level[best:look_end] >= threshold))
+    sample_end = min(len(x), (best + 10) * WINDOW)
+    event_samples = np.abs(x[best * WINDOW:sample_end])
+    event_near_clip = float(np.mean(event_samples >= 10 ** (-1 / 20))) if len(event_samples) else 0.0
+    band_lo, band_hi = max(0, best - 40), max(0, best - 2)
+    if band_hi - band_lo >= 10:
+        band_jump = band_db[best] - np.median(band_db[band_lo:band_hi], axis=0)
+        base_shape = np.mean(norm_spec[band_lo:band_hi], axis=0)
+        event_shape = np.mean(norm_spec[best:min(len(level), best + 6)], axis=0)
+        spectral_shape_distance = float(np.sqrt(np.sum((np.sqrt(event_shape) - np.sqrt(base_shape)) ** 2)) / math.sqrt(2))
+    else:
+        band_jump = np.zeros(3)
+        spectral_shape_distance = 0.0
+    broadband_jump = float(np.min(band_jump))
+
+    loud_component = float(sigmoid((event_level + 10.5) / 2.5))
+    jump_component = float(sigmoid((event_jump - 13.0) / 3.5))
+    duration_component = float(sigmoid((event_duration - 0.18) / 0.09))
+    quiet_component = float(sigmoid((-base - 15.0) / 5.0))
+    broadband_component = float(sigmoid((broadband_jump - 5.0) / 4.0))
+    clip_component = float(sigmoid((event_near_clip - 0.005) / 0.012))
+    flux_component = float(sigmoid((spectral_flux[best] - 0.22) / 0.08))
+    confidence = (loud_component ** 0.9) * (jump_component ** 1.25) * (duration_component ** 0.65)
+    confidence *= 0.87 + 0.10 * quiet_component + 0.03 * clip_component
+    confidence *= 0.65 + 0.35 * flux_component
+    confidence = float(np.clip(confidence, 0, 1))
+    suspicious = confidence >= 0.80 and event_level >= -6 and event_jump >= 14 and event_duration >= 0.15
+
+    # Reproduce the old detector's ~256 samples/channel per 100 ms window.
+    old_win = round(RATE * 0.1)
+    old_values = []
+    for start in range(0, len(x), old_win):
+        end = min(len(x), start + old_win)
+        step = max(1, (end - start) // 256)
+        old_values.append(db_power(np.mean(x[start:end:step].astype(np.float64) ** 2)))
+    old_level = np.asarray(old_values)
+    old_median = float(np.median(old_level))
+    old_peak = float(np.max(old_level))
+    old_jump, old_at = -math.inf, 0
+    for i in range(1, len(old_level)):
+        j = float(old_level[i] - np.median(old_level[max(0, i - 10):i]))
+        if j > old_jump:
+            old_jump, old_at = j, i
+    old_dynamic = old_peak - old_median
+    old_score = int(old_peak > -8) + int(old_dynamic >= 14) + int(old_jump >= 12) + int(old_median < -18 and old_peak > -7)
+
+    percentiles = {f"p{p}_db": float(np.percentile(level, p)) for p in (10, 25, 50, 75, 90, 95, 99)}
+    abs_samples = np.abs(x)
+    rms_all_db = float(db_power(np.mean(x.astype(np.float64) ** 2)))
+    peak_db = float(db_amp(np.max(abs_samples)))
+    row.update({
+        "status": "ok",
+        "duration_s": frame_count / RATE,
+        **percentiles,
+        "raw_median_dbfs": float(np.median(raw_level)),
+        "rms_dbfs": rms_all_db,
+        "peak_dbfs": peak_db,
+        "crest_db": peak_db - rms_all_db,
+        "peak_to_median_db": float(np.max(level) - np.median(level)),
+        "event_at_s": best * WINDOW_S,
+        "baseline_db": base,
+        "event_db": event_level,
+        "jump_db": event_jump,
+        "raw_baseline_dbfs": raw_base,
+        "raw_event_dbfs": raw_event,
+        "raw_jump_db": raw_event - raw_base,
+        "event_duration_s": event_duration,
+        "event_persistence": persistence,
+        "event_peak_dbfs": event_peak_db,
+        "event_near_clip_pct": event_near_clip * 100,
+        "band_low_jump_db": float(band_jump[0]),
+        "band_mid_jump_db": float(band_jump[1]),
+        "band_high_jump_db": float(band_jump[2]),
+        "broadband_jump_db": broadband_jump,
+        "spectral_flux_at_event": float(spectral_flux[best]),
+        "spectral_flux_near_event": float(flux_near[best]),
+        "max_spectral_flux": float(np.max(spectral_flux)),
+        "spectral_shape_distance": spectral_shape_distance,
+        "event_spectral_flatness": float(np.median(spectral_flatness[best:min(len(level), best + 6)])),
+        "event_brightness_db": float(np.median(brightness_db[best:min(len(level), best + 6)])),
+        "baseline_brightness_db": float(np.median(brightness_db[band_lo:band_hi])) if band_hi > band_lo else 0.0,
+        "brightness_change_db": float(np.median(brightness_db[best:min(len(level), best + 6)]) - np.median(brightness_db[band_lo:band_hi])) if band_hi > band_lo else 0.0,
+        "event_zcr": float(np.median(zcr[best:min(len(level), best + 6)])),
+        **max_changes(level),
+        **{f"sample_above_{d}db_pct": float(np.mean(abs_samples >= 10 ** (d / 20)) * 100) for d in (-3, -6, -9, -12)},
+        **{f"window_above_{d}db_pct": float(np.mean(level >= d) * 100) for d in (-3, -6, -9, -12)},
+        "old_median_db": old_median,
+        "old_peak_window_db": old_peak,
+        "old_dynamic_range_db": old_dynamic,
+        "old_max_jump_db": old_jump,
+        "old_jump_at_s": old_at * 0.1,
+        "old_score": old_score,
+        "old_classification": "suspicious" if old_score >= 3 else "normal",
+        "score": confidence,
+        "suspicious": suspicious,
+        "classification": "suspicious" if suspicious else "normal",
+    })
+    return row
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--thread-json", type=Path, required=True)
+    ap.add_argument("--media-dir", type=Path, required=True)
+    ap.add_argument("--output", type=Path, required=True)
+    ap.add_argument("--limit", type=int)
+    args = ap.parse_args()
+    data = json.loads(args.thread_json.read_text())
+    files = [
+        f for p in data["threads"][0]["posts"] for f in (p.get("files") or [])
+        if Path(f.get("path", "")).suffix.lower() in {".mp4", ".webm", ".m4v", ".mov", ".ogv"}
+    ]
+    if args.limit:
+        files = files[: args.limit]
+    rows = []
+    for index, meta in enumerate(files, 1):
+        path = args.media_dir / Path(meta["path"]).name
+        print(f"[{index}/{len(files)}] {path.name}", file=sys.stderr, flush=True)
+        rows.append(analyze(path, meta))
+    rows.sort(key=lambda r: float(r.get("score", -1)), reverse=True)
+    args.output.parent.mkdir(parents=True, exist_ok=True)
+    args.output.with_suffix(".json").write_text(json.dumps(rows, ensure_ascii=False, indent=2))
+    fields = sorted({k for row in rows for k in row})
+    with args.output.with_suffix(".csv").open("w", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=fields)
+        writer.writeheader()
+        writer.writerows(rows)
+    columns = [
+        ("file", "file"), ("label", "label/status"), ("duration_s", "duration s"),
+        ("p50_db", "median dB"), ("peak_dbfs", "peak dBFS"), ("event_at_s", "event s"),
+        ("baseline_db", "baseline dB"), ("event_db", "event dB"), ("jump_db", "jump dB"),
+        ("event_duration_s", "event duration s"), ("event_near_clip_pct", "near-clip %"),
+        ("spectral_flux_at_event", "onset flux"), ("score", "score"),
+        ("classification", "new"), ("old_score", "old score"),
+    ]
+    with args.output.with_suffix(".md").open("w") as f:
+        f.write("# Thread 336185346 — complete audio dataset\n\n")
+        f.write("Sorted by the event detector's suspicion score. `unlabeled` rows are treated as provisional negatives for evaluation.\n\n")
+        f.write("| " + " | ".join(title for _, title in columns) + " |\n")
+        f.write("|" + "|".join("---" for _ in columns) + "|\n")
+        for row in rows:
+            values = []
+            for key, _ in columns:
+                value = row.get(key, "")
+                if key == "label" and row.get("status") == "no-audio":
+                    value = "no audio"
+                elif isinstance(value, float):
+                    value = f"{value:.3f}" if key in {"score", "spectral_flux_at_event"} else f"{value:.2f}"
+                values.append(str(value).replace("|", "\\|"))
+            f.write("| " + " | ".join(values) + " |\n")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
