@@ -14,3 +14,5 @@ The two warning axes are independent:
 - A `🚩 reported` badge appears when a reply containing `scream` or `скрим` directly quotes the attachment's post. This is an unverified community report, not part of the audio score.
 
 An attachment is outlined red when either axis warns. If a quoted post contains multiple videos, the report is conservatively applied to every video in that post.
+
+Cache durability measures include an automatic persistent-storage request, cache reconciliation when a tab resumes, capped exponential download retries, and a one-hour grace period before an apparently orphaned tab cache can be removed. The Tampermonkey menu contains cache repair/diagnostics and a manual persistent-storage request. CacheStorage remains physically origin-specific, so changing a tab from one 2ch mirror hostname to another requires a new cache on that origin.

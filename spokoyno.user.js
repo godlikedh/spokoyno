@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Spokoyno — 2ch WebM Companion
 // @namespace    local.spokoyno
-// @version      5.2.0
+// @version      5.3.0
 // @description  Tab-local video cache, fastest mirror, speed monitor and event-based screamer warning
 // @match        https://2ch.org/*
 // @match        https://2ch.su/*
@@ -28,9 +28,15 @@
     MIRROR_TTL = 60_000,
     PROBE_BYTES = 256 * 1024;
   const PROBE_TIMEOUT = 8000,
-    DOWNLOAD_TIMEOUT = 30_000,
-    CLEANUP_INTERVAL = 60_000,
+    DOWNLOAD_TIMEOUT = 120_000,
+    CLEANUP_INTERVAL = 15 * 60_000,
+    ORPHAN_GRACE = 60 * 60_000,
+    CACHE_RECONCILE_INTERVAL = 30_000,
+    PERSIST_RETRY_INTERVAL = 30 * 24 * 60 * 60_000,
+    MAX_DOWNLOAD_ATTEMPTS = 4,
+    RETRY_BASE_DELAY = 2_000,
     RECENT_DOWNLOADS = 8;
+  const CACHE_META_URL = `${location.origin}/__tm2ch_cache_meta_v1__`;
   const MEDIA_EXT = /\.(?:mp4|webm|m4v|mov|ogv)$/i;
   const SCREAMER_REPORT_RE = /scream|скрим/i;
   const ANALYSIS_VERSION = 2,
@@ -69,6 +75,17 @@
 
   const state = tab.tm2chMediaV4;
   state.screamer ||= {};
+  state.cacheOrigins ||= {};
+  const originChangedFrom = state.lastOrigin && state.lastOrigin !== location.origin ? state.lastOrigin : null;
+  state.lastOrigin = location.origin;
+  state.cacheOrigins[location.origin] = { cacheName: state.cacheName, lastSeenAt: Date.now() };
+  await gmSaveTab(tab);
+
+  if (originChangedFrom) {
+    console.warn(
+      `[spokoyno] page origin changed from ${originChangedFrom} to ${location.origin}; their physical CacheStorage data is separate`
+    );
+  }
 
   const cacheName = state.cacheName;
   let cache = await caches.open(cacheName),
@@ -79,10 +96,12 @@
 
   const cached = new Set(),
     seen = new Set(),
+    seenMedia = new Map(),
     queued = new Set(),
     queue = [];
   const activeDownloads = new Map(),
-    recentDownloads = [];
+    recentDownloads = [],
+    retryTimers = new Map();
   const analysisResults = new Map(
     Object.entries(state.screamer).filter(([, r]) => r?.analysisVersion === ANALYSIS_VERSION)
   );
@@ -94,15 +113,20 @@
     attachmentFigures = new Map();
 
   let analysisRunning = false,
-    analysisGeneration = 0;
+    analysisGeneration = 0,
+    downloadGeneration = 0;
   let uiRoot = null,
     summaryBox = null,
     speedBox = null,
     uiScheduled = false,
-    communityScanScheduled = false;
+    communityScanScheduled = false,
+    cacheReconcilePromise = null,
+    lastCacheReconcileAt = 0,
+    lastCacheTouchAt = 0,
+    storagePersistence = 'unknown';
 
   try {
-    for (const r of await cache.keys()) cached.add(r.url);
+    for (const r of await cache.keys()) if (r.url !== CACHE_META_URL) cached.add(r.url);
   } catch (e) {
     console.warn('[spokoyno] cache restore failed:', e);
   }
@@ -161,6 +185,180 @@
       x = s - m * 60;
     return m ? `${m}:${x.toFixed(1).padStart(4, '0')}` : `${x.toFixed(1)}s`;
   };
+
+  async function readCacheMeta(target, name) {
+    try {
+      const response = await target.match(CACHE_META_URL);
+      if (!response) return null;
+      const meta = await response.json();
+      return meta && typeof meta === 'object' ? meta : null;
+    } catch (e) {
+      console.warn('[spokoyno] cache metadata read failed:', name, e);
+      return null;
+    }
+  }
+
+  async function writeCacheMeta(target, meta) {
+    const response = new Response(JSON.stringify(meta), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }
+    });
+    await target.put(CACHE_META_URL, response);
+  }
+
+  async function touchCurrentCache(force = false) {
+    const now = Date.now();
+    if (!force && now - lastCacheTouchAt < 60_000) return;
+    const previous = await readCacheMeta(cache, cacheName);
+    await writeCacheMeta(cache, {
+      schema: 1,
+      cacheName,
+      token: state.token,
+      origin: location.origin,
+      createdAt: previous?.createdAt || now,
+      lastSeenAt: now,
+      orphanedAt: null
+    });
+    lastCacheTouchAt = now;
+  }
+
+  async function updateStoragePersistence(request = false, force = false) {
+    const storage = navigator.storage;
+    if (!storage?.persisted) {
+      storagePersistence = 'unavailable';
+      return false;
+    }
+    try {
+      let persistent = await storage.persisted();
+      if (!persistent && request && storage.persist) {
+        let shouldRequest = force;
+        try {
+          const key = 'spokoyno-persist-attempt-v1';
+          const lastAttempt = Number(localStorage.getItem(key)) || 0;
+          shouldRequest ||= Date.now() - lastAttempt >= PERSIST_RETRY_INTERVAL;
+          if (shouldRequest) localStorage.setItem(key, String(Date.now()));
+        } catch {
+          shouldRequest = true;
+        }
+        if (shouldRequest) persistent = await storage.persist();
+      }
+      storagePersistence = persistent ? 'persistent' : 'best-effort';
+      return persistent;
+    } catch (e) {
+      storagePersistence = 'error';
+      console.warn('[spokoyno] persistent storage check failed:', e);
+      return false;
+    }
+  }
+
+  function enqueueMedia(url, key, front = false, attempt = 0) {
+    if (cached.has(key) || queued.has(key)) return false;
+    queued.add(key);
+    const item = { url, key, attempt, generation: downloadGeneration };
+    if (front) queue.unshift(item);
+    else queue.push(item);
+    return true;
+  }
+
+  function cancelDownloadRetries() {
+    downloadGeneration++;
+    for (const timer of retryTimers.values()) clearTimeout(timer);
+    retryTimers.clear();
+  }
+
+  async function reconcileCache(reason = 'manual', force = false) {
+    if (cacheReconcilePromise) return cacheReconcilePromise;
+    const now = Date.now();
+    if (!force && now - lastCacheReconcileAt < CACHE_RECONCILE_INTERVAL) return null;
+    lastCacheReconcileAt = now;
+    const generation = downloadGeneration;
+    cacheReconcilePromise = (async () => {
+      const names = await caches.keys();
+      const existed = names.includes(cacheName);
+      cache = await caches.open(cacheName);
+      const requests = await cache.keys();
+      const actual = new Set(requests.map((r) => r.url).filter((url) => url !== CACHE_META_URL));
+      const missingSinceLastCheck = [...cached].filter((key) => !actual.has(key)).length;
+      cached.clear();
+      for (const key of actual) cached.add(key);
+      await touchCurrentCache(true);
+
+      let requeued = 0;
+      if (generation === downloadGeneration) {
+        for (const [key, url] of seenMedia) if (!actual.has(key) && enqueueMedia(url, key)) requeued++;
+        scheduleUI();
+        pump();
+      }
+      if (!existed || missingSinceLastCheck || requeued) {
+        console.warn('[spokoyno] cache reconciled:', {
+          reason,
+          cacheRecreated: !existed,
+          missingSinceLastCheck,
+          requeued,
+          entries: actual.size,
+          origin: location.origin
+        });
+      }
+      return { existed, entries: actual.size, missingSinceLastCheck, requeued };
+    })()
+      .catch((e) => {
+        console.warn('[spokoyno] cache reconciliation failed:', reason, e);
+        return null;
+      })
+      .finally(() => {
+        cacheReconcilePromise = null;
+      });
+    return cacheReconcilePromise;
+  }
+
+  async function getCacheDiagnostics() {
+    const names = await caches.keys();
+    const exists = names.includes(cacheName);
+    let entries = 0;
+    if (exists) {
+      const target = await caches.open(cacheName);
+      entries = (await target.keys()).filter((r) => r.url !== CACHE_META_URL).length;
+    }
+    await updateStoragePersistence(false);
+    let estimate = {};
+    try {
+      estimate = (await navigator.storage?.estimate?.()) || {};
+    } catch (e) {
+      console.warn('[spokoyno] storage estimate failed:', e);
+    }
+    return {
+      origin: location.origin,
+      previousOrigin: originChangedFrom,
+      cacheName,
+      exists,
+      entries,
+      indexedEntries: cached.size,
+      seenEntries: seen.size,
+      persistence: storagePersistence,
+      usage: estimate.usage,
+      quota: estimate.quota,
+      queued: queued.size,
+      active: running,
+      knownOrigins: Object.keys(state.cacheOrigins)
+    };
+  }
+
+  const cacheDiagnosticText = (d) =>
+    [
+      `Origin: ${d.origin}`,
+      d.previousOrigin ? `Previous origin in this tab: ${d.previousOrigin}` : '',
+      `Cache: ${d.cacheName}`,
+      `Physical cache exists: ${d.exists ? 'yes' : 'NO'}`,
+      `Stored media entries: ${d.entries}`,
+      `In-memory index: ${d.indexedEntries}`,
+      `Media found on page: ${d.seenEntries}`,
+      `Storage mode: ${d.persistence}`,
+      `Origin usage / quota: ${Number.isFinite(d.usage) ? formatBytes(d.usage) : 'unknown'} / ${Number.isFinite(d.quota) ? formatBytes(d.quota) : 'unknown'}`,
+      `Downloads queued / active: ${d.queued} / ${d.active}`,
+      `Origins seen by this tab: ${d.knownOrigins.join(', ')}`
+    ]
+      .filter(Boolean)
+      .join('\n');
 
   function probeMirror(domain, path) {
     return new Promise((resolve) => {
@@ -1184,31 +1382,59 @@
       a.dataset.tm2chMediaUrl = url;
       const key = canonicalKey(url);
       seen.add(key);
+      seenMedia.set(key, url);
       rememberAttachment(a, url);
       attachScreamerBadge(a, url);
       if (cached.has(key)) {
         queueScreamerAnalysis(url, key);
         continue;
       }
-      if (queued.has(key)) continue;
-      queued.add(key);
-      queue.push({ url, key });
+      enqueueMedia(url, key);
     }
     scheduleUI();
     pump();
   }
 
+  function scheduleDownloadRetry(item, error) {
+    const nextAttempt = item.attempt + 1;
+    const message = String(error?.message || error);
+    const permanent =
+      /quota|QuotaExceeded/i.test(message) || (/HTTP 4\d\d/.test(message) && !/HTTP (?:408|429)/.test(message));
+    if (permanent || nextAttempt >= MAX_DOWNLOAD_ATTEMPTS || item.generation !== downloadGeneration) return false;
+    const delay = RETRY_BASE_DELAY * 2 ** item.attempt;
+    console.warn(
+      `[spokoyno] retrying ${filenameFromUrl(item.url)} in ${(delay / 1000).toFixed(0)} s ` +
+        `(attempt ${nextAttempt + 1}/${MAX_DOWNLOAD_ATTEMPTS})`
+    );
+    const timer = setTimeout(() => {
+      retryTimers.delete(item.key);
+      if (item.generation !== downloadGeneration || cached.has(item.key)) {
+        if (item.generation === downloadGeneration) queued.delete(item.key);
+        scheduleUI();
+        return;
+      }
+      queue.push({ ...item, attempt: nextAttempt });
+      scheduleUI();
+      pump();
+    }, delay);
+    retryTimers.set(item.key, timer);
+    return true;
+  }
+
   function pump() {
     while (running < CONCURRENCY && queue.length) {
       const item = queue.shift();
+      let retryScheduled = false;
       running++;
       preload(item)
         .catch((e) => {
+          if (item.generation !== downloadGeneration) return;
           errors++;
           console.warn('[spokoyno] preload failed:', item.url, e);
+          retryScheduled = scheduleDownloadRetry(item, e);
         })
         .finally(() => {
-          queued.delete(item.key);
+          if (item.generation === downloadGeneration && !retryScheduled) queued.delete(item.key);
           running--;
           scheduleUI();
           pump();
@@ -1216,7 +1442,8 @@
     }
   }
 
-  async function preload({ url, key }) {
+  async function preload({ url, key, generation }) {
+    if (generation !== downloadGeneration) return;
     const existing = await cache.match(key);
     if (existing) {
       cached.add(key);
@@ -1225,12 +1452,14 @@
       return;
     }
     const { blob, contentType, domain } = await downloadFromBestMirror(url, key);
+    if (generation !== downloadGeneration) return;
     const headers = new Headers();
     if (contentType) headers.set('Content-Type', contentType);
     headers.set('X-TM-2ch-Mirror', domain);
     headers.set('X-TM-2ch-Original-Path', mediaPath(url));
     await cache.put(key, new Response(blob, { status: 200, headers }));
     cached.add(key);
+    touchCurrentCache().catch((e) => console.warn('[spokoyno] cache metadata touch failed:', e));
     queueScreamerAnalysis(url, key, blob);
     scheduleUI();
   }
@@ -1264,6 +1493,8 @@
       r = await cache.match(key);
     if (!r) {
       cached.delete(key);
+      enqueueMedia(url, key, true);
+      pump();
       throw new Error('cache miss');
     }
     const blob = await r.blob(),
@@ -1409,16 +1640,64 @@
     try {
       const tabs = await gmGetTabs(),
         states = Object.values(tabs);
-      if (!states.some((x) => x?.tm2chMediaV4?.cacheName === cacheName)) return;
       const alive = new Set(
         states.map((x) => x?.tm2chMediaV4?.cacheName).filter((x) => typeof x === 'string' && x.startsWith(PREFIX))
       );
-      for (const name of await caches.keys())
-        if (name.startsWith(PREFIX) && !alive.has(name)) await caches.delete(name);
+      const now = Date.now();
+      await touchCurrentCache();
+      for (const name of await caches.keys()) {
+        if (!name.startsWith(PREFIX) || name === cacheName) continue;
+        const target = await caches.open(name);
+        const previous = await readCacheMeta(target, name);
+        if (alive.has(name)) {
+          if (previous?.orphanedAt) await writeCacheMeta(target, { ...previous, orphanedAt: null });
+          else if (!previous) {
+            await writeCacheMeta(target, {
+              schema: 1,
+              cacheName: name,
+              origin: location.origin,
+              createdAt: now,
+              lastSeenAt: now,
+              orphanedAt: null
+            });
+          }
+          continue;
+        }
+        if (!previous?.orphanedAt) {
+          await writeCacheMeta(target, {
+            schema: 1,
+            cacheName: name,
+            origin: previous?.origin || location.origin,
+            createdAt: previous?.createdAt || now,
+            lastSeenAt: previous?.lastSeenAt || 0,
+            orphanedAt: now
+          });
+          continue;
+        }
+        if (now - previous.orphanedAt >= ORPHAN_GRACE) {
+          await caches.delete(name);
+          console.info('[spokoyno] deleted cache after one-hour orphan grace:', name);
+        }
+      }
     } catch (e) {
       console.warn('[spokoyno] cleanup skipped:', e);
     }
   }
+
+  GM_registerMenuCommand('Проверить и восстановить media-cache', async () => {
+    await reconcileCache('menu', true);
+    const diagnostics = await getCacheDiagnostics();
+    console.table(diagnostics);
+    window.alert(`Spokoyno cache diagnostics\n\n${cacheDiagnosticText(diagnostics)}`);
+  });
+
+  GM_registerMenuCommand('Запросить постоянное хранение', async () => {
+    const persistent = await updateStoragePersistence(true, true);
+    const diagnostics = await getCacheDiagnostics();
+    window.alert(
+      `${persistent ? 'Persistent storage granted.' : 'Persistent storage was not granted.'}\n\n${cacheDiagnosticText(diagnostics)}`
+    );
+  });
 
   GM_registerMenuCommand('Перетестировать зеркала', async () => {
     state.mirror = null;
@@ -1431,6 +1710,7 @@
   });
 
   GM_registerMenuCommand('Очистить media-cache этой вкладки', async () => {
+    cancelDownloadRetries();
     queue.length = 0;
     queued.clear();
     analysisQueue.length = 0;
@@ -1438,6 +1718,8 @@
     analysisGeneration++;
     await caches.delete(cacheName);
     cache = await caches.open(cacheName);
+    lastCacheTouchAt = 0;
+    await touchCurrentCache(true);
     cached.clear();
     recentDownloads.length = 0;
     errors = 0;
@@ -1476,6 +1758,10 @@
     installPageStyles();
     installUI();
     discover(document);
+    updateStoragePersistence(true).then((persistent) => {
+      console.info(`[spokoyno] origin storage: ${persistent ? 'persistent' : storagePersistence}`);
+    });
+    reconcileCache('start', true).then(() => cleanupOrphanCaches());
     scheduleCommunityScan();
     new MutationObserver((rs) => {
       let communityChanged = false;
@@ -1494,7 +1780,11 @@
       }
       if (communityChanged) scheduleCommunityScan();
     }).observe(document.documentElement, { childList: true, subtree: true });
-    cleanupOrphanCaches();
+    window.addEventListener('pageshow', () => reconcileCache('pageshow', true));
+    window.addEventListener('focus', () => reconcileCache('focus'));
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') reconcileCache('visible');
+    });
     setInterval(cleanupOrphanCaches, CLEANUP_INTERVAL);
   }
 
