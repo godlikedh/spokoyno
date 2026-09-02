@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Spokoyno — 2ch WebM Companion
 // @namespace    local.spokoyno
-// @version      5.0.0
+// @version      5.1.0
 // @description  Tab-local video cache, fastest mirror, speed monitor and event-based screamer warning
 // @match        https://2ch.org/*
 // @match        https://2ch.su/*
@@ -32,7 +32,7 @@
     CLEANUP_INTERVAL = 60_000,
     RECENT_DOWNLOADS = 8;
   const MEDIA_EXT = /\.(?:mp4|webm|m4v|mov|ogv)$/i;
-  const ANALYSIS_VERSION = 1,
+  const ANALYSIS_VERSION = 2,
     ANALYSIS_WINDOW = 0.05,
     ANALYSIS_TARGET_RATE = 16_000;
   const BASELINE_WINDOWS = 60,
@@ -401,7 +401,10 @@
 
     const confidence = Math.round(r.confidence * 100);
     if (r.suspicious) {
-      badge.textContent = `⚠ SCREAMER ${confidence}% · +${r.jumpDb.toFixed(0)} dB @ ${formatTime(r.eventAt || 0)}`;
+      badge.textContent =
+        r.detectionMode === 'loud-start'
+          ? `⚠ SCREAMER ${confidence}% · loud start @ ${formatTime(r.eventAt || 0)}`
+          : `⚠ SCREAMER ${confidence}% · +${r.jumpDb.toFixed(0)} dB @ ${formatTime(r.eventAt || 0)}`;
       badge.dataset.state = 'bad';
     } else {
       badge.textContent = `🔊 normal · ${confidence}%`;
@@ -410,14 +413,21 @@
 
     badge.title = [
       `Suspicion: ${confidence}%`,
+      `Strongest detector: ${r.detectionMode === 'loud-start' ? 'dangerous loud start' : 'quiet-to-loud transition'}`,
       `Event: ${formatTime(r.eventAt || 0)}`,
-      `Baseline (previous 1–3 s): ${r.baselineDb.toFixed(1)} dB`,
+      Number.isFinite(r.baselineDb)
+        ? `Baseline (previous 1–3 s): ${r.baselineDb.toFixed(1)} dB`
+        : 'Baseline: unavailable near start',
       `Sustained event level: ${r.eventDb.toFixed(1)} dB`,
-      `Jump: +${r.jumpDb.toFixed(1)} dB`,
+      Number.isFinite(r.jumpDb) ? `Jump: +${r.jumpDb.toFixed(1)} dB` : '',
       `Event duration: ${r.eventDuration.toFixed(2)} s`,
       `Event peak: ${r.eventPeakDb.toFixed(1)} dBFS`,
       `Event near-clipping: ${r.eventNearClipPct.toFixed(2)}%`,
       `Onset spectral flux: ${r.spectralFlux.toFixed(3)}`,
+      `Transition path: ${Math.round(r.transitionConfidence * 100)}%`,
+      `Loud-start path: ${Math.round(r.startConfidence * 100)}%`,
+      `Start spectral flatness: ${r.startSpectralFlatness.toFixed(3)}`,
+      `Start high-frequency brightness: ${r.startBrightnessDb.toFixed(1)} dB`,
       `Track median: ${r.medianDb.toFixed(1)} dB`,
       `Track peak: ${r.peakDb.toFixed(1)} dBFS`,
       r.reason
@@ -554,6 +564,7 @@
       peaks,
       clipCounts,
       sampleCounts,
+      stride,
       windowFrames,
       windowSeconds,
       peakDb: dbAmp(trackPeak),
@@ -617,13 +628,16 @@
     const bins = Math.min(n / 2 + 1, Math.floor((7800 * n) / buf.sampleRate) + 1),
       out = new Float64Array(bins);
     let total = 0;
+    let logTotal = 0;
     for (let i = 0; i < bins; i++) {
       const p = re[i] * re[i] + im[i] * im[i] + 1e-12;
       out[i] = p;
       total += p;
+      logTotal += Math.log(p);
     }
+    const flatness = Math.exp(logTotal / bins) / (total / bins);
     for (let i = 0; i < bins; i++) out[i] /= total;
-    return out;
+    return { bins: out, flatness };
   }
 
   function onsetSpectralFlux(buf, index, windowFrames) {
@@ -631,13 +645,36 @@
     const before = spectrumProfile(buf, index - 1, windowFrames),
       current = spectrumProfile(buf, index, windowFrames);
     if (!before || !current) return 0;
-    const n = Math.min(before.length, current.length);
+    const n = Math.min(before.bins.length, current.bins.length);
     let sum = 0;
     for (let i = 0; i < n; i++) {
-      const d = current[i] - before[i];
+      const d = current.bins[i] - before.bins[i];
       if (d > 0) sum += d * d;
     }
     return Math.sqrt(sum);
+  }
+
+  function windowBrightness(buf, windowIndex, windowFrames, stride) {
+    const start = windowIndex * windowFrames,
+      end = Math.min(buf.length, start + windowFrames);
+    let energy = 0,
+      differenceEnergy = 0,
+      previous = null,
+      count = 0;
+    for (let i = start; i < end; i += stride) {
+      let value = 0;
+      for (let ch = 0; ch < buf.numberOfChannels; ch++) value += buf.getChannelData(ch)[i];
+      value /= buf.numberOfChannels;
+      energy += value * value;
+      if (previous !== null) {
+        const difference = value - previous;
+        differenceEnergy += difference * difference;
+      }
+      previous = value;
+      count++;
+    }
+    if (count < 2 || energy <= 0) return -90;
+    return dbPower(differenceEnergy / (count - 1) / (energy / count));
   }
 
   function eventDuration(levels, start, threshold, windowSeconds) {
@@ -800,6 +837,7 @@
         }
       }
       buf = await decoderContext.decodeAudioData(encoded);
+      encoded = null;
     } catch (e) {
       console.warn('[spokoyno screamer] decode failed:', e);
       return {
@@ -809,8 +847,69 @@
     if (!buf?.numberOfChannels || !buf.length) return { status: 'no-audio' };
 
     const timeline = await extractTimeline(buf),
-      { levels, peaks, clipCounts, sampleCounts, windowSeconds } = timeline;
+      { levels, peaks, clipCounts, sampleCounts, stride, windowSeconds } = timeline;
     if (!levels.length) return { status: 'no-audio' };
+
+    // A separate path covers near-full-scale audio before a 1 s baseline exists. It deliberately
+    // requires sustained loudness plus clipping, noise-like flatness, or high-frequency energy so
+    // ordinary loud intros and music do not inherit the transition detector's assumptions.
+    const startLimit = Math.min(Math.max(0, levels.length - EVENT_WINDOWS), Math.round(2 / windowSeconds));
+    let startBest = 0,
+      startLevel = -90;
+    for (let i = 0; i <= startLimit; i++) {
+      const level = percentile(levels.slice(i, i + EVENT_WINDOWS), 0.25);
+      if (level > startLevel) {
+        startBest = i;
+        startLevel = level;
+      }
+    }
+    const startTarget = Math.max(-6, startLevel - 3);
+    let startPreview = startBest;
+    for (let i = 0; i <= startLimit; i++) {
+      if (percentile(levels.slice(i, i + EVENT_WINDOWS), 0.25) >= startTarget) {
+        startPreview = i;
+        break;
+      }
+    }
+    const onsetThreshold = Math.max(-9, startLevel - 6);
+    let start = startPreview;
+    for (let i = startPreview; i < Math.min(levels.length, startPreview + EVENT_WINDOWS); i++) {
+      if (levels[i] >= onsetThreshold) {
+        start = i;
+        break;
+      }
+    }
+    const startDuration = eventDuration(levels, start, -9, windowSeconds),
+      startLookEnd = Math.min(levels.length, start + 20);
+    let startPeak = -90,
+      startClips = 0,
+      startSamples = 0;
+    for (let i = start; i < startLookEnd; i++) {
+      startPeak = Math.max(startPeak, peaks[i]);
+      startClips += clipCounts[i];
+      startSamples += sampleCounts[i];
+    }
+    const startNearClip = startClips / Math.max(1, startSamples);
+    const startFlatnessValues = [],
+      startBrightnessValues = [];
+    for (let i = start; i < Math.min(levels.length, start + EVENT_WINDOWS); i++) {
+      const profile = spectrumProfile(buf, i, timeline.windowFrames);
+      if (profile) startFlatnessValues.push(profile.flatness);
+      startBrightnessValues.push(windowBrightness(buf, i, timeline.windowFrames, stride));
+    }
+    const startSpectralFlatness = startFlatnessValues.length ? percentile(startFlatnessValues, 0.5) : 0;
+    const startBrightnessDb = startBrightnessValues.length ? percentile(startBrightnessValues, 0.5) : -90;
+    const startLoudComponent = sigmoid((startLevel + 6) / 2);
+    const startDurationComponent = sigmoid((startDuration - 0.35) / 0.15);
+    const startClipComponent = sigmoid((startNearClip - 0.01) / 0.03);
+    const startNoiseComponent = sigmoid((startSpectralFlatness - 0.025) / 0.025);
+    const startBrightnessComponent = sigmoid((startBrightnessDb + 8) / 2.5);
+    let startConfidence = startLoudComponent ** 1.1 * startDurationComponent ** 0.7;
+    startConfidence *= 0.68 + 0.12 * startClipComponent + 0.14 * startNoiseComponent + 0.06 * startBrightnessComponent;
+    startConfidence = Math.max(0, Math.min(1, startConfidence));
+    const startSpectralEvidence = startSpectralFlatness >= 0.04 || startBrightnessDb >= -5 || startNearClip >= 0.08;
+    const startSuspicious =
+      startConfidence >= SCREAMER_CONFIDENCE && startLevel >= -3 && startDuration >= 0.5 && startSpectralEvidence;
 
     let best = -1,
       bestEnvelope = -1,
@@ -860,34 +959,61 @@
     const quietComponent = sigmoid((-bestBaseline - 15) / 5);
     const clipComponent = sigmoid((eventNearClip - 0.005) / 0.012);
     const fluxComponent = sigmoid((spectralFlux - 0.22) / 0.08);
-    let confidence = loudComponent ** 0.9 * jumpComponent ** 1.25 * durationComponent ** 0.65;
-    confidence *= 0.87 + 0.1 * quietComponent + 0.03 * clipComponent;
-    confidence *= 0.65 + 0.35 * fluxComponent;
-    confidence = Math.max(0, Math.min(1, confidence));
-    const suspicious = confidence >= SCREAMER_CONFIDENCE && bestEvent >= -6 && bestJump >= 14 && duration >= 0.15;
+    let transitionConfidence = loudComponent ** 0.9 * jumpComponent ** 1.25 * durationComponent ** 0.65;
+    transitionConfidence *= 0.87 + 0.1 * quietComponent + 0.03 * clipComponent;
+    transitionConfidence *= 0.65 + 0.35 * fluxComponent;
+    transitionConfidence = Math.max(0, Math.min(1, transitionConfidence));
+    const transitionSuspicious =
+      transitionConfidence >= SCREAMER_CONFIDENCE && bestEvent >= -6 && bestJump >= 14 && duration >= 0.15;
+    const suspicious = transitionSuspicious || startSuspicious;
+    const confidence = Math.max(transitionConfidence, startConfidence);
+    const detectionMode =
+      startSuspicious && startConfidence >= transitionConfidence
+        ? 'loud-start'
+        : transitionSuspicious
+          ? 'transition'
+          : startConfidence > transitionConfidence
+            ? 'loud-start'
+            : 'transition';
     const median = percentile(levels, 0.5);
-    const reason = suspicious
-      ? 'Sustained near-full-scale event after a quieter baseline, with a changed onset spectrum'
-      : bestJump < 14
-        ? 'No sufficiently large sustained local transition'
-        : bestEvent < -6
-          ? 'The strongest transition did not become near-full-scale'
-          : spectralFlux < 0.22
-            ? 'The loudness changed, but the onset spectrum remained similar'
-            : 'Combined evidence stayed below the warning threshold';
+    const reason =
+      detectionMode === 'loud-start'
+        ? startSuspicious
+          ? 'Sustained near-full-scale broadband or clipped audio begins before a reliable baseline exists'
+          : 'Opening audio did not combine enough loudness, persistence, and broadband evidence'
+        : transitionSuspicious
+          ? 'Sustained near-full-scale event after a quieter baseline, with a changed onset spectrum'
+          : bestJump < 14
+            ? 'No sufficiently large sustained local transition'
+            : bestEvent < -6
+              ? 'The strongest transition did not become near-full-scale'
+              : spectralFlux < 0.22
+                ? 'The loudness changed, but the onset spectrum remained similar'
+                : 'Combined evidence stayed below the warning threshold';
+    const useStartEvent = detectionMode === 'loud-start';
+    const selectedSpectralFlux = useStartEvent ? onsetSpectralFlux(buf, start, timeline.windowFrames) : spectralFlux;
 
     return {
       status: 'ok',
       suspicious,
       confidence,
-      eventAt: best * windowSeconds,
-      jumpDb: bestJump,
-      eventDb: bestEvent,
-      baselineDb: bestBaseline,
-      eventDuration: duration,
-      eventPeakDb: eventPeak,
-      eventNearClipPct: eventNearClip * 100,
-      spectralFlux,
+      detectionMode,
+      transitionConfidence,
+      startConfidence,
+      eventAt: (useStartEvent ? start : best) * windowSeconds,
+      jumpDb: useStartEvent ? null : bestJump,
+      eventDb: useStartEvent ? startLevel : bestEvent,
+      baselineDb: useStartEvent ? null : bestBaseline,
+      eventDuration: useStartEvent ? startDuration : duration,
+      eventPeakDb: useStartEvent ? startPeak : eventPeak,
+      eventNearClipPct: (useStartEvent ? startNearClip : eventNearClip) * 100,
+      spectralFlux: selectedSpectralFlux,
+      startAt: start * windowSeconds,
+      startEventDb: startLevel,
+      startDuration,
+      startNearClipPct: startNearClip * 100,
+      startSpectralFlatness,
+      startBrightnessDb,
       medianDb: median,
       p10Db: percentile(levels, 0.1),
       p25Db: percentile(levels, 0.25),

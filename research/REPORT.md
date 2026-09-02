@@ -4,9 +4,9 @@
 
 The 2ch API response for thread `336185346` contained 550 video attachments: 417 MP4 and 133 WebM files, 548 unique MD5 values, about 3.47 GiB, and about 8.5 hours of media. Every attachment was downloaded from `2ch.su` with mirror fallback available. The hostname is not part of media identity; the dataset retains `/b/src/336185346/<file>` as the key.
 
-FFmpeg decoded audio from 539 files: 413 AAC, 93 Vorbis, 31 Opus, and 2 MP3 tracks. Eleven files had no audio stream. The two user-confirmed screamers are positives; following the user's clarification, the other 548 attachments are provisional negatives.
+FFmpeg decoded audio from 539 files: 413 AAC, 93 Vorbis, 31 Opus, and 2 MP3 tracks. Eleven files had no audio stream. The two user-confirmed screamers are positives; following the user's clarification and manual review, the other 548 attachments are high-confidence provisional negatives. Two later confirmed screamers from thread `336243339` were added as supplemental positives. One is a conventional transition event; the other begins its dangerous audio about 0.6 s into the file, before the transition path can obtain its required one-second baseline. The evaluated set therefore contains four confirmed positives and 548 provisional negatives.
 
-The complete sorted table is in [thread-336185346.md](thread-336185346.md). Machine-readable versions, including every requested feature, are [thread-336185346.csv](thread-336185346.csv) and [thread-336185346.json](thread-336185346.json).
+The complete original-thread table is in [thread-336185346.md](thread-336185346.md). Machine-readable versions, including every requested feature, are [thread-336185346.csv](thread-336185346.csv) and [thread-336185346.json](thread-336185346.json). The later positives are in [supplemental-positives.md](supplemental-positives.md), [supplemental-positives.csv](supplemental-positives.csv), and [supplemental-positives.json](supplemental-positives.json). Only the two supplied files—not their entire source thread—were analyzed for the supplemental set.
 
 ## Method
 
@@ -23,25 +23,29 @@ For each possible event:
 - Onset spectral flux: positive change in the normalized power spectrum between the candidate window and the immediately preceding 50 ms window.
 - Near clipping: fraction of event samples at or above -1 dBFS. Lossy decoder overshoot can exceed 0 dBFS, so this is supporting evidence, not a hard condition.
 
+The supplemental immediate screamer exposed a blind spot: a baseline-relative detector cannot evaluate a dangerous event that begins in the first second. Spokoyno now runs a second, independent loud-start path over the first two seconds. It finds the loudest robust 300 ms opening block, measures persistence from the actual onset, and inspects up to one second of clipping. Six short FFTs provide spectral flatness, while first-difference energy provides a cheap high-frequency-brightness estimate. These spectral features are supporting evidence for an already near-full-scale sustained opening; they can never flag a merely high-frequency but quiet sound by themselves.
+
 ## Findings
 
-| file | label | median dB | peak dBFS | event s | baseline dB | event dB | jump dB | duration s | near-clip % | onset flux | score |
-|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| 17883557324650588814.webm | confirmed #1 | -43.96 | +24.73 | 15.85 | -45.03 | +18.18 | +63.21 | 1.95 | 98.09 | 0.308 | 91.2% |
-| 17883557325462786367.mp4 | confirmed #2 | -23.37 | +2.74 | 7.95 | -24.53 | -0.66 | +23.87 | 2.45 | 52.76 | 0.410 | 89.1% |
-| 17882984411551286220.webm | provisional negative | -32.10 | +0.50 | 76.65 | -43.70 | -6.35 | +37.35 | 0.40 | 2.97 | 0.384 | 77.4% |
-| 17881699236063425442.mp4 | provisional negative | -12.73 | +2.68 | 13.30 | -58.10 | -0.60 | +57.50 | 1.55 | 55.16 | 0.138 | 73.0% |
-| 17881887457541053716.mp4 | provisional negative | -8.64 | +1.90 | 16.05 | -25.51 | -5.76 | +19.75 | 3.00 | 27.45 | 0.448 | 72.2% |
-| 17881481520942199957.mp4 | provisional negative | -35.48 | +0.38 | 18.10 | -62.70 | -7.81 | +54.89 | 0.50 | 7.74 | 0.276 | 66.6% |
-| 17882990553793679533.webm | provisional negative | -12.26 | +2.68 | 65.90 | -37.88 | -3.98 | +33.90 | 0.55 | 30.86 | 0.091 | 65.5% |
+| file | label | mode | median dB | peak dBFS | event s | baseline dB | event dB | jump dB | duration s | near-clip % | spectral evidence | score |
+|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---|---:|
+| 17883557324650588814.webm | confirmed #1 | transition | -43.96 | +24.73 | 15.85 | -45.03 | +18.18 | +63.21 | 1.95 | 98.09 | flux 0.308 | 91.2% |
+| 17883659327260384359.webm | confirmed #4 | loud start | -90.00 | +2.81 | 0.60 | n/a | -1.21 | n/a | 3.00 | 28.28 | flat 0.168; bright -1.80 dB | 90.4% |
+| 17883557325462786367.mp4 | confirmed #2 | transition | -23.37 | +2.74 | 7.95 | -24.53 | -0.66 | +23.87 | 2.45 | 52.76 | flux 0.410 | 89.1% |
+| 17883629069140053716.mp4 | confirmed #3 | transition | -4.15 | +1.72 | 6.70 | -39.56 | -2.47 | +37.10 | 3.00 | 4.51 | flux 0.313 | 88.2% |
+| 17882984411551286220.webm | provisional negative | normal | -32.10 | +0.50 | 76.65 | -43.70 | -6.35 | +37.35 | 0.40 | 2.97 | flux 0.384 | 77.4% |
+| 17881699236063425442.mp4 | reviewed negative | normal | -12.73 | +2.68 | 13.30 | -58.10 | -0.60 | +57.50 | 1.55 | 55.16 | flux 0.138 | 73.0% |
+| 17881887457541053716.mp4 | reviewed negative | normal | -8.64 | +1.90 | 16.05 | -25.51 | -5.76 | +19.75 | 3.00 | 27.45 | flux 0.448 | 72.2% |
+| 17881481520942199957.mp4 | provisional negative | normal | -35.48 | +0.38 | 18.10 | -62.70 | -7.81 | +54.89 | 0.50 | 7.74 | flux 0.276 | 66.6% |
+| 17882990553793679533.webm | reviewed negative | normal | -12.26 | +2.68 | 65.90 | -37.88 | -3.98 | +33.90 | 0.55 | 30.86 | flux 0.091 | 65.5% |
 
-The positives are not merely loud. Each has a sustained, near-full-scale section after an ordinary/quiet local baseline and a changed onset spectrum. Positive #1 is extreme: its decoded lossy PCM overshoots nominal full scale heavily. Positive #2 is the more useful training example because its absolute levels overlap hard negatives; persistence and onset spectral change provide the separation.
+Positives #1–#3 are not merely loud: each has a sustained near-full-scale section after an ordinary or quiet local baseline and a changed onset spectrum. Positive #1 is extreme, with decoded lossy PCM overshooting nominal full scale heavily. Positive #4 is different: it has no usable pre-event baseline, but its opening combines a -1.21 dB robust level, three seconds of persistence, 28.28% near-clipping, high spectral flatness, and unusually strong high-frequency energy.
 
-Spectral flatness, zero-crossing rate, low/mid/high band jumps, brightness change, global crest factor, and maximum derivative were retained in the research dataset but did not add stable separation beyond the local envelope plus normalized onset flux. They are not part of the browser score. This avoids paying for complex features that the corpus did not justify.
+For transition events, spectral flatness, zero-crossing rate, direct low/mid/high band jumps, brightness change, global crest factor, and maximum derivative did not add stable separation beyond the local envelope plus normalized onset flux. They remain research columns but are not transition-score inputs. Flatness and brightness are used only by the new loud-start path, where no baseline comparison is possible and the immediate positive empirically separates from the original corpus on those features.
 
 ## Old detector
 
-The old rule detected both positives but also flagged 36 of 537 decodable provisional negatives. On these provisional labels that is 100% recall, 5.3% precision, and a 6.7% false-positive rate. Its whole-file peak and median mix unrelated parts of a clip, its “peak” is actually maximum 100 ms RMS, and its one-second baseline allows short impulses or scene cuts to supply independent score points. A file can receive three points without containing one coherent dangerous event.
+On the original thread, the old rule detected both positives but also flagged 36 of 537 decodable provisional negatives. On those provisional labels that is 100% recall, 5.3% precision, and a 6.7% false-positive rate. It missed supplemental positive #3 (`old_score=2`) and detected immediate positive #4 (`old_score=4`). Its whole-file peak and median mix unrelated parts of a clip, its “peak” is actually maximum 100 ms RMS, and its one-second baseline allows short impulses or scene cuts to supply independent score points. A file can receive three points without containing one coherent dangerous event.
 
 Old false-positive filenames (all have `old_classification=suspicious` in the CSV):
 
@@ -49,7 +53,7 @@ Old false-positive filenames (all have `old_classification=suspicious` in the CS
 
 ## Final score and decision
 
-Let `S(x) = 1 / (1 + exp(-x))`. Components are:
+Let `S(x) = 1 / (1 + exp(-x))`. The original quiet-to-loud transition path is:
 
 ```text
 loud     = S((eventDb + 10.5) / 2.5)
@@ -59,41 +63,56 @@ quiet    = S((-baselineDb - 15) / 5)
 clip     = S((nearClipFraction - 0.005) / 0.012)
 flux     = S((spectralFlux - 0.22) / 0.08)
 
-confidence = loud^0.9 * jump^1.25 * duration^0.65
-             * (0.87 + 0.10*quiet + 0.03*clip)
-             * (0.65 + 0.35*flux)
+transitionConfidence = loud^0.9 * jump^1.25 * duration^0.65
+                       * (0.87 + 0.10*quiet + 0.03*clip)
+                       * (0.65 + 0.35*flux)
 ```
 
-The badge says `SCREAMER` only when all of these hold:
+It fires only when all of these hold:
 
 ```text
-confidence >= 0.80
+transitionConfidence >= 0.80
 eventDb >= -6
 jumpDb >= 14
 duration >= 0.15 s
 ```
 
-The hard gates keep the continuous score honest: a large rise from digital silence to a moderate sound, or a spectral change in already-loud material, cannot be promoted by unrelated bonuses.
+The independent loud-start path is:
 
-This rule flags exactly the two confirmed positives in this corpus. That is a calibration result, not an estimate of real-world accuracy: there are only two positive examples, and the closest provisional negative is only 2.6 score points below the threshold.
+```text
+startLoud       = S((startEventDb + 6) / 2)
+startDuration   = S((startDurationSeconds - 0.35) / 0.15)
+startClip       = S((startNearClipFraction - 0.01) / 0.03)
+startNoise      = S((spectralFlatness - 0.025) / 0.025)
+startBrightness = S((brightnessDb + 8) / 2.5)
+
+startConfidence = startLoud^1.1 * startDuration^0.7
+                  * (0.68 + 0.12*startClip + 0.14*startNoise + 0.06*startBrightness)
+```
+
+It fires only when `startConfidence >= 0.80`, `startEventDb >= -3`, duration is at least 0.50 s, and at least one of these independent spectral/damage signals holds: flatness at least 0.04, brightness at least -5 dB, or near-clipping at least 8%. Displayed confidence is `max(transitionConfidence, startConfidence)`.
+
+The hard gates keep both continuous scores honest. A large rise from digital silence to a moderate sound, a short click, a high-frequency but quiet sound, or ordinary loud music cannot be promoted by unrelated bonuses alone.
+
+The combined rule flags all four confirmed positives and no provisional negatives. On the full original thread it still flags exactly the original two. The immediate positive scores 90.4% on the start path; the highest start score among all 548 original comparison files is 68.1%. This is a calibration result, not an estimate of real-world accuracy: four positive examples are still far too few for that.
 
 ## Difficult negatives and labeling priorities
 
-- `17882984411551286220.webm` (77.4%) is the closest negative. It has a short 37 dB broadband transition, but the sustained event is -6.35 dB and only 0.40 s. It should be the first manual re-check.
-- `17881699236063425442.mp4` (73.0%) is the hardest envelope-only case: -58.1 to -0.6 dB for 1.55 s with 55% near-clipping. Its onset flux is only 0.138, consistent with an existing sound becoming louder rather than a new scream/noise spectrum appearing.
-- `17881887457541053716.mp4` (72.2%) is loud overall (median -8.64 dB). Its local jump is only 19.75 dB, so the detector does not confuse high program loudness with surprise as readily.
+- `17882984411551286220.webm` (77.4%) was manually reviewed as a TV-show clip with no heard screamer. Its short 37 dB transition settles at only -6.35 dB for 0.40 s, narrowly failing the absolute event gate.
+- `17881699236063425442.mp4` (73.0% combined; 68.1% start path) was manually reviewed as legitimate but genuinely loud screaming. It is the closest loud-start negative, with -3.29 dB opening audio and 20.2% near-clipping, but its low 0.016 flatness and -6.88 dB brightness keep it well below the start threshold.
+- `17881887457541053716.mp4` (72.2%) was manually identified as legitimate phonk with a loud drop. It is loud overall (median -8.64 dB), while its local jump is only 19.75 dB.
 - `17882990553793679533.webm` (65.5%) reaches -3.98 dB after a 33.9 dB jump, but lasts 0.55 s and has very low onset flux (0.091).
 - `17881481520942199957.mp4` (66.6%) and several old false positives make large jumps from near-silence but settle below the -6 dB event gate.
 
-There are no provisional false positives from the new 80% decision rule and no additional files above threshold. The files above are still useful active-learning candidates because their audio structures are closest to the positives.
+The user also reviewed the remaining original top-15 candidates as legitimate material: mic artifacts, poor-quality loud speech, rage screaming, an explosion, laughter, voice chat, and screaming girls. These labels reinforce the decision to model an unexpected hazardous transition—or an exceptionally damaging start—rather than treating “contains a scream” as the target. There are no provisional false positives from the new 80% decision rule.
 
 ## Browser implementation
 
 The userscript uses one analysis worker-in-practice: a promise queue with concurrency 1. Downloads retain their existing concurrency. A just-downloaded `Blob` is passed directly to analysis; after reload the same blob is read from CacheStorage. It is never downloaded again for analysis. Results remain in `GM_getTab`/`GM_saveTab` state for the tab lifetime.
 
-`decodeAudioData()` is the only broadly available way to obtain the entire PCM track faster than real time without shipping a demuxer/decoder. The browser implementation scans the whole timeline at an effective rate near 16 kHz, yields to the page every 100 windows, stores only small per-window arrays, and retains no PCM after the current result. Its K-like filters run during that scan. A radix-2 FFT is calculated only for the winning event and the preceding 50 ms, avoiding full-track spectrogram memory and CPU.
+`decodeAudioData()` is the only broadly available way to obtain the entire PCM track faster than real time without shipping a demuxer/decoder. The browser implementation scans the whole timeline at an effective rate near 16 kHz, yields to the page every 100 windows, stores only small per-window arrays, and retains no PCM after the current result. Its K-like filters run during that scan. Radix-2 FFTs are limited to the winning transition and six opening windows; there is no full-track spectrogram allocation.
 
-A direct Node harness ran the final JavaScript signal path against FFmpeg-decoded 48 kHz PCM. It scored the confirmed positives 87.5% and 87.2%; the four closest tested negatives scored 75.3%, 71.5%, 70.8%, and 64.8%. Event times and classifications matched the offline extractor. Small score differences come from resampling and FFT-bin resolution, which is why the 80% decision threshold is shared but displayed confidence is allowed to differ slightly.
+A direct Node harness ran the final JavaScript signal path against FFmpeg-decoded 48 kHz PCM. It scored confirmed positives #1–#4 at 87.5%, 87.2%, 84.6%, and 91.7%. The closest transition and start-path negatives tested at 75.3% and 68.2%, respectively. Event times and classifications matched the offline extractor. Small score differences come from resampling and FFT-bin resolution, so the 80% decision threshold is shared while displayed confidence can differ slightly.
 
 There are unavoidable limitations:
 

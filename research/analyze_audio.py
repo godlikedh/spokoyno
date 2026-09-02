@@ -22,6 +22,8 @@ FLOOR_DB = -90.0
 POSITIVE_NAMES = {
     "17883557324650588814.webm": "confirmed positive #1",
     "17883557325462786367.mp4": "confirmed positive #2",
+    "17883629069140053716.mp4": "confirmed positive #3",
+    "17883659327260384359.webm": "confirmed positive #4 (immediate)",
 }
 
 
@@ -170,6 +172,34 @@ def analyze(path: Path, meta: dict) -> dict:
     spectral_flatness = np.exp(np.mean(np.log(power), axis=1)) / np.mean(power, axis=1)
     flux_near = maximum_filter1d(spectral_flux, size=5, mode="nearest")
 
+    # Separate safety path for a near-full-scale first event without a usable long baseline.
+    start_limit = min(max(0, len(level) - 6), round(2.0 / WINDOW_S))
+    start_events = np.array([np.percentile(level[i:i + 6], 25) for i in range(start_limit + 1)])
+    start_best = int(np.argmax(start_events))
+    start_level = float(start_events[start_best])
+    start_target = max(-6.0, start_level - 3.0)
+    start_candidates = np.flatnonzero(start_events >= start_target)
+    start_preview = int(start_candidates[0]) if len(start_candidates) else start_best
+    # The 300 ms look-ahead can become suspicious before the sound itself begins. Report and
+    # measure from the first actually loud 50 ms window instead of that preview window.
+    onset_threshold = max(-9.0, start_level - 6.0)
+    onset_candidates = np.flatnonzero(level[start_preview:min(len(level), start_preview + 6)] >= onset_threshold)
+    start_at = start_preview + (int(onset_candidates[0]) if len(onset_candidates) else 0)
+    start_duration = duration_above(level, start_at, -9.0)
+    start_end = min(len(level), start_at + 20)
+    start_sample_end = min(len(x), start_end * WINDOW)
+    start_samples = np.abs(x[start_at * WINDOW:start_sample_end])
+    start_clip = float(np.mean(start_samples >= 10 ** (-1 / 20))) if len(start_samples) else 0.0
+    start_flatness = float(np.median(spectral_flatness[start_at:min(len(level), start_at + 6)]))
+    start_brightness = float(np.median(brightness_db[start_at:min(len(level), start_at + 6)]))
+    start_loud_component = float(sigmoid((start_level + 6.0) / 2.0))
+    start_duration_component = float(sigmoid((start_duration - 0.35) / 0.15))
+    start_clip_component = float(sigmoid((start_clip - 0.01) / 0.03))
+    start_noise_component = float(sigmoid((start_flatness - 0.025) / 0.025))
+    start_brightness_component = float(sigmoid((start_brightness + 8.0) / 2.5))
+    start_score = start_loud_component ** 1.1 * start_duration_component ** 0.7
+    start_score *= 0.68 + 0.12 * start_clip_component + 0.14 * start_noise_component + 0.06 * start_brightness_component
+
     baseline, event = rolling_event_arrays(level)
     jump = event - baseline
     valid = np.isfinite(jump)
@@ -218,11 +248,22 @@ def analyze(path: Path, meta: dict) -> dict:
     broadband_component = float(sigmoid((broadband_jump - 5.0) / 4.0))
     clip_component = float(sigmoid((event_near_clip - 0.005) / 0.012))
     flux_component = float(sigmoid((spectral_flux[best] - 0.22) / 0.08))
-    confidence = (loud_component ** 0.9) * (jump_component ** 1.25) * (duration_component ** 0.65)
-    confidence *= 0.87 + 0.10 * quiet_component + 0.03 * clip_component
-    confidence *= 0.65 + 0.35 * flux_component
-    confidence = float(np.clip(confidence, 0, 1))
-    suspicious = confidence >= 0.80 and event_level >= -6 and event_jump >= 14 and event_duration >= 0.15
+    transition_score = (loud_component ** 0.9) * (jump_component ** 1.25) * (duration_component ** 0.65)
+    transition_score *= 0.87 + 0.10 * quiet_component + 0.03 * clip_component
+    transition_score *= 0.65 + 0.35 * flux_component
+    transition_score = float(np.clip(transition_score, 0, 1))
+    transition_suspicious = (
+        transition_score >= 0.80 and event_level >= -6 and event_jump >= 14 and event_duration >= 0.15
+    )
+    start_spectral_evidence = start_flatness >= 0.04 or start_brightness >= -5.0 or start_clip >= 0.08
+    start_suspicious = (
+        start_score >= 0.80 and start_level >= -3.0 and start_duration >= 0.50 and start_spectral_evidence
+    )
+    confidence = float(max(transition_score, start_score))
+    suspicious = bool(transition_suspicious or start_suspicious)
+    detection_mode = "loud-start" if start_suspicious and start_score >= transition_score else (
+        "transition" if transition_suspicious else "normal"
+    )
 
     # Reproduce the old detector's ~256 samples/channel per 100 ms window.
     old_win = round(RATE * 0.1)
@@ -279,6 +320,13 @@ def analyze(path: Path, meta: dict) -> dict:
         "baseline_brightness_db": float(np.median(brightness_db[band_lo:band_hi])) if band_hi > band_lo else 0.0,
         "brightness_change_db": float(np.median(brightness_db[best:min(len(level), best + 6)]) - np.median(brightness_db[band_lo:band_hi])) if band_hi > band_lo else 0.0,
         "event_zcr": float(np.median(zcr[best:min(len(level), best + 6)])),
+        "start_at_s": start_at * WINDOW_S,
+        "start_event_db": start_level,
+        "start_duration_s": start_duration,
+        "start_near_clip_pct": start_clip * 100,
+        "start_spectral_flatness": start_flatness,
+        "start_brightness_db": start_brightness,
+        "start_score": float(start_score),
         **max_changes(level),
         **{f"sample_above_{d}db_pct": float(np.mean(abs_samples >= 10 ** (d / 20)) * 100) for d in (-3, -6, -9, -12)},
         **{f"window_above_{d}db_pct": float(np.mean(level >= d) * 100) for d in (-3, -6, -9, -12)},
@@ -289,8 +337,10 @@ def analyze(path: Path, meta: dict) -> dict:
         "old_jump_at_s": old_at * 0.1,
         "old_score": old_score,
         "old_classification": "suspicious" if old_score >= 3 else "normal",
+        "transition_score": transition_score,
         "score": confidence,
         "suspicious": suspicious,
+        "detection_mode": detection_mode,
         "classification": "suspicious" if suspicious else "normal",
     })
     return row
@@ -302,6 +352,11 @@ def main() -> int:
     ap.add_argument("--media-dir", type=Path, required=True)
     ap.add_argument("--output", type=Path, required=True)
     ap.add_argument("--limit", type=int)
+    ap.add_argument("--title", default="Thread 336185346 — complete audio dataset")
+    ap.add_argument(
+        "--description",
+        default="Sorted by the event detector's suspicion score. `unlabeled` rows are treated as provisional negatives for evaluation.",
+    )
     args = ap.parse_args()
     data = json.loads(args.thread_json.read_text())
     files = [
@@ -320,7 +375,7 @@ def main() -> int:
     args.output.with_suffix(".json").write_text(json.dumps(rows, ensure_ascii=False, indent=2))
     fields = sorted({k for row in rows for k in row})
     with args.output.with_suffix(".csv").open("w", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=fields)
+        writer = csv.DictWriter(f, fieldnames=fields, lineterminator="\n")
         writer.writeheader()
         writer.writerows(rows)
     columns = [
@@ -328,12 +383,13 @@ def main() -> int:
         ("p50_db", "median dB"), ("peak_dbfs", "peak dBFS"), ("event_at_s", "event s"),
         ("baseline_db", "baseline dB"), ("event_db", "event dB"), ("jump_db", "jump dB"),
         ("event_duration_s", "event duration s"), ("event_near_clip_pct", "near-clip %"),
-        ("spectral_flux_at_event", "onset flux"), ("score", "score"),
-        ("classification", "new"), ("old_score", "old score"),
+        ("spectral_flux_at_event", "onset flux"), ("transition_score", "transition score"),
+        ("start_score", "start score"), ("score", "score"),
+        ("detection_mode", "mode"), ("classification", "new"), ("old_score", "old score"),
     ]
     with args.output.with_suffix(".md").open("w") as f:
-        f.write("# Thread 336185346 — complete audio dataset\n\n")
-        f.write("Sorted by the event detector's suspicion score. `unlabeled` rows are treated as provisional negatives for evaluation.\n\n")
+        f.write(f"# {args.title}\n\n")
+        f.write(f"{args.description}\n\n")
         f.write("| " + " | ".join(title for _, title in columns) + " |\n")
         f.write("|" + "|".join("---" for _ in columns) + "|\n")
         for row in rows:
@@ -343,7 +399,9 @@ def main() -> int:
                 if key == "label" and row.get("status") == "no-audio":
                     value = "no audio"
                 elif isinstance(value, float):
-                    value = f"{value:.3f}" if key in {"score", "spectral_flux_at_event"} else f"{value:.2f}"
+                    value = f"{value:.3f}" if key in {
+                        "score", "transition_score", "start_score", "spectral_flux_at_event"
+                    } else f"{value:.2f}"
                 values.append(str(value).replace("|", "\\|"))
             f.write("| " + " | ".join(values) + " |\n")
     return 0
