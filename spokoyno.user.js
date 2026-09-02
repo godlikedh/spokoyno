@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Spokoyno — 2ch WebM Companion
 // @namespace    local.spokoyno
-// @version      5.1.0
+// @version      5.2.0
 // @description  Tab-local video cache, fastest mirror, speed monitor and event-based screamer warning
 // @match        https://2ch.org/*
 // @match        https://2ch.su/*
@@ -32,6 +32,7 @@
     CLEANUP_INTERVAL = 60_000,
     RECENT_DOWNLOADS = 8;
   const MEDIA_EXT = /\.(?:mp4|webm|m4v|mov|ogv)$/i;
+  const SCREAMER_REPORT_RE = /scream|скрим/i;
   const ANALYSIS_VERSION = 2,
     ANALYSIS_WINDOW = 0.05,
     ANALYSIS_TARGET_RATE = 16_000;
@@ -87,14 +88,18 @@
   );
   const analysisQueued = new Set(),
     analysisQueue = [];
-  const screamerBadges = new Map();
+  const screamerBadges = new Map(),
+    communityBadges = new Map(),
+    communityReports = new Map(),
+    attachmentFigures = new Map();
 
   let analysisRunning = false,
     analysisGeneration = 0;
   let uiRoot = null,
     summaryBox = null,
     speedBox = null,
-    uiScheduled = false;
+    uiScheduled = false,
+    communityScanScheduled = false;
 
   try {
     for (const r of await cache.keys()) cached.add(r.url);
@@ -368,6 +373,10 @@
     .tm2ch-screamer[data-state="bad"]{font-weight:700;background:rgba(220,35,35,.22);color:#c22}
     .tm2ch-screamer[data-state="ok"]{background:rgba(40,150,60,.12)}
     .tm2ch-screamer[data-state="error"]{opacity:.65}
+    .tm2ch-report{text-decoration:none!important}
+    .tm2ch-report[data-state="bad"]{background:rgba(220,35,35,.30);color:#c22}
+    .post__image.tm2ch-risk .post__file-preview,
+    .post__image.tm2ch-risk video{outline:3px solid rgba(210,30,30,.88)!important;box-shadow:0 0 12px rgba(220,25,25,.58)!important}
   `;
     document.documentElement.append(s);
   }
@@ -436,6 +445,97 @@
       .join('\n');
   }
 
+  function refreshAttachmentRisk(sk) {
+    const modelRisk = analysisResults.get(sk)?.suspicious === true;
+    const reportedRisk = communityReports.has(sk);
+    for (const figure of attachmentFigures.get(sk) || []) {
+      if (!figure.isConnected) continue;
+      figure.classList.toggle('tm2ch-risk', modelRisk || reportedRisk);
+      figure.dataset.tm2chModelRisk = String(modelRisk);
+      figure.dataset.tm2chReportedRisk = String(reportedRisk);
+    }
+  }
+
+  function rememberAttachment(anchor, url) {
+    const figure = anchor.closest?.('figure.post__image');
+    if (!figure) return;
+    const sk = screamerKey(url);
+    if (!attachmentFigures.has(sk)) attachmentFigures.set(sk, new Set());
+    attachmentFigures.get(sk).add(figure);
+    refreshAttachmentRisk(sk);
+  }
+
+  function renderCommunityReport(sk, reports) {
+    let badge = communityBadges.get(sk);
+    if (!badge?.isConnected) {
+      const modelBadge = screamerBadges.get(sk);
+      if (!modelBadge?.isConnected) return;
+      badge = document.createElement('a');
+      badge.className = 'tm2ch-screamer tm2ch-report';
+      badge.dataset.state = 'bad';
+      modelBadge.insertAdjacentElement('afterend', badge);
+      communityBadges.set(sk, badge);
+    }
+    const count = reports.length;
+    const label = `🚩 reported${count > 1 ? ` ×${count}` : ''}`;
+    if (badge.textContent !== label) badge.textContent = label;
+    badge.href = `#${reports[0].reportPost}`;
+    badge.setAttribute('aria-label', `${count} unverified community screamer report${count === 1 ? '' : 's'}`);
+    badge.title = [
+      `Unverified community screamer report${count === 1 ? '' : 's'}: ${count}`,
+      ...reports.map((r) => `Reply #${r.reportPost} → post #${r.targetPost}: “${r.text}”`),
+      'Independent of the audio-analysis percentage; click to open the first reporting reply.'
+    ].join('\n');
+  }
+
+  function scanCommunityReports() {
+    const next = new Map();
+    for (const post of document.querySelectorAll('.post[data-num]')) {
+      const message = post.querySelector('.post__message');
+      if (!message || !SCREAMER_REPORT_RE.test(message.textContent || '')) continue;
+      const reportPost = post.dataset.num;
+      const text = (message.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 180);
+      for (const replyLink of message.querySelectorAll('.post-reply-link[data-num]')) {
+        const targetPost = replyLink.dataset.num;
+        if (!/^\d+$/.test(targetPost)) continue;
+        const target = document.getElementById(`post-${targetPost}`);
+        if (!target) continue;
+        const found = new Set();
+        for (const anchor of target.querySelectorAll('.post__images a[href]')) {
+          const url = mediaUrl(anchor);
+          if (!url) continue;
+          const sk = screamerKey(url);
+          if (found.has(sk)) continue;
+          found.add(sk);
+          if (!next.has(sk)) next.set(sk, []);
+          const reports = next.get(sk);
+          if (!reports.some((r) => r.reportPost === reportPost)) reports.push({ reportPost, targetPost, text });
+        }
+      }
+    }
+
+    for (const [sk, badge] of communityBadges) {
+      if (next.has(sk)) continue;
+      badge.remove();
+      communityBadges.delete(sk);
+    }
+    communityReports.clear();
+    for (const [sk, reports] of next) {
+      communityReports.set(sk, reports);
+      renderCommunityReport(sk, reports);
+    }
+    for (const sk of attachmentFigures.keys()) refreshAttachmentRisk(sk);
+  }
+
+  function scheduleCommunityScan() {
+    if (communityScanScheduled) return;
+    communityScanScheduled = true;
+    setTimeout(() => {
+      communityScanScheduled = false;
+      scanCommunityReports();
+    }, 50);
+  }
+
   function attachScreamerBadge(anchor, url) {
     const sk = screamerKey(url),
       existing = screamerBadges.get(sk);
@@ -446,6 +546,8 @@
     anchor.insertAdjacentElement('afterend', b);
     screamerBadges.set(sk, b);
     renderScreamerResult(b, analysisResults.get(sk));
+    if (communityReports.has(sk)) renderCommunityReport(sk, communityReports.get(sk));
+    refreshAttachmentRisk(sk);
   }
 
   function publishScreamerResult(sk, r) {
@@ -455,6 +557,7 @@
     gmSaveTab(tab).catch?.(() => {});
     const b = screamerBadges.get(sk);
     if (b?.isConnected) renderScreamerResult(b, r);
+    refreshAttachmentRisk(sk);
   }
 
   const dbPower = (x) => 10 * Math.log10(Math.max(x, 1e-9));
@@ -1081,6 +1184,7 @@
       a.dataset.tm2chMediaUrl = url;
       const key = canonicalKey(url);
       seen.add(key);
+      rememberAttachment(a, url);
       attachScreamerBadge(a, url);
       if (cached.has(key)) {
         queueScreamerAnalysis(url, key);
@@ -1340,7 +1444,10 @@
     state.screamer = {};
     analysisResults.clear();
     await gmSaveTab(tab);
-    for (const b of screamerBadges.values()) if (b.isConnected) renderScreamerResult(b, null);
+    for (const [sk, b] of screamerBadges) {
+      if (b.isConnected) renderScreamerResult(b, null);
+      refreshAttachmentRisk(sk);
+    }
     discover(document);
   });
 
@@ -1354,6 +1461,7 @@
     for (const [sk, b] of screamerBadges) {
       if (!b.isConnected) continue;
       renderScreamerResult(b, null);
+      refreshAttachmentRisk(sk);
       const a = [...document.querySelectorAll('a[href]')].find(
         (x) => x.dataset.tm2chMediaUrl && screamerKey(x.dataset.tm2chMediaUrl) === sk
       );
@@ -1368,8 +1476,23 @@
     installPageStyles();
     installUI();
     discover(document);
+    scheduleCommunityScan();
     new MutationObserver((rs) => {
-      for (const r of rs) for (const n of r.addedNodes) if (n.nodeType === Node.ELEMENT_NODE) discover(n);
+      let communityChanged = false;
+      for (const r of rs) {
+        if (r.target.closest?.('.post')) communityChanged = true;
+        for (const n of r.addedNodes) {
+          if (n.nodeType !== Node.ELEMENT_NODE) continue;
+          discover(n);
+          if (n.matches?.('.post') || n.querySelector?.('.post')) communityChanged = true;
+        }
+        for (const n of r.removedNodes) {
+          if (n.nodeType === Node.ELEMENT_NODE && (n.matches?.('.post') || n.querySelector?.('.post'))) {
+            communityChanged = true;
+          }
+        }
+      }
+      if (communityChanged) scheduleCommunityScan();
     }).observe(document.documentElement, { childList: true, subtree: true });
     cleanupOrphanCaches();
     setInterval(cleanupOrphanCaches, CLEANUP_INTERVAL);
