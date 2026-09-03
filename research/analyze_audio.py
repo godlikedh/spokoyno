@@ -362,7 +362,7 @@ def analyze(path: Path, meta: dict) -> dict:
     start_decision_score = start_score if start_eligible else 0.0
     decision_score = float(max(transition_decision_score, start_decision_score))
     suspicious = decision_score >= 0.80
-    confidence = decision_score
+    confidence = float(max(transition_score, start_score))
     if start_decision_score != transition_decision_score:
         detection_mode = (
             "loud-start"

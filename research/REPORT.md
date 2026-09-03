@@ -91,7 +91,7 @@ startConfidence = startLoud^1.1 * startDuration^0.7
 
 It is structurally eligible when `startEventDb >= -3`, duration is at least 0.50 s, and at least one of these independent spectral/damage signals holds: flatness at least 0.04, brightness at least -5 dB, or near-clipping at least 8%.
 
-In v5.4 the ineligible branch scores are zeroed, the eligible scores are merged with `max`, and the single merged score is compared with the 0.80 warning threshold. This is mathematically equivalent to the prior two comparisons but makes post-merge calibration explicit. The UI displays this merged value as a heuristic risk score rather than a probability.
+In v5.4 the ineligible branch scores are zeroed, the eligible scores are merged with `max`, and the single merged score is compared with the 0.80 warning threshold. This is mathematically equivalent to the prior two comparisons but makes post-merge calibration explicit. The UI separately displays `max(transitionConfidence, startConfidence)` as a continuous heuristic risk score rather than a probability; otherwise every clip that misses one hard gate would misleadingly display zero.
 
 Baseline MAD, MAD-normalized jump, and a local 10 ms attack estimate are recorded as diagnostics but do not affect the score. Full-corpus testing found that literal MAD multiplication created false positives and that attack time did not separate screamers from music drops or explosions; see [PROPOSAL_EVALUATION.md](PROPOSAL_EVALUATION.md).
 
