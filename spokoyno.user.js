@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Spokoyno — 2ch WebM Companion
 // @namespace    local.spokoyno
-// @version      5.4.0
+// @version      5.4.1
 // @description  Tab-local video cache, fastest mirror, speed monitor and event-based screamer warning
 // @match        https://2ch.org/*
 // @match        https://2ch.su/*
@@ -606,7 +606,8 @@
       return;
     }
 
-    const risk = Math.round(r.confidence * 100);
+    const displayRisk = Math.max(r.transitionConfidence ?? 0, r.startConfidence ?? 0, r.confidence ?? 0);
+    const risk = Math.round(displayRisk * 100);
     if (r.suspicious) {
       badge.textContent =
         r.detectionMode === 'loud-start'
@@ -1323,7 +1324,7 @@
     const startDecisionScore = startEligible ? startConfidence : 0;
     const decisionScore = Math.max(transitionDecisionScore, startDecisionScore);
     const suspicious = decisionScore >= SCREAMER_CONFIDENCE;
-    const confidence = decisionScore;
+    const confidence = Math.max(transitionConfidence, startConfidence);
     const detectionMode =
       startDecisionScore !== transitionDecisionScore
         ? startDecisionScore > transitionDecisionScore

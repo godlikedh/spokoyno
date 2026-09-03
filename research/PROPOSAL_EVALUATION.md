@@ -3,7 +3,7 @@
 ## Decision
 
 - **Proposal 1: reject as a scoring rule; retain MAD and robust z as telemetry.** Baseline variability is a useful quantity to record, but neither the literal multiplier nor a bounded version improved this corpus.
-- **Proposal 2: accept the calibration principle, not the claim that `max` is intrinsically wrong.** Spokoyno now applies one threshold to the maximum of the two structurally eligible branch scores. The displayed number is explicitly a heuristic risk score, not a probability.
+- **Proposal 2: accept the calibration principle, not the claim that `max` is intrinsically wrong.** Spokoyno now applies one threshold to the maximum of the two structurally eligible branch scores. The displayed number remains the continuous maximum of the raw branch scores and is explicitly a heuristic risk score, not a probability; hard-gate failures affect the warning decision without collapsing the UI to zero.
 - **Proposal 3: reject as a scoring rule; retain the 10 ms attack estimate as telemetry.** The proposed fast-attack separation is contradicted by both confirmed positives and reviewed negatives.
 - **Proposal 4: agree that Arnal-style roughness should not be added.** Spokoyno never implemented it. Existing spectral flux is onset spectrum change, not 30–150 Hz envelope modulation.
 
