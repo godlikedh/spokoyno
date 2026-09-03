@@ -1,8 +1,10 @@
 // ==UserScript==
 // @name         Spokoyno — 2ch WebM Companion
 // @namespace    local.spokoyno
-// @version      5.4.1
+// @version      5.4.2
 // @description  Tab-local video cache, fastest mirror, speed monitor and event-based screamer warning
+// @updateURL    https://raw.githubusercontent.com/godlikedh/spokoyno/main/spokoyno.user.js
+// @downloadURL  https://raw.githubusercontent.com/godlikedh/spokoyno/main/spokoyno.user.js
 // @match        https://2ch.org/*
 // @match        https://2ch.su/*
 // @match        https://2ch.life/*
@@ -39,7 +41,7 @@
   const CACHE_META_URL = `${location.origin}/__tm2ch_cache_meta_v1__`;
   const MEDIA_EXT = /\.(?:mp4|webm|m4v|mov|ogv)$/i;
   const SCREAMER_REPORT_RE = /scream|скрим/i;
-  const ANALYSIS_VERSION = 3,
+  const ANALYSIS_VERSION = 4,
     ANALYSIS_WINDOW = 0.05,
     ANALYSIS_TARGET_RATE = 16_000;
   const BASELINE_WINDOWS = 60,
@@ -184,6 +186,15 @@
     const m = Math.floor(s / 60),
       x = s - m * 60;
     return m ? `${m}:${x.toFixed(1).padStart(4, '0')}` : `${x.toFixed(1)}s`;
+  };
+
+  const formatRiskPoints = (score) => {
+    const points = Math.max(0, Math.min(1, Number.isFinite(score) ? score : 0)) * 100;
+    if (points === 0) return '0';
+    if (points < 0.01) return '<0.01';
+    if (points < 1) return points.toFixed(2);
+    if (points < 10) return points.toFixed(1);
+    return points.toFixed(0);
   };
 
   async function readCacheMeta(target, name) {
@@ -606,8 +617,13 @@
       return;
     }
 
-    const displayRisk = Math.max(r.transitionConfidence ?? 0, r.startConfidence ?? 0, r.confidence ?? 0);
-    const risk = Math.round(displayRisk * 100);
+    const displayRisk = Math.max(
+      r.displayRisk ?? 0,
+      r.transitionConfidence ?? 0,
+      r.startConfidence ?? 0,
+      r.confidence ?? 0
+    );
+    const risk = formatRiskPoints(displayRisk);
     if (r.suspicious) {
       badge.textContent =
         r.detectionMode === 'loud-start'
@@ -621,7 +637,7 @@
 
     badge.title = [
       `Risk score: ${risk}/100 (heuristic, not a probability)`,
-      `Merged decision score: ${Math.round((r.decisionScore ?? 0) * 100)}/100`,
+      `Merged decision score: ${formatRiskPoints(r.decisionScore ?? 0)}/100`,
       `Strongest detector: ${r.detectionMode === 'loud-start' ? 'dangerous loud start' : 'quiet-to-loud transition'}`,
       `Event: ${formatTime(r.eventAt || 0)}`,
       Number.isFinite(r.baselineDb)
@@ -638,8 +654,8 @@
       `Event peak: ${r.eventPeakDb.toFixed(1)} dBFS`,
       `Event near-clipping: ${r.eventNearClipPct.toFixed(2)}%`,
       `Onset spectral flux: ${r.spectralFlux.toFixed(3)}`,
-      `Transition path: ${Math.round(r.transitionConfidence * 100)}%`,
-      `Loud-start path: ${Math.round(r.startConfidence * 100)}%`,
+      `Transition path: ${formatRiskPoints(r.transitionConfidence)}/100`,
+      `Loud-start path: ${formatRiskPoints(r.startConfidence)}/100`,
       `Start spectral flatness: ${r.startSpectralFlatness.toFixed(3)}`,
       `Start high-frequency brightness: ${r.startBrightnessDb.toFixed(1)} dB`,
       `Track median: ${r.medianDb.toFixed(1)} dB`,
@@ -1324,7 +1340,8 @@
     const startDecisionScore = startEligible ? startConfidence : 0;
     const decisionScore = Math.max(transitionDecisionScore, startDecisionScore);
     const suspicious = decisionScore >= SCREAMER_CONFIDENCE;
-    const confidence = Math.max(transitionConfidence, startConfidence);
+    const displayRisk = Math.max(transitionConfidence, startConfidence);
+    const confidence = displayRisk;
     const detectionMode =
       startDecisionScore !== transitionDecisionScore
         ? startDecisionScore > transitionDecisionScore
@@ -1359,6 +1376,7 @@
       status: 'ok',
       suspicious,
       confidence,
+      displayRisk,
       decisionScore,
       detectionMode,
       transitionConfidence,
