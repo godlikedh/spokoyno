@@ -40,7 +40,9 @@ def sigmoid(x: np.ndarray | float) -> np.ndarray | float:
     return 1.0 / (1.0 + np.exp(-x))
 
 
-def high_shelf_sos(fs: int, f0: float = 1500.0, gain_db: float = 4.0, q: float = 1 / math.sqrt(2)) -> np.ndarray:
+def high_shelf_sos(
+    fs: int, f0: float = 1500.0, gain_db: float = 4.0, q: float = 1 / math.sqrt(2)
+) -> np.ndarray:
     """RBJ high-shelf biquad, used with a high-pass as a cheap K-like weighting."""
     a = 10 ** (gain_db / 40)
     w0 = 2 * math.pi * f0 / fs
@@ -58,14 +60,31 @@ def high_shelf_sos(fs: int, f0: float = 1500.0, gain_db: float = 4.0, q: float =
 
 def decode(path: Path) -> tuple[np.ndarray | None, str | None]:
     cmd = [
-        "ffmpeg", "-v", "error", "-i", str(path), "-map", "0:a:0?", "-vn",
-        "-ac", "2", "-ar", str(RATE), "-f", "f32le", "pipe:1",
+        "ffmpeg",
+        "-v",
+        "error",
+        "-i",
+        str(path),
+        "-map",
+        "0:a:0?",
+        "-vn",
+        "-ac",
+        "2",
+        "-ar",
+        str(RATE),
+        "-f",
+        "f32le",
+        "pipe:1",
     ]
     p = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     if p.returncode:
         if "does not contain any stream" in p.stderr.decode("utf-8", "replace"):
             return np.empty((0, 2), dtype=np.float32), None
-        return None, p.stderr.decode("utf-8", "replace").strip() or f"ffmpeg exit {p.returncode}"
+        return (
+            None,
+            p.stderr.decode("utf-8", "replace").strip()
+            or f"ffmpeg exit {p.returncode}",
+        )
     if not p.stdout:
         return np.empty((0, 2), dtype=np.float32), None
     x = np.frombuffer(p.stdout, dtype="<f4")
@@ -73,19 +92,24 @@ def decode(path: Path) -> tuple[np.ndarray | None, str | None]:
     return x, None
 
 
-def rolling_event_arrays(level: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+def rolling_event_arrays(
+    level: np.ndarray,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     n = len(level)
     baseline = np.full(n, np.nan)
     event = np.full(n, np.nan)
+    baseline_mad = np.full(n, np.nan)
     for i in range(n):
         # Ignore the immediately preceding 100 ms so the baseline is not polluted by onset ramps.
         lo, hi = max(0, i - 60), i - 2
         if hi - lo >= 20:
-            baseline[i] = np.median(level[lo:hi])
+            history = level[lo:hi]
+            baseline[i] = np.median(history)
+            baseline_mad[i] = np.median(np.abs(history - baseline[i]))
         if i + 6 <= n:
             # P25 over 300 ms rejects clicks and single-window spikes.
-            event[i] = np.percentile(level[i:i + 6], 25)
-    return baseline, event
+            event[i] = np.percentile(level[i : i + 6], 25)
+    return baseline, event, baseline_mad
 
 
 def duration_above(level: np.ndarray, start: int, threshold: float) -> float:
@@ -108,29 +132,62 @@ def max_changes(level: np.ndarray) -> dict[str, float]:
     smooth = np.convolve(level, np.ones(2) / 2, mode="same")
     for seconds in (0.05, 0.1, 0.25, 0.5, 1.0):
         d = max(1, round(seconds / WINDOW_S))
-        out[f"change_{int(seconds * 1000)}ms_db"] = float(np.max(smooth[d:] - smooth[:-d])) if len(level) > d else 0.0
+        out[f"change_{int(seconds * 1000)}ms_db"] = (
+            float(np.max(smooth[d:] - smooth[:-d])) if len(level) > d else 0.0
+        )
     return out
 
 
+def attack_time(fine_level: np.ndarray, coarse_index: int) -> float | None:
+    """Measure the last -30 dB-to-near-peak rise on 10 ms K-weighted windows."""
+    event_at = coarse_index * 5
+    lo = max(0, event_at - 50)
+    peak_lo = max(lo, event_at)
+    peak_hi = min(len(fine_level), event_at + 50)
+    if peak_hi <= peak_lo:
+        return None
+    peak = peak_lo + int(np.argmax(fine_level[peak_lo:peak_hi]))
+    below = np.flatnonzero(fine_level[lo:peak] <= -30.0)
+    if not len(below):
+        return None
+    last_below = lo + int(below[-1])
+    target = float(fine_level[peak] - 3.0)
+    reached = np.flatnonzero(fine_level[last_below + 1 : peak + 1] >= target)
+    if not len(reached):
+        return None
+    return float((int(reached[0]) + 1) * 10)
+
+
 def analyze(path: Path, meta: dict) -> dict:
+    source_name = Path(meta["path"]).name
     row = {
-        "file": path.name,
+        "file": source_name,
         "path": meta["path"],
         "md5": meta.get("md5", ""),
-        "api_duration_s": meta.get("duration_secs"),
-        "api_size_kib": meta.get("size"),
-        "label": POSITIVE_NAMES.get(path.name, "unlabeled"),
+        "api_duration_s": meta.get("duration_secs", meta.get("api_duration_s")),
+        "api_size_kib": meta.get("size", meta.get("api_size_kib")),
+        "label": POSITIVE_NAMES.get(source_name, meta.get("label", "unlabeled")),
     }
     samples, error = decode(path)
     if error:
         return row | {"status": "decode-error", "error": error}
     if samples is None or not len(samples):
-        return row | {"status": "no-audio", "score": 0.0, "old_score": 0, "classification": "no audio"}
+        return row | {
+            "status": "no-audio",
+            "score": 0.0,
+            "old_score": 0,
+            "classification": "no audio",
+        }
 
     frame_count = len(samples)
     usable = frame_count // WINDOW * WINDOW
     if not usable:
-        return row | {"status": "no-audio", "score": 0.0, "old_score": 0, "classification": "no audio"}
+        return row | {
+            "status": "no-audio",
+            "score": 0.0,
+            "old_score": 0,
+            "classification": "no audio",
+        }
     x = samples[:usable]
     frames = x.reshape(-1, WINDOW, 2)
     raw_energy = np.mean(frames.astype(np.float64) ** 2, axis=(1, 2))
@@ -147,7 +204,14 @@ def analyze(path: Path, meta: dict) -> dict:
     weighted_energy = np.mean(wframes.astype(np.float64) ** 2, axis=(1, 2))
     # Same offset as BS.1770's gated loudness convention; this is an approximation, not true LUFS.
     level = np.maximum(FLOOR_DB, -0.691 + db_power(weighted_energy))
-    del weighted, wframes
+    fine_window = round(RATE * 0.01)
+    fine_usable = len(weighted) // fine_window * fine_window
+    fine_frames = weighted[:fine_usable].reshape(-1, fine_window, 2)
+    fine_level = np.maximum(
+        FLOOR_DB,
+        -0.691 + db_power(np.mean(fine_frames.astype(np.float64) ** 2, axis=(1, 2))),
+    )
+    del weighted, wframes, fine_frames
 
     # Coarse spectral bands are deliberately limited to interpretable broadband-change evidence.
     mono = np.mean(frames, axis=2)
@@ -163,18 +227,24 @@ def analyze(path: Path, meta: dict) -> dict:
     power, freqs = power[:, keep], freqs[keep]
     bands = []
     for low, high in ((80, 500), (500, 3000), (3000, 7800)):
-        bands.append(db_power(np.mean(power[:, (freqs >= low) & (freqs < high)], axis=1)))
+        bands.append(
+            db_power(np.mean(power[:, (freqs >= low) & (freqs < high)], axis=1))
+        )
     band_db = np.stack(bands, axis=1)
     norm_spec = power / np.maximum(np.sum(power, axis=1, keepdims=True), 1e-12)
     spectral_flux = np.zeros(len(level))
     if len(level) > 1:
-        spectral_flux[1:] = np.sqrt(np.sum(np.maximum(norm_spec[1:] - norm_spec[:-1], 0) ** 2, axis=1))
+        spectral_flux[1:] = np.sqrt(
+            np.sum(np.maximum(norm_spec[1:] - norm_spec[:-1], 0) ** 2, axis=1)
+        )
     spectral_flatness = np.exp(np.mean(np.log(power), axis=1)) / np.mean(power, axis=1)
     flux_near = maximum_filter1d(spectral_flux, size=5, mode="nearest")
 
     # Separate safety path for a near-full-scale first event without a usable long baseline.
     start_limit = min(max(0, len(level) - 6), round(2.0 / WINDOW_S))
-    start_events = np.array([np.percentile(level[i:i + 6], 25) for i in range(start_limit + 1)])
+    start_events = np.array(
+        [np.percentile(level[i : i + 6], 25) for i in range(start_limit + 1)]
+    )
     start_best = int(np.argmax(start_events))
     start_level = float(start_events[start_best])
     start_target = max(-6.0, start_level - 3.0)
@@ -183,36 +253,52 @@ def analyze(path: Path, meta: dict) -> dict:
     # The 300 ms look-ahead can become suspicious before the sound itself begins. Report and
     # measure from the first actually loud 50 ms window instead of that preview window.
     onset_threshold = max(-9.0, start_level - 6.0)
-    onset_candidates = np.flatnonzero(level[start_preview:min(len(level), start_preview + 6)] >= onset_threshold)
-    start_at = start_preview + (int(onset_candidates[0]) if len(onset_candidates) else 0)
+    onset_candidates = np.flatnonzero(
+        level[start_preview : min(len(level), start_preview + 6)] >= onset_threshold
+    )
+    start_at = start_preview + (
+        int(onset_candidates[0]) if len(onset_candidates) else 0
+    )
     start_duration = duration_above(level, start_at, -9.0)
     start_end = min(len(level), start_at + 20)
     start_sample_end = min(len(x), start_end * WINDOW)
-    start_samples = np.abs(x[start_at * WINDOW:start_sample_end])
-    start_clip = float(np.mean(start_samples >= 10 ** (-1 / 20))) if len(start_samples) else 0.0
-    start_flatness = float(np.median(spectral_flatness[start_at:min(len(level), start_at + 6)]))
-    start_brightness = float(np.median(brightness_db[start_at:min(len(level), start_at + 6)]))
+    start_samples = np.abs(x[start_at * WINDOW : start_sample_end])
+    start_clip = (
+        float(np.mean(start_samples >= 10 ** (-1 / 20))) if len(start_samples) else 0.0
+    )
+    start_flatness = float(
+        np.median(spectral_flatness[start_at : min(len(level), start_at + 6)])
+    )
+    start_brightness = float(
+        np.median(brightness_db[start_at : min(len(level), start_at + 6)])
+    )
     start_loud_component = float(sigmoid((start_level + 6.0) / 2.0))
     start_duration_component = float(sigmoid((start_duration - 0.35) / 0.15))
     start_clip_component = float(sigmoid((start_clip - 0.01) / 0.03))
     start_noise_component = float(sigmoid((start_flatness - 0.025) / 0.025))
     start_brightness_component = float(sigmoid((start_brightness + 8.0) / 2.5))
-    start_score = start_loud_component ** 1.1 * start_duration_component ** 0.7
-    start_score *= 0.68 + 0.12 * start_clip_component + 0.14 * start_noise_component + 0.06 * start_brightness_component
+    start_score = start_loud_component**1.1 * start_duration_component**0.7
+    start_score *= (
+        0.68
+        + 0.12 * start_clip_component
+        + 0.14 * start_noise_component
+        + 0.06 * start_brightness_component
+    )
 
-    baseline, event = rolling_event_arrays(level)
+    baseline, event, baseline_mad = rolling_event_arrays(level)
     jump = event - baseline
     valid = np.isfinite(jump)
     if not np.any(valid):
         best = 0
         baseline = np.where(np.isfinite(baseline), baseline, np.median(level))
         event = np.where(np.isfinite(event), event, level)
+        fallback_mad = np.median(np.abs(level - np.median(level)))
+        baseline_mad = np.where(np.isfinite(baseline_mad), baseline_mad, fallback_mad)
         jump = event - baseline
     else:
         # Event score: loud + large contrast + sustained; quiet history and clipping are modest evidence.
         base_score = (
-            sigmoid((event + 10.5) / 2.5) ** 0.9
-            * sigmoid((jump - 13.0) / 3.5) ** 1.25
+            sigmoid((event + 10.5) / 2.5) ** 0.9 * sigmoid((jump - 13.0) / 3.5) ** 1.25
         )
         base_score[~valid] = -1
         best = int(np.argmax(base_score))
@@ -220,22 +306,31 @@ def analyze(path: Path, meta: dict) -> dict:
     base = float(baseline[best])
     event_level = float(event[best])
     event_jump = float(jump[best])
-    raw_base = float(np.median(raw_level[max(0, best - 60):max(0, best - 2)]))
-    raw_event = float(np.percentile(raw_level[best:best + 6], 25))
+    event_mad = float(baseline_mad[best])
+    robust_scale = max(2.0, 1.4826 * event_mad)
+    robust_z = event_jump / robust_scale
+    event_attack_ms = attack_time(fine_level, best)
+    raw_base = float(np.median(raw_level[max(0, best - 60) : max(0, best - 2)]))
+    raw_event = float(np.percentile(raw_level[best : best + 6], 25))
     look_end = min(len(level), best + 10)
     event_peak_db = float(np.max(frame_peak_db[best:look_end]))
     threshold = max(-13.0, base + 9.0)
     event_duration = duration_above(level, best, threshold)
     persistence = float(np.mean(level[best:look_end] >= threshold))
     sample_end = min(len(x), (best + 10) * WINDOW)
-    event_samples = np.abs(x[best * WINDOW:sample_end])
-    event_near_clip = float(np.mean(event_samples >= 10 ** (-1 / 20))) if len(event_samples) else 0.0
+    event_samples = np.abs(x[best * WINDOW : sample_end])
+    event_near_clip = (
+        float(np.mean(event_samples >= 10 ** (-1 / 20))) if len(event_samples) else 0.0
+    )
     band_lo, band_hi = max(0, best - 40), max(0, best - 2)
     if band_hi - band_lo >= 10:
         band_jump = band_db[best] - np.median(band_db[band_lo:band_hi], axis=0)
         base_shape = np.mean(norm_spec[band_lo:band_hi], axis=0)
-        event_shape = np.mean(norm_spec[best:min(len(level), best + 6)], axis=0)
-        spectral_shape_distance = float(np.sqrt(np.sum((np.sqrt(event_shape) - np.sqrt(base_shape)) ** 2)) / math.sqrt(2))
+        event_shape = np.mean(norm_spec[best : min(len(level), best + 6)], axis=0)
+        spectral_shape_distance = float(
+            np.sqrt(np.sum((np.sqrt(event_shape) - np.sqrt(base_shape)) ** 2))
+            / math.sqrt(2)
+        )
     else:
         band_jump = np.zeros(3)
         spectral_shape_distance = 0.0
@@ -248,22 +343,36 @@ def analyze(path: Path, meta: dict) -> dict:
     broadband_component = float(sigmoid((broadband_jump - 5.0) / 4.0))
     clip_component = float(sigmoid((event_near_clip - 0.005) / 0.012))
     flux_component = float(sigmoid((spectral_flux[best] - 0.22) / 0.08))
-    transition_score = (loud_component ** 0.9) * (jump_component ** 1.25) * (duration_component ** 0.65)
+    transition_score = (
+        (loud_component**0.9) * (jump_component**1.25) * (duration_component**0.65)
+    )
     transition_score *= 0.87 + 0.10 * quiet_component + 0.03 * clip_component
     transition_score *= 0.65 + 0.35 * flux_component
     transition_score = float(np.clip(transition_score, 0, 1))
-    transition_suspicious = (
-        transition_score >= 0.80 and event_level >= -6 and event_jump >= 14 and event_duration >= 0.15
+    transition_eligible = (
+        event_level >= -6 and event_jump >= 14 and event_duration >= 0.15
     )
-    start_spectral_evidence = start_flatness >= 0.04 or start_brightness >= -5.0 or start_clip >= 0.08
-    start_suspicious = (
-        start_score >= 0.80 and start_level >= -3.0 and start_duration >= 0.50 and start_spectral_evidence
+    start_spectral_evidence = (
+        start_flatness >= 0.04 or start_brightness >= -5.0 or start_clip >= 0.08
     )
-    confidence = float(max(transition_score, start_score))
-    suspicious = bool(transition_suspicious or start_suspicious)
-    detection_mode = "loud-start" if start_suspicious and start_score >= transition_score else (
-        "transition" if transition_suspicious else "normal"
+    start_eligible = (
+        start_level >= -3.0 and start_duration >= 0.50 and start_spectral_evidence
     )
+    transition_decision_score = transition_score if transition_eligible else 0.0
+    start_decision_score = start_score if start_eligible else 0.0
+    decision_score = float(max(transition_decision_score, start_decision_score))
+    suspicious = decision_score >= 0.80
+    confidence = decision_score
+    if start_decision_score != transition_decision_score:
+        detection_mode = (
+            "loud-start"
+            if start_decision_score > transition_decision_score
+            else "transition"
+        )
+    else:
+        detection_mode = (
+            "loud-start" if start_score > transition_score else "transition"
+        )
 
     # Reproduce the old detector's ~256 samples/channel per 100 ms window.
     old_win = round(RATE * 0.1)
@@ -277,72 +386,109 @@ def analyze(path: Path, meta: dict) -> dict:
     old_peak = float(np.max(old_level))
     old_jump, old_at = -math.inf, 0
     for i in range(1, len(old_level)):
-        j = float(old_level[i] - np.median(old_level[max(0, i - 10):i]))
+        j = float(old_level[i] - np.median(old_level[max(0, i - 10) : i]))
         if j > old_jump:
             old_jump, old_at = j, i
     old_dynamic = old_peak - old_median
-    old_score = int(old_peak > -8) + int(old_dynamic >= 14) + int(old_jump >= 12) + int(old_median < -18 and old_peak > -7)
+    old_score = (
+        int(old_peak > -8)
+        + int(old_dynamic >= 14)
+        + int(old_jump >= 12)
+        + int(old_median < -18 and old_peak > -7)
+    )
 
-    percentiles = {f"p{p}_db": float(np.percentile(level, p)) for p in (10, 25, 50, 75, 90, 95, 99)}
+    percentiles = {
+        f"p{p}_db": float(np.percentile(level, p)) for p in (10, 25, 50, 75, 90, 95, 99)
+    }
     abs_samples = np.abs(x)
     rms_all_db = float(db_power(np.mean(x.astype(np.float64) ** 2)))
     peak_db = float(db_amp(np.max(abs_samples)))
-    row.update({
-        "status": "ok",
-        "duration_s": frame_count / RATE,
-        **percentiles,
-        "raw_median_dbfs": float(np.median(raw_level)),
-        "rms_dbfs": rms_all_db,
-        "peak_dbfs": peak_db,
-        "crest_db": peak_db - rms_all_db,
-        "peak_to_median_db": float(np.max(level) - np.median(level)),
-        "event_at_s": best * WINDOW_S,
-        "baseline_db": base,
-        "event_db": event_level,
-        "jump_db": event_jump,
-        "raw_baseline_dbfs": raw_base,
-        "raw_event_dbfs": raw_event,
-        "raw_jump_db": raw_event - raw_base,
-        "event_duration_s": event_duration,
-        "event_persistence": persistence,
-        "event_peak_dbfs": event_peak_db,
-        "event_near_clip_pct": event_near_clip * 100,
-        "band_low_jump_db": float(band_jump[0]),
-        "band_mid_jump_db": float(band_jump[1]),
-        "band_high_jump_db": float(band_jump[2]),
-        "broadband_jump_db": broadband_jump,
-        "spectral_flux_at_event": float(spectral_flux[best]),
-        "spectral_flux_near_event": float(flux_near[best]),
-        "max_spectral_flux": float(np.max(spectral_flux)),
-        "spectral_shape_distance": spectral_shape_distance,
-        "event_spectral_flatness": float(np.median(spectral_flatness[best:min(len(level), best + 6)])),
-        "event_brightness_db": float(np.median(brightness_db[best:min(len(level), best + 6)])),
-        "baseline_brightness_db": float(np.median(brightness_db[band_lo:band_hi])) if band_hi > band_lo else 0.0,
-        "brightness_change_db": float(np.median(brightness_db[best:min(len(level), best + 6)]) - np.median(brightness_db[band_lo:band_hi])) if band_hi > band_lo else 0.0,
-        "event_zcr": float(np.median(zcr[best:min(len(level), best + 6)])),
-        "start_at_s": start_at * WINDOW_S,
-        "start_event_db": start_level,
-        "start_duration_s": start_duration,
-        "start_near_clip_pct": start_clip * 100,
-        "start_spectral_flatness": start_flatness,
-        "start_brightness_db": start_brightness,
-        "start_score": float(start_score),
-        **max_changes(level),
-        **{f"sample_above_{d}db_pct": float(np.mean(abs_samples >= 10 ** (d / 20)) * 100) for d in (-3, -6, -9, -12)},
-        **{f"window_above_{d}db_pct": float(np.mean(level >= d) * 100) for d in (-3, -6, -9, -12)},
-        "old_median_db": old_median,
-        "old_peak_window_db": old_peak,
-        "old_dynamic_range_db": old_dynamic,
-        "old_max_jump_db": old_jump,
-        "old_jump_at_s": old_at * 0.1,
-        "old_score": old_score,
-        "old_classification": "suspicious" if old_score >= 3 else "normal",
-        "transition_score": transition_score,
-        "score": confidence,
-        "suspicious": suspicious,
-        "detection_mode": detection_mode,
-        "classification": "suspicious" if suspicious else "normal",
-    })
+    row.update(
+        {
+            "status": "ok",
+            "duration_s": frame_count / RATE,
+            **percentiles,
+            "raw_median_dbfs": float(np.median(raw_level)),
+            "rms_dbfs": rms_all_db,
+            "peak_dbfs": peak_db,
+            "crest_db": peak_db - rms_all_db,
+            "peak_to_median_db": float(np.max(level) - np.median(level)),
+            "event_at_s": best * WINDOW_S,
+            "baseline_db": base,
+            "event_db": event_level,
+            "jump_db": event_jump,
+            "baseline_mad_db": event_mad,
+            "robust_scale_db": robust_scale,
+            "robust_z": robust_z,
+            "attack_ms": event_attack_ms,
+            "raw_baseline_dbfs": raw_base,
+            "raw_event_dbfs": raw_event,
+            "raw_jump_db": raw_event - raw_base,
+            "event_duration_s": event_duration,
+            "event_persistence": persistence,
+            "event_peak_dbfs": event_peak_db,
+            "event_near_clip_pct": event_near_clip * 100,
+            "band_low_jump_db": float(band_jump[0]),
+            "band_mid_jump_db": float(band_jump[1]),
+            "band_high_jump_db": float(band_jump[2]),
+            "broadband_jump_db": broadband_jump,
+            "spectral_flux_at_event": float(spectral_flux[best]),
+            "spectral_flux_near_event": float(flux_near[best]),
+            "max_spectral_flux": float(np.max(spectral_flux)),
+            "spectral_shape_distance": spectral_shape_distance,
+            "event_spectral_flatness": float(
+                np.median(spectral_flatness[best : min(len(level), best + 6)])
+            ),
+            "event_brightness_db": float(
+                np.median(brightness_db[best : min(len(level), best + 6)])
+            ),
+            "baseline_brightness_db": (
+                float(np.median(brightness_db[band_lo:band_hi]))
+                if band_hi > band_lo
+                else 0.0
+            ),
+            "brightness_change_db": (
+                float(
+                    np.median(brightness_db[best : min(len(level), best + 6)])
+                    - np.median(brightness_db[band_lo:band_hi])
+                )
+                if band_hi > band_lo
+                else 0.0
+            ),
+            "event_zcr": float(np.median(zcr[best : min(len(level), best + 6)])),
+            "start_at_s": start_at * WINDOW_S,
+            "start_event_db": start_level,
+            "start_duration_s": start_duration,
+            "start_near_clip_pct": start_clip * 100,
+            "start_spectral_flatness": start_flatness,
+            "start_brightness_db": start_brightness,
+            "start_score": float(start_score),
+            **max_changes(level),
+            **{
+                f"sample_above_{d}db_pct": float(
+                    np.mean(abs_samples >= 10 ** (d / 20)) * 100
+                )
+                for d in (-3, -6, -9, -12)
+            },
+            **{
+                f"window_above_{d}db_pct": float(np.mean(level >= d) * 100)
+                for d in (-3, -6, -9, -12)
+            },
+            "old_median_db": old_median,
+            "old_peak_window_db": old_peak,
+            "old_dynamic_range_db": old_dynamic,
+            "old_max_jump_db": old_jump,
+            "old_jump_at_s": old_at * 0.1,
+            "old_score": old_score,
+            "old_classification": "suspicious" if old_score >= 3 else "normal",
+            "transition_score": transition_score,
+            "decision_score": decision_score,
+            "score": confidence,
+            "suspicious": suspicious,
+            "detection_mode": detection_mode,
+            "classification": "suspicious" if suspicious else "normal",
+        }
+    )
     return row
 
 
@@ -359,33 +505,59 @@ def main() -> int:
     )
     args = ap.parse_args()
     data = json.loads(args.thread_json.read_text())
-    files = [
-        f for p in data["threads"][0]["posts"] for f in (p.get("files") or [])
-        if Path(f.get("path", "")).suffix.lower() in {".mp4", ".webm", ".m4v", ".mov", ".ogv"}
-    ]
+    if isinstance(data, list):
+        files = data
+    else:
+        files = [
+            f
+            for p in data["threads"][0]["posts"]
+            for f in (p.get("files") or [])
+            if Path(f.get("path", "")).suffix.lower()
+            in {".mp4", ".webm", ".m4v", ".mov", ".ogv"}
+        ]
     if args.limit:
         files = files[: args.limit]
     rows = []
     for index, meta in enumerate(files, 1):
-        path = args.media_dir / Path(meta["path"]).name
+        path = args.media_dir / f"{Path(meta['path']).name}.audio.wav"
         print(f"[{index}/{len(files)}] {path.name}", file=sys.stderr, flush=True)
-        rows.append(analyze(path, meta))
+        if not path.exists() and meta.get("status") == "no-audio":
+            rows.append(meta)
+        else:
+            rows.append(analyze(path, meta))
     rows.sort(key=lambda r: float(r.get("score", -1)), reverse=True)
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.with_suffix(".json").write_text(json.dumps(rows, ensure_ascii=False, indent=2))
+    args.output.with_suffix(".json").write_text(
+        json.dumps(rows, ensure_ascii=False, indent=2)
+    )
     fields = sorted({k for row in rows for k in row})
     with args.output.with_suffix(".csv").open("w", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=fields, lineterminator="\n")
         writer.writeheader()
         writer.writerows(rows)
     columns = [
-        ("file", "file"), ("label", "label/status"), ("duration_s", "duration s"),
-        ("p50_db", "median dB"), ("peak_dbfs", "peak dBFS"), ("event_at_s", "event s"),
-        ("baseline_db", "baseline dB"), ("event_db", "event dB"), ("jump_db", "jump dB"),
-        ("event_duration_s", "event duration s"), ("event_near_clip_pct", "near-clip %"),
-        ("spectral_flux_at_event", "onset flux"), ("transition_score", "transition score"),
-        ("start_score", "start score"), ("score", "score"),
-        ("detection_mode", "mode"), ("classification", "new"), ("old_score", "old score"),
+        ("file", "file"),
+        ("label", "label/status"),
+        ("duration_s", "duration s"),
+        ("p50_db", "median dB"),
+        ("peak_dbfs", "peak dBFS"),
+        ("event_at_s", "event s"),
+        ("baseline_db", "baseline dB"),
+        ("event_db", "event dB"),
+        ("jump_db", "jump dB"),
+        ("baseline_mad_db", "baseline MAD dB"),
+        ("robust_z", "robust z"),
+        ("attack_ms", "attack ms"),
+        ("event_duration_s", "event duration s"),
+        ("event_near_clip_pct", "near-clip %"),
+        ("spectral_flux_at_event", "onset flux"),
+        ("transition_score", "transition score"),
+        ("start_score", "start score"),
+        ("decision_score", "decision score"),
+        ("score", "risk score"),
+        ("detection_mode", "mode"),
+        ("classification", "new"),
+        ("old_score", "old score"),
     ]
     with args.output.with_suffix(".md").open("w") as f:
         f.write(f"# {args.title}\n\n")
@@ -399,9 +571,17 @@ def main() -> int:
                 if key == "label" and row.get("status") == "no-audio":
                     value = "no audio"
                 elif isinstance(value, float):
-                    value = f"{value:.3f}" if key in {
-                        "score", "transition_score", "start_score", "spectral_flux_at_event"
-                    } else f"{value:.2f}"
+                    value = (
+                        f"{value:.3f}"
+                        if key
+                        in {
+                            "score",
+                            "transition_score",
+                            "start_score",
+                            "spectral_flux_at_event",
+                        }
+                        else f"{value:.2f}"
+                    )
                 values.append(str(value).replace("|", "\\|"))
             f.write("| " + " | ".join(values) + " |\n")
     return 0

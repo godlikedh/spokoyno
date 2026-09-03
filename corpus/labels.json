@@ -1,0 +1,39 @@
+{
+  "schema": 1,
+  "identity": "The mirror hostname is ignored; /board/src/thread/file identifies a clip.",
+  "policy": {
+    "confirmed_positive": "User explicitly confirmed the clip as a screamer.",
+    "reviewed_negative": "User listened to the clip and described it as legitimate/non-screamer content.",
+    "provisional_negative": "All remaining attachments in thread 336185346 are treated as high-confidence negatives per user review, but can be relabeled later."
+  },
+  "confirmed_positives": {
+    "/b/src/336185346/17883557324650588814.webm": "confirmed screamer #1",
+    "/b/src/336185346/17883557325462786367.mp4": "confirmed screamer #2",
+    "/b/src/336243339/17883629069140053716.mp4": "confirmed screamer #3",
+    "/b/src/336243339/17883659327260384359.webm": "confirmed screamer #4; dangerous loud start"
+  },
+  "reviewed_negatives": {
+    "/b/src/336185346/17882984411551286220.webm": "TV-show clip; no screamer or unusually loud sound heard",
+    "/b/src/336185346/17881699236063425442.mp4": "legitimate content; very loud person screaming",
+    "/b/src/336185346/17881887457541053716.mp4": "legitimate phonk with a loud drop",
+    "/b/src/336185346/17881481520942199957.mp4": "Twitch livestream; likely microphone artifacts",
+    "/b/src/336185346/17882990553793679533.webm": "poor-quality audio with loud talking",
+    "/b/src/336185346/17883361674593313438.mp4": "legitimate video",
+    "/b/src/336185346/17881522183152175284.mp4": "legitimate video",
+    "/b/src/336185346/17882989063041961052.webm": "legitimate loud speech with a rage scream",
+    "/b/src/336185346/17881818515883672838.mp4": "legitimate movie explosion",
+    "/b/src/336185346/17882962082822601629.mp4": "ball thrown at camera; visually startling but not an audio screamer",
+    "/b/src/336185346/17882991086611750790.webm": "legitimate loud laughter at the end",
+    "/b/src/336185346/17882989062590377833.webm": "voice chat with poor-quality audio",
+    "/b/src/336185346/17882997637612360215.webm": "legitimate video with screaming girls"
+  },
+  "provisional_negative_set": {
+    "thread": 336185346,
+    "count": 548,
+    "exclude_confirmed_positive_files": [
+      "17883557324650588814.webm",
+      "17883557325462786367.mp4"
+    ],
+    "source_manifest": "../research/thread-336185346.json"
+  }
+}
