@@ -1,13 +1,13 @@
 // ==UserScript==
 // @name         Spokoyno — 2ch WebM Companion
 // @namespace    local.spokoyno
-// @version      5.4.2
+// @version      5.6.0
 // @description  Tab-local video cache, fastest mirror, speed monitor and event-based screamer warning
 // @updateURL    https://raw.githubusercontent.com/godlikedh/spokoyno/main/spokoyno.user.js
 // @downloadURL  https://raw.githubusercontent.com/godlikedh/spokoyno/main/spokoyno.user.js
-// @match        https://2ch.org/*
-// @match        https://2ch.su/*
-// @match        https://2ch.life/*
+// @match        https://2ch.org/*/res/*.html*
+// @match        https://2ch.su/*/res/*.html*
+// @match        https://2ch.life/*/res/*.html*
 // @connect      2ch.org
 // @connect      2ch.su
 // @connect      2ch.life
@@ -18,12 +18,14 @@
 // @grant        GM_saveTab
 // @grant        GM_getTabs
 // @grant        GM_registerMenuCommand
+// @grant        GM_openInTab
 // ==/UserScript==
 
 (async () => {
   'use strict';
 
   const MIRRORS = ['2ch.org', '2ch.su', '2ch.life'];
+  const THREAD_PATH_RE = /^\/[^/]+\/res\/\d+\.html\/?$/;
   // Keep the v4 cache/state identifiers so an upgrade does not discard an existing tab cache.
   const PREFIX = 'tm2ch-media-v4:',
     CONCURRENCY = 6,
@@ -34,14 +36,15 @@
     CLEANUP_INTERVAL = 15 * 60_000,
     ORPHAN_GRACE = 60 * 60_000,
     CACHE_RECONCILE_INTERVAL = 30_000,
-    PERSIST_RETRY_INTERVAL = 30 * 24 * 60 * 60_000,
+    PERSIST_RETRY_INTERVAL = 24 * 60 * 60_000,
     MAX_DOWNLOAD_ATTEMPTS = 4,
     RETRY_BASE_DELAY = 2_000,
+    TAB_SAVE_INTERVAL = 15_000,
     RECENT_DOWNLOADS = 8;
   const CACHE_META_URL = `${location.origin}/__tm2ch_cache_meta_v1__`;
   const MEDIA_EXT = /\.(?:mp4|webm|m4v|mov|ogv)$/i;
   const SCREAMER_REPORT_RE = /scream|скрим/i;
-  const ANALYSIS_VERSION = 4,
+  const ANALYSIS_VERSION = 6,
     ANALYSIS_WINDOW = 0.05,
     ANALYSIS_TARGET_RATE = 16_000;
   const BASELINE_WINDOWS = 60,
@@ -50,6 +53,8 @@
     EVENT_WINDOWS = 6;
   const EVENT_LOOKAHEAD = 10,
     SCREAMER_CONFIDENCE = 0.8;
+
+  if (!THREAD_PATH_RE.test(location.pathname)) return;
 
   if (!window.caches) {
     console.error('[spokoyno] CacheStorage unavailable');
@@ -92,8 +97,7 @@
   const cacheName = state.cacheName;
   let cache = await caches.open(cacheName),
     mirrorPromise = null,
-    running = 0,
-    errors = 0;
+    running = 0;
   let decoderContext = null;
 
   const cached = new Set(),
@@ -102,6 +106,9 @@
     queued = new Set(),
     queue = [];
   const activeDownloads = new Map(),
+    activeRequests = new Map(),
+    activePreloads = new Set(),
+    failedMedia = new Set(),
     recentDownloads = [],
     retryTimers = new Map();
   const analysisResults = new Map(
@@ -125,7 +132,13 @@
     cacheReconcilePromise = null,
     lastCacheReconcileAt = 0,
     lastCacheTouchAt = 0,
-    storagePersistence = 'unknown';
+    storagePersistence = 'unknown',
+    lastTabSaveAt = Date.now(),
+    tabSaveTimer = null,
+    tabStateDirty = false,
+    tabSaveChain = Promise.resolve(),
+    cacheOperationChain = Promise.resolve(),
+    domPruneScheduled = false;
 
   try {
     for (const r of await cache.keys()) if (r.url !== CACHE_META_URL) cached.add(r.url);
@@ -135,6 +148,11 @@
 
   const mediaPath = (url) => {
     const u = new URL(url, location.href);
+    return u.pathname;
+  };
+
+  const requestPath = (url) => {
+    const u = new URL(url, location.href);
     return u.pathname + u.search;
   };
 
@@ -142,6 +160,51 @@
   const canonicalKey = (url) => location.origin + '/__tm2ch_cache_v4__' + mediaPath(url);
   const screamerKey = (url) => mediaPath(url);
   const mirrorUrl = (domain, path) => `https://${domain}${path}`;
+
+  function saveTabSoon(delay = 500) {
+    tabStateDirty = true;
+    if (tabSaveTimer) return;
+    const wait = Math.max(delay, TAB_SAVE_INTERVAL - (Date.now() - lastTabSaveAt));
+    tabSaveTimer = setTimeout(() => {
+      tabSaveTimer = null;
+      flushTabState();
+    }, wait);
+  }
+
+  async function flushTabState() {
+    if (tabSaveTimer) {
+      clearTimeout(tabSaveTimer);
+      tabSaveTimer = null;
+    }
+    if (!tabStateDirty) return tabSaveChain;
+    tabStateDirty = false;
+    tabSaveChain = tabSaveChain
+      .catch(() => {})
+      .then(() => gmSaveTab(tab))
+      .then(() => {
+        lastTabSaveAt = Date.now();
+      })
+      .catch((e) => {
+        tabStateDirty = true;
+        console.warn('[spokoyno] tab-state save failed:', e);
+      });
+    await tabSaveChain;
+    if (tabStateDirty) saveTabSoon(1000);
+  }
+
+  function withCacheLock(operation) {
+    const result = cacheOperationChain.catch(() => {}).then(operation);
+    cacheOperationChain = result.catch(() => {});
+    return result;
+  }
+
+  let removedStaleResults = false;
+  for (const [key, result] of Object.entries(state.screamer)) {
+    if (result?.analysisVersion === ANALYSIS_VERSION) continue;
+    delete state.screamer[key];
+    removedStaleResults = true;
+  }
+  if (removedStaleResults) saveTabSoon();
 
   const filenameFromUrl = (url) => {
     try {
@@ -247,11 +310,15 @@
           const key = 'spokoyno-persist-attempt-v1';
           const lastAttempt = Number(localStorage.getItem(key)) || 0;
           shouldRequest ||= Date.now() - lastAttempt >= PERSIST_RETRY_INTERVAL;
-          if (shouldRequest) localStorage.setItem(key, String(Date.now()));
         } catch {
           shouldRequest = true;
         }
-        if (shouldRequest) persistent = await storage.persist();
+        if (shouldRequest) {
+          persistent = await storage.persist();
+          try {
+            localStorage.setItem('spokoyno-persist-attempt-v1', String(Date.now()));
+          } catch {}
+        }
       }
       storagePersistence = persistent ? 'persistent' : 'best-effort';
       return persistent;
@@ -264,6 +331,15 @@
 
   function enqueueMedia(url, key, front = false, attempt = 0) {
     if (cached.has(key) || queued.has(key)) return false;
+    const sk = screamerKey(url),
+      previous = analysisResults.get(sk);
+    if (previous?.status === 'media-error' || previous?.status === 'cache-error') {
+      analysisResults.delete(sk);
+      delete state.screamer[sk];
+      failedMedia.delete(key);
+      for (const badge of screamerBadges.get(sk) || []) if (badge.isConnected) renderScreamerResult(badge, null);
+      saveTabSoon();
+    }
     queued.add(key);
     const item = { url, key, attempt, generation: downloadGeneration };
     if (front) queue.unshift(item);
@@ -275,6 +351,31 @@
     downloadGeneration++;
     for (const timer of retryTimers.values()) clearTimeout(timer);
     retryTimers.clear();
+    for (const key of activeRequests.keys()) abortDownloadsForKey(key);
+  }
+
+  function trackDownloadRequest(key, request) {
+    if (!activeRequests.has(key)) activeRequests.set(key, new Set());
+    activeRequests.get(key).add(request);
+  }
+
+  function untrackDownloadRequest(key, request) {
+    const requests = activeRequests.get(key);
+    if (!requests) return;
+    requests.delete(request);
+    if (!requests.size) activeRequests.delete(key);
+  }
+
+  function abortDownloadsForKey(key) {
+    const requests = activeRequests.get(key);
+    if (!requests) return;
+    activeRequests.delete(key);
+    for (const request of requests) {
+      try {
+        request.abort();
+      } catch {}
+    }
+    cancelSpeedTracking(key);
   }
 
   async function reconcileCache(reason = 'manual', force = false) {
@@ -283,7 +384,7 @@
     if (!force && now - lastCacheReconcileAt < CACHE_RECONCILE_INTERVAL) return null;
     lastCacheReconcileAt = now;
     const generation = downloadGeneration;
-    cacheReconcilePromise = (async () => {
+    cacheReconcilePromise = withCacheLock(async () => {
       const names = await caches.keys();
       const existed = names.includes(cacheName);
       cache = await caches.open(cacheName);
@@ -311,7 +412,7 @@
         });
       }
       return { existed, entries: actual.size, missingSinceLastCheck, requeued };
-    })()
+    })
       .catch((e) => {
         console.warn('[spokoyno] cache reconciliation failed:', reason, e);
         return null;
@@ -431,12 +532,13 @@
   }
 
   async function benchmarkMirrors(sampleUrl) {
-    const results = await Promise.all(MIRRORS.map((d) => probeMirror(d, mediaPath(sampleUrl))));
+    const results = await Promise.all(MIRRORS.map((d) => probeMirror(d, requestPath(sampleUrl))));
     const ok = results.filter((x) => x.ok).sort((a, b) => a.score - b.score);
     const winner = ok[0]?.domain || (MIRRORS.includes(location.hostname) ? location.hostname : MIRRORS[0]);
     state.mirror = winner;
     state.mirrorCheckedAt = Date.now();
-    await gmSaveTab(tab);
+    saveTabSoon();
+    await flushTabState();
     console.table(
       results.map((x) => ({
         mirror: x.domain,
@@ -513,56 +615,90 @@
 
   const parseContentType = (h) => h?.match(/^content-type:\s*([^\r\n]+)/im)?.[1]?.trim() || '';
 
-  function downloadBlob(domain, path, key, originalUrl) {
+  async function identifyMediaBlob(blob, contentType, path) {
+    if (!blob || blob.size < 16) throw new Error('empty or truncated media response');
+    const declared = String(contentType || '').toLowerCase();
+    if (/\b(?:text\/html|application\/(?:json|xml)|text\/plain)\b/.test(declared)) {
+      throw new Error(`unexpected content type ${contentType}`);
+    }
+    const bytes = new Uint8Array(await blob.slice(0, 64).arrayBuffer());
+    const isWebm = bytes[0] === 0x1a && bytes[1] === 0x45 && bytes[2] === 0xdf && bytes[3] === 0xa3;
+    const firstBox = String.fromCharCode(bytes[4] || 0, bytes[5] || 0, bytes[6] || 0, bytes[7] || 0);
+    const isMp4 = ['ftyp', 'moov', 'mdat', 'wide', 'free', 'skip'].includes(firstBox);
+    const isOgg = bytes[0] === 0x4f && bytes[1] === 0x67 && bytes[2] === 0x67 && bytes[3] === 0x53;
+    const extension = new URL(path, location.origin).pathname.split('.').pop()?.toLowerCase();
+    const valid = extension === 'webm' ? isWebm : extension === 'ogv' ? isOgg : isMp4;
+    if (!valid) throw new Error(`response is not a valid ${extension || 'video'} container`);
+    return isWebm ? 'video/webm' : isOgg ? 'video/ogg' : 'video/mp4';
+  }
+
+  function downloadBlob(domain, path, key, originalUrl, generation) {
     return new Promise((resolve, reject) => {
       const speed = beginSpeedTracking(key, originalUrl, domain);
-      GM_xmlhttpRequest({
-        method: 'GET',
-        url: mirrorUrl(domain, path),
-        responseType: 'blob',
-        timeout: DOWNLOAD_TIMEOUT,
-        onprogress: (e) => updateSpeedTracking(speed, e),
-        onload: (r) => {
-          if (r.status < 200 || r.status >= 400) {
-            cancelSpeedTracking(key);
-            return reject(new Error(`${domain}: HTTP ${r.status}`));
-          }
-          const blob = r.response;
-          if (!blob) {
-            cancelSpeedTracking(key);
-            return reject(new Error(`${domain}: empty response`));
-          }
-          finishSpeedTracking(key, blob.size, domain);
-          resolve({
-            blob,
-            contentType: blob.type || parseContentType(r.responseHeaders),
-            domain
-          });
-        },
-        onerror: () => {
-          cancelSpeedTracking(key);
-          reject(new Error(`${domain}: network error`));
-        },
-        ontimeout: () => {
-          cancelSpeedTracking(key);
-          reject(new Error(`${domain}: timeout`));
-        }
-      });
+      let request,
+        settled = false;
+      const fail = (error) => {
+        if (settled) return;
+        settled = true;
+        if (request) untrackDownloadRequest(key, request);
+        cancelSpeedTracking(key);
+        reject(error);
+      };
+      const succeed = (value) => {
+        if (settled) return;
+        settled = true;
+        if (request) untrackDownloadRequest(key, request);
+        resolve(value);
+      };
+      try {
+        request = GM_xmlhttpRequest({
+          method: 'GET',
+          url: mirrorUrl(domain, path),
+          responseType: 'blob',
+          timeout: DOWNLOAD_TIMEOUT,
+          onprogress: (e) => updateSpeedTracking(speed, e),
+          onload: async (r) => {
+            if (r.status !== 200) return fail(new Error(`${domain}: HTTP ${r.status}`));
+            const blob = r.response,
+              declaredType = parseContentType(r.responseHeaders) || blob?.type,
+              declaredLength = Number(r.responseHeaders?.match(/^content-length:\s*(\d+)/im)?.[1]) || 0;
+            try {
+              if (declaredLength && blob?.size !== declaredLength) {
+                throw new Error(`truncated response (${blob?.size || 0}/${declaredLength} bytes)`);
+              }
+              const contentType = await identifyMediaBlob(blob, declaredType, path);
+              if (generation !== downloadGeneration) return fail(new Error(`${domain}: download cancelled`));
+              finishSpeedTracking(key, blob.size, domain);
+              succeed({ blob, contentType, domain });
+            } catch (e) {
+              fail(new Error(`${domain}: ${e.message || e}`));
+            }
+          },
+          onerror: () => fail(new Error(`${domain}: network error`)),
+          ontimeout: () => fail(new Error(`${domain}: timeout`)),
+          onabort: () => fail(new Error(`${domain}: download cancelled`))
+        });
+        trackDownloadRequest(key, request);
+        if (settled) untrackDownloadRequest(key, request);
+      } catch (e) {
+        fail(e);
+      }
     });
   }
 
-  async function downloadFromBestMirror(url, key) {
-    const path = mediaPath(url),
+  async function downloadFromBestMirror(url, key, generation) {
+    const path = requestPath(url),
       preferred = await getPreferredMirror(url);
     const order = [preferred, ...MIRRORS.filter((x) => x !== preferred)];
     let lastError;
     for (const domain of order) {
+      if (generation !== downloadGeneration || !seenMedia.has(key)) throw new Error('download cancelled');
       try {
-        const r = await downloadBlob(domain, path, key, url);
+        const r = await downloadBlob(domain, path, key, url, generation);
         if (domain !== preferred) {
           state.mirror = domain;
           state.mirrorCheckedAt = 0;
-          gmSaveTab(tab);
+          saveTabSoon();
         }
         return r;
       } catch (e) {
@@ -591,22 +727,26 @@
   }
 
   function renderScreamerResult(badge, r) {
+    const expose = () => badge.setAttribute('aria-label', `${badge.textContent}. ${badge.title}`);
     badge.dataset.state = '';
     if (!r) {
       badge.textContent = '🔊 analyzing…';
       badge.title = 'Audio analysis is queued';
+      expose();
       return;
     }
     if (r.status === 'no-audio') {
       badge.textContent = '🔇 no audio';
       badge.title = 'No audio track was detected';
       badge.dataset.state = 'ok';
+      expose();
       return;
     }
     if (r.status === 'unsupported') {
       badge.textContent = '❔ audio analysis unavailable';
       badge.title = 'Web Audio decoding is unavailable in this browser';
       badge.dataset.state = 'error';
+      expose();
       return;
     }
     if (r.status === 'decode-error') {
@@ -614,16 +754,28 @@
       badge.title =
         'The browser could play the video container but could not expose its complete audio track for offline analysis. This is unknown, not safe.';
       badge.dataset.state = 'error';
+      expose();
+      return;
+    }
+    if (r.status === 'media-error' || r.status === 'cache-error') {
+      badge.textContent = r.status === 'cache-error' ? '❔ cache failed' : '❔ media unavailable';
+      badge.title = `${r.message || 'The media could not be prepared for analysis'}. This is unknown, not safe.`;
+      badge.dataset.state = 'error';
+      expose();
       return;
     }
 
-    const displayRisk = Math.max(
-      r.displayRisk ?? 0,
-      r.transitionConfidence ?? 0,
-      r.startConfidence ?? 0,
-      r.confidence ?? 0
-    );
+    const displayRisk = Number.isFinite(r.displayRisk)
+      ? r.displayRisk
+      : Math.max(r.transitionConfidence ?? 0, r.startConfidence ?? 0, r.rescueConfidence ?? 0, r.confidence ?? 0);
     const risk = formatRiskPoints(displayRisk);
+    const detectorName =
+      {
+        'loud-start': 'dangerous loud start',
+        'short-spectral-burst': 'short edited spectral burst',
+        'short-clipped-burst': 'short heavily clipped burst',
+        transition: 'quiet-to-loud transition'
+      }[r.detectionMode] || 'quiet-to-loud transition';
     if (r.suspicious) {
       badge.textContent =
         r.detectionMode === 'loud-start'
@@ -638,7 +790,7 @@
     badge.title = [
       `Risk score: ${risk}/100 (heuristic, not a probability)`,
       `Merged decision score: ${formatRiskPoints(r.decisionScore ?? 0)}/100`,
-      `Strongest detector: ${r.detectionMode === 'loud-start' ? 'dangerous loud start' : 'quiet-to-loud transition'}`,
+      `Strongest detector: ${detectorName}`,
       `Event: ${formatTime(r.eventAt || 0)}`,
       Number.isFinite(r.baselineDb)
         ? `Baseline (previous 1–3 s): ${r.baselineDb.toFixed(1)} dB`
@@ -654,8 +806,13 @@
       `Event peak: ${r.eventPeakDb.toFixed(1)} dBFS`,
       `Event near-clipping: ${r.eventNearClipPct.toFixed(2)}%`,
       `Onset spectral flux: ${r.spectralFlux.toFixed(3)}`,
+      Number.isFinite(r.spectralFluxNear) ? `Nearby maximum spectral flux: ${r.spectralFluxNear.toFixed(3)}` : '',
+      Number.isFinite(r.spectralShapeDistance)
+        ? `Baseline → event spectral distance: ${r.spectralShapeDistance.toFixed(3)}`
+        : '',
       `Transition path: ${formatRiskPoints(r.transitionConfidence)}/100`,
       `Loud-start path: ${formatRiskPoints(r.startConfidence)}/100`,
+      Number.isFinite(r.rescueConfidence) ? `Short-burst rescue path: ${formatRiskPoints(r.rescueConfidence)}/100` : '',
       `Start spectral flatness: ${r.startSpectralFlatness.toFixed(3)}`,
       `Start high-frequency brightness: ${r.startBrightnessDb.toFixed(1)} dB`,
       `Track median: ${r.medianDb.toFixed(1)} dB`,
@@ -664,6 +821,7 @@
     ]
       .filter(Boolean)
       .join('\n');
+    expose();
   }
 
   function refreshAttachmentRisk(sk) {
@@ -686,27 +844,69 @@
     refreshAttachmentRisk(sk);
   }
 
+  function addMappedElement(map, key, element) {
+    if (!map.has(key)) map.set(key, new Set());
+    map.get(key).add(element);
+  }
+
   function renderCommunityReport(sk, reports) {
-    let badge = communityBadges.get(sk);
-    if (!badge?.isConnected) {
-      const modelBadge = screamerBadges.get(sk);
-      if (!modelBadge?.isConnected) return;
-      badge = document.createElement('a');
-      badge.className = 'tm2ch-screamer tm2ch-report';
-      badge.dataset.state = 'bad';
-      modelBadge.insertAdjacentElement('afterend', badge);
-      communityBadges.set(sk, badge);
-    }
     const count = reports.length;
     const label = `🚩 reported${count > 1 ? ` ×${count}` : ''}`;
-    if (badge.textContent !== label) badge.textContent = label;
-    badge.href = `#${reports[0].reportPost}`;
-    badge.setAttribute('aria-label', `${count} unverified community screamer report${count === 1 ? '' : 's'}`);
-    badge.title = [
+    const title = [
       `Unverified community screamer report${count === 1 ? '' : 's'}: ${count}`,
       ...reports.map((r) => `Reply #${r.reportPost} → post #${r.targetPost}: “${r.text}”`),
       'Independent of the audio-analysis percentage; click to open the first reporting reply.'
     ].join('\n');
+    for (const modelBadge of screamerBadges.get(sk) || []) {
+      if (!modelBadge.isConnected) continue;
+      let badge = modelBadge._tm2chCommunityBadge;
+      if (!badge?.isConnected) {
+        badge = document.createElement('a');
+        badge.className = 'tm2ch-screamer tm2ch-report';
+        badge.dataset.state = 'bad';
+        modelBadge.insertAdjacentElement('afterend', badge);
+        modelBadge._tm2chCommunityBadge = badge;
+        addMappedElement(communityBadges, sk, badge);
+      }
+      if (badge.textContent !== label) badge.textContent = label;
+      badge.href = `#${reports[0].reportPost}`;
+      badge.setAttribute('aria-label', `${count} unverified community screamer report${count === 1 ? '' : 's'}`);
+      badge.title = title;
+    }
+  }
+
+  function messageReportTargets(message) {
+    let text = '';
+    const replies = [];
+    const walk = (node) => {
+      if (node.nodeType === Node.TEXT_NODE) {
+        text += node.nodeValue || '';
+        return;
+      }
+      if (node.nodeType !== Node.ELEMENT_NODE) return;
+      if (node.matches('.post-reply-link[data-num]')) {
+        const start = text.length;
+        text += node.textContent || '';
+        replies.push({ targetPost: node.dataset.num, start, end: text.length });
+        return;
+      }
+      if (node.matches('br')) text += '\n';
+      for (const child of node.childNodes) walk(child);
+    };
+    walk(message);
+    const targets = new Set(),
+      keyword = /scream\w*|скрим\w*/giu;
+    for (const match of text.matchAll(keyword)) {
+      const before = text.slice(Math.max(0, match.index - 32), match.index).toLowerCase();
+      if (/(?:\b(?:not|no)\b|(?:^|\s)не|(?:^|\s)без)\s+(?:\S+\s+){0,2}$/.test(before)) continue;
+      const at = match.index;
+      const preceding = replies.filter((r) => r.end <= at).sort((a, b) => b.end - a.end)[0];
+      const following = replies.filter((r) => r.start > at).sort((a, b) => a.start - b.start)[0];
+      const chosen =
+        preceding && at - preceding.end <= 200 ? preceding : following && following.start - at <= 80 ? following : null;
+      if (chosen && /^\d+$/.test(chosen.targetPost)) targets.add(chosen.targetPost);
+    }
+    return { text, targets };
   }
 
   function scanCommunityReports() {
@@ -714,11 +914,10 @@
     for (const post of document.querySelectorAll('.post[data-num]')) {
       const message = post.querySelector('.post__message');
       if (!message || !SCREAMER_REPORT_RE.test(message.textContent || '')) continue;
-      const reportPost = post.dataset.num;
-      const text = (message.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 180);
-      for (const replyLink of message.querySelectorAll('.post-reply-link[data-num]')) {
-        const targetPost = replyLink.dataset.num;
-        if (!/^\d+$/.test(targetPost)) continue;
+      const reportPost = post.dataset.num,
+        parsed = messageReportTargets(message),
+        text = parsed.text.replace(/\s+/g, ' ').trim().slice(0, 180);
+      for (const targetPost of parsed.targets) {
         const target = document.getElementById(`post-${targetPost}`);
         if (!target) continue;
         const found = new Set();
@@ -735,9 +934,9 @@
       }
     }
 
-    for (const [sk, badge] of communityBadges) {
+    for (const [sk, badges] of communityBadges) {
       if (next.has(sk)) continue;
-      badge.remove();
+      for (const badge of badges) badge.remove();
       communityBadges.delete(sk);
     }
     communityReports.clear();
@@ -759,13 +958,17 @@
 
   function attachScreamerBadge(anchor, url) {
     const sk = screamerKey(url),
-      existing = screamerBadges.get(sk);
+      figure = anchor.closest?.('figure.post__image'),
+      existing = figure?._tm2chScreamerBadge;
     if (existing?.isConnected) return;
     const b = document.createElement('span');
     b.className = 'tm2ch-screamer';
     b.dataset.sk = sk;
-    anchor.insertAdjacentElement('afterend', b);
-    screamerBadges.set(sk, b);
+    b.tabIndex = 0;
+    const host = figure?.querySelector('.post__file-link') || anchor;
+    host.insertAdjacentElement('afterend', b);
+    if (figure) figure._tm2chScreamerBadge = b;
+    addMappedElement(screamerBadges, sk, b);
     renderScreamerResult(b, analysisResults.get(sk));
     if (communityReports.has(sk)) renderCommunityReport(sk, communityReports.get(sk));
     refreshAttachmentRisk(sk);
@@ -775,9 +978,8 @@
     r.analysisVersion = ANALYSIS_VERSION;
     analysisResults.set(sk, r);
     state.screamer[sk] = r;
-    gmSaveTab(tab).catch?.(() => {});
-    const b = screamerBadges.get(sk);
-    if (b?.isConnected) renderScreamerResult(b, r);
+    saveTabSoon();
+    for (const b of screamerBadges.get(sk) || []) if (b.isConnected) renderScreamerResult(b, r);
     refreshAttachmentRisk(sk);
   }
 
@@ -793,6 +995,42 @@
       hi = Math.ceil(at),
       f = at - lo;
     return a[lo] * (1 - f) + a[hi] * f;
+  }
+
+  function percentileSorted(values, p) {
+    if (!values.length) return -90;
+    const at = (values.length - 1) * p,
+      lo = Math.floor(at),
+      hi = Math.ceil(at),
+      f = at - lo;
+    return values[lo] * (1 - f) + values[hi] * f;
+  }
+
+  function sortedIndex(values, value) {
+    let lo = 0,
+      hi = values.length;
+    while (lo < hi) {
+      const mid = (lo + hi) >> 1;
+      if (values[mid] < value) lo = mid + 1;
+      else hi = mid;
+    }
+    return lo;
+  }
+
+  function insertSorted(values, value) {
+    values.splice(sortedIndex(values, value), 0, value);
+  }
+
+  function removeSorted(values, value) {
+    const at = sortedIndex(values, value);
+    if (at < values.length) values.splice(at, 1);
+  }
+
+  function percentileRange(values, start, end, p, scratch) {
+    scratch.length = 0;
+    for (let i = start; i < end; i++) scratch.push(values[i]);
+    scratch.sort((a, b) => a - b);
+    return percentileSorted(scratch, p);
   }
 
   function makeHighPass(fs, f0 = 70, q = Math.SQRT1_2) {
@@ -837,11 +1075,11 @@
   }
 
   async function extractTimeline(buf) {
-    const stride = Math.max(1, Math.floor(buf.sampleRate / ANALYSIS_TARGET_RATE));
-    const effectiveRate = buf.sampleRate / stride;
-    const windowFrames = Math.max(stride, Math.round((buf.sampleRate * ANALYSIS_WINDOW) / stride) * stride);
+    const stride = 1,
+      effectiveRate = buf.sampleRate;
+    const windowFrames = Math.max(1, Math.round(buf.sampleRate * ANALYSIS_WINDOW));
     const windowSeconds = windowFrames / buf.sampleRate,
-      count = Math.ceil(buf.length / windowFrames);
+      count = Math.max(1, Math.floor(buf.length / windowFrames));
     const levels = new Float32Array(count),
       peaks = new Float32Array(count);
     const clipCounts = new Uint32Array(count),
@@ -855,13 +1093,13 @@
 
     for (let wi = 0; wi < count; wi++) {
       const start = wi * windowFrames,
-        end = Math.min(buf.length, start + windowFrames);
+        end = wi === count - 1 && buf.length < windowFrames ? buf.length : start + windowFrames;
       let rawSq = 0,
         weightedSq = 0,
         n = 0,
         peak = 0,
         clips = 0;
-      for (let i = start; i < end; i += stride) {
+      for (let i = start; i < end; i++) {
         for (let ch = 0; ch < channels.length; ch++) {
           const v = channels[ch][i] || 0,
             av = Math.abs(v);
@@ -939,22 +1177,24 @@
     if (start < 0 || start >= end) return null;
     let n = 1;
     while (n < end - start) n <<= 1;
-    const re = new Float64Array(n),
-      im = new Float64Array(n);
-    for (let i = start; i < end; i++) {
-      let v = 0;
-      for (let ch = 0; ch < buf.numberOfChannels; ch++) v += buf.getChannelData(ch)[i];
-      const j = i - start,
-        hann = end - start > 1 ? 0.5 - 0.5 * Math.cos((2 * Math.PI * j) / (end - start - 1)) : 1;
-      re[j] = (v / buf.numberOfChannels) * hann;
-    }
-    fft(re, im);
     const bins = Math.min(n / 2 + 1, Math.floor((7800 * n) / buf.sampleRate) + 1),
       out = new Float64Array(bins);
+    for (let ch = 0; ch < buf.numberOfChannels; ch++) {
+      const data = buf.getChannelData(ch),
+        re = new Float64Array(n),
+        im = new Float64Array(n);
+      for (let i = start; i < end; i++) {
+        const j = i - start,
+          hann = end - start > 1 ? 0.5 - 0.5 * Math.cos((2 * Math.PI * j) / (end - start - 1)) : 1;
+        re[j] = data[i] * hann;
+      }
+      fft(re, im);
+      for (let i = 0; i < bins; i++) out[i] += re[i] * re[i] + im[i] * im[i] + 1e-12;
+    }
     let total = 0;
     let logTotal = 0;
     for (let i = 0; i < bins; i++) {
-      const p = re[i] * re[i] + im[i] * im[i] + 1e-12;
+      const p = out[i] / buf.numberOfChannels;
       out[i] = p;
       total += p;
       logTotal += Math.log(p);
@@ -969,6 +1209,10 @@
     const before = spectrumProfile(buf, index - 1, windowFrames),
       current = spectrumProfile(buf, index, windowFrames);
     if (!before || !current) return 0;
+    return profileFlux(before, current);
+  }
+
+  function profileFlux(before, current) {
     const n = Math.min(before.bins.length, current.bins.length);
     let sum = 0;
     for (let i = 0; i < n; i++) {
@@ -978,38 +1222,91 @@
     return Math.sqrt(sum);
   }
 
+  async function transitionSpectralFeatures(buf, index, timeline) {
+    const cache = new Map();
+    const getProfile = (i) => {
+      if (i < 0 || i >= timeline.levels.length) return null;
+      if (!cache.has(i)) cache.set(i, spectrumProfile(buf, i, timeline.windowFrames));
+      return cache.get(i);
+    };
+    const onsetBefore = getProfile(index - 1),
+      onsetCurrent = getProfile(index);
+    const onsetFlux = onsetBefore && onsetCurrent ? profileFlux(onsetBefore, onsetCurrent) : 0;
+    let nearbyFlux = onsetFlux;
+    for (let i = Math.max(1, index - 2); i <= Math.min(timeline.levels.length - 1, index + 2); i++) {
+      const before = getProfile(i - 1),
+        current = getProfile(i);
+      if (before && current) nearbyFlux = Math.max(nearbyFlux, profileFlux(before, current));
+    }
+
+    const baselineProfiles = [],
+      eventProfiles = [];
+    for (let i = Math.max(0, index - 40); i < Math.max(0, index - BASELINE_GAP); i++) {
+      const profile = getProfile(i);
+      if (profile) baselineProfiles.push(profile);
+      if (i % 8 === 7) await yieldMain();
+    }
+    for (let i = index; i < Math.min(timeline.levels.length, index + EVENT_WINDOWS); i++) {
+      const profile = getProfile(i);
+      if (profile) eventProfiles.push(profile);
+    }
+
+    let shapeDistance = 0;
+    if (baselineProfiles.length && eventProfiles.length) {
+      const bins = Math.min(baselineProfiles[0].bins.length, eventProfiles[0].bins.length),
+        baselineMean = new Float64Array(bins),
+        eventMean = new Float64Array(bins);
+      for (const profile of baselineProfiles) {
+        for (let i = 0; i < bins; i++) baselineMean[i] += profile.bins[i] / baselineProfiles.length;
+      }
+      for (const profile of eventProfiles) {
+        for (let i = 0; i < bins; i++) eventMean[i] += profile.bins[i] / eventProfiles.length;
+      }
+      let distance = 0;
+      for (let i = 0; i < bins; i++) {
+        const d = Math.sqrt(eventMean[i]) - Math.sqrt(baselineMean[i]);
+        distance += d * d;
+      }
+      shapeDistance = Math.sqrt(distance) / Math.SQRT2;
+    }
+    return { onsetFlux, nearbyFlux, shapeDistance };
+  }
+
   function windowBrightness(buf, windowIndex, windowFrames, stride) {
     const start = windowIndex * windowFrames,
       end = Math.min(buf.length, start + windowFrames);
     let energy = 0,
       differenceEnergy = 0,
-      previous = null,
       count = 0;
-    for (let i = start; i < end; i += stride) {
-      let value = 0;
-      for (let ch = 0; ch < buf.numberOfChannels; ch++) value += buf.getChannelData(ch)[i];
-      value /= buf.numberOfChannels;
-      energy += value * value;
-      if (previous !== null) {
-        const difference = value - previous;
-        differenceEnergy += difference * difference;
+    for (let ch = 0; ch < buf.numberOfChannels; ch++) {
+      const data = buf.getChannelData(ch);
+      let previous = null;
+      for (let i = start; i < end; i += stride) {
+        const value = data[i];
+        energy += value * value;
+        if (previous !== null) {
+          const difference = value - previous;
+          differenceEnergy += difference * difference;
+        }
+        previous = value;
+        count++;
       }
-      previous = value;
-      count++;
     }
-    if (count < 2 || energy <= 0) return -90;
-    return dbPower(differenceEnergy / (count - 1) / (energy / count));
+    const differences = count - buf.numberOfChannels;
+    if (differences < 1 || energy <= 0) return -90;
+    return dbPower(differenceEnergy / differences / (energy / count));
   }
 
   function eventDuration(levels, start, threshold, windowSeconds) {
-    let end = start,
+    let lastAbove = start - 1,
       misses = 0;
-    while (end < levels.length && end < start + 60) {
-      if (levels[end] >= threshold) misses = 0;
-      else if (++misses >= 2) break;
-      end++;
+    for (let i = start; i < levels.length && i < start + 60; i++) {
+      if (levels[i] >= threshold) {
+        lastAbove = i;
+        misses = 0;
+      } else if (++misses >= 2) break;
     }
-    return Math.max(0, (end - start - Math.max(0, misses - 1)) * windowSeconds);
+    return Math.max(0, (lastAbove - start + 1) * windowSeconds);
   }
 
   function maxChange(levels, seconds, windowSeconds) {
@@ -1026,14 +1323,14 @@
   function measureAttack(buf, index, timeline) {
     const { stride, windowFrames } = timeline;
     const eventFrame = index * windowFrames;
-    const start = Math.max(0, eventFrame - Math.round(buf.sampleRate * 0.5));
+    const visibleStart = Math.max(0, eventFrame - Math.round(buf.sampleRate * 0.5));
+    const warmupStart = Math.max(0, visibleStart - Math.round(buf.sampleRate * 3));
     const end = Math.min(buf.length, eventFrame + Math.round(buf.sampleRate * 0.8));
-    const fineFrames = Math.max(stride, Math.round((buf.sampleRate * 0.01) / stride) * stride);
+    const fineFrames = Math.max(1, Math.round(buf.sampleRate * 0.01));
     const channels = Array.from({ length: buf.numberOfChannels }, (_, ch) => buf.getChannelData(ch));
-    const effectiveRate = buf.sampleRate / stride;
-    const filters = channels.map(() => [makeHighPass(effectiveRate), makeHighShelf(effectiveRate)]);
+    const filters = channels.map(() => [makeHighPass(buf.sampleRate), makeHighShelf(buf.sampleRate)]);
     const levels = [];
-    for (let frameStart = start; frameStart < end; frameStart += fineFrames) {
+    for (let frameStart = warmupStart; frameStart < end; frameStart += fineFrames) {
       const frameEnd = Math.min(end, frameStart + fineFrames);
       let square = 0,
         count = 0;
@@ -1044,9 +1341,9 @@
           count++;
         }
       }
-      levels.push(Math.max(-90, -0.691 + dbPower(square / Math.max(1, count))));
+      if (frameStart >= visibleStart) levels.push(Math.max(-90, -0.691 + dbPower(square / Math.max(1, count))));
     }
-    const eventAt = Math.floor((eventFrame - start) / fineFrames);
+    const eventAt = Math.floor((eventFrame - visibleStart) / fineFrames);
     const peakEnd = Math.min(levels.length, eventAt + 50);
     if (eventAt < 0 || peakEnd <= eventAt) return null;
     let peak = eventAt;
@@ -1088,118 +1385,56 @@
     });
   }
 
-  function bytesContain(bytes, text, start = 0, limit = bytes.length) {
-    const needle = Array.from(text, (c) => c.charCodeAt(0)),
-      end = Math.min(bytes.length, limit) - needle.length;
-    outer: for (let i = start; i <= end; i++) {
-      for (let j = 0; j < needle.length; j++) if (bytes[i + j] !== needle[j]) continue outer;
-      return true;
-    }
-    return false;
-  }
-
-  function ebmlVint(bytes, at, keepMarker = false, maxBytes = 8) {
-    if (at >= bytes.length) return null;
-    let mask = 0x80,
-      length = 1;
-    while (length <= maxBytes && !(bytes[at] & mask)) {
-      mask >>= 1;
-      length++;
-    }
-    if (length > maxBytes || at + length > bytes.length) return null;
-    let value = keepMarker ? bytes[at] : bytes[at] & (mask - 1);
-    for (let i = 1; i < length; i++) value = value * 256 + bytes[at + i];
-    return { length, value };
-  }
-
-  function webmHasAudio(bytes) {
-    const limit = Math.min(bytes.length, 2 * 1024 * 1024);
-    for (let i = 0; i + 5 < limit; i++) {
-      if (bytes[i] !== 0x16 || bytes[i + 1] !== 0x54 || bytes[i + 2] !== 0xae || bytes[i + 3] !== 0x6b) continue;
-      const tracksSize = ebmlVint(bytes, i + 4);
-      if (!tracksSize) continue;
-      let at = i + 4 + tracksSize.length,
-        end = Math.min(limit, at + tracksSize.value),
-        sawTrack = false;
-      while (at < end) {
-        const id = ebmlVint(bytes, at, true, 4);
-        if (!id) break;
-        const size = ebmlVint(bytes, at + id.length);
-        if (!size) break;
-        const data = at + id.length + size.length,
-          next = data + size.value;
-        if (next > end || next <= data) break;
-        if (id.value === 0xae) {
-          sawTrack = true;
-          for (let p = data; p < next; ) {
-            const childId = ebmlVint(bytes, p, true, 4);
-            if (!childId) break;
-            const childSize = ebmlVint(bytes, p + childId.length);
-            if (!childSize) break;
-            const childData = p + childId.length + childSize.length,
-              childEnd = childData + childSize.value;
-            if (childEnd > next || childEnd <= childData) break;
-            if (childId.value === 0x83) {
-              let type = 0;
-              for (let q = childData; q < childEnd; q++) type = type * 256 + bytes[q];
-              if (type === 2) return true;
-            }
-            p = childEnd;
-          }
-        }
-        at = next;
+  function getDecoderContext() {
+    if (decoderContext) return decoderContext;
+    const OfflineCtx = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+    if (OfflineCtx) {
+      try {
+        decoderContext = new OfflineCtx(1, 1, ANALYSIS_TARGET_RATE);
+        return decoderContext;
+      } catch (e) {
+        console.warn('[spokoyno screamer] target-rate offline decoder unavailable:', e);
       }
-      if (sawTrack) return false;
     }
-    return null;
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return null;
+    try {
+      decoderContext = new AudioCtx({ sampleRate: ANALYSIS_TARGET_RATE });
+    } catch {
+      try {
+        decoderContext = new AudioCtx();
+      } catch (e) {
+        console.warn('[spokoyno screamer] audio decoder unavailable:', e);
+        return null;
+      }
+    }
+    return decoderContext;
   }
 
-  function sniffContainerAudio(arrayBuffer) {
-    const bytes = new Uint8Array(arrayBuffer),
-      isMp4 = bytes.length >= 12 && bytesContain(bytes, 'ftyp', 0, 16);
-    if (isMp4) {
-      const view = new DataView(arrayBuffer);
-      for (let at = 0; at + 8 <= bytes.length; ) {
-        let size = view.getUint32(at),
-          header = 8;
-        const type = String.fromCharCode(bytes[at + 4], bytes[at + 5], bytes[at + 6], bytes[at + 7]);
-        if (size === 1 && at + 16 <= bytes.length) {
-          size = Number(view.getBigUint64(at + 8));
-          header = 16;
-        } else if (size === 0) size = bytes.length - at;
-        if (size < header || at + size > bytes.length) break;
-        if (type === 'moov') return bytesContain(bytes, 'soun', at + header, at + size);
-        at += size;
-      }
-      return null;
-    }
-    const isWebm =
-      bytes.length >= 4 && bytes[0] === 0x1a && bytes[1] === 0x45 && bytes[2] === 0xdf && bytes[3] === 0xa3;
-    if (isWebm) return webmHasAudio(bytes);
-    return null;
+  async function resampleForAnalysis(buf) {
+    if (buf.sampleRate === ANALYSIS_TARGET_RATE) return buf;
+    const OfflineCtx = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+    if (!OfflineCtx) throw new Error('OfflineAudioContext is required for anti-aliased 16 kHz resampling');
+    const channels = Math.max(1, Math.min(2, buf.numberOfChannels));
+    const length = Math.max(1, Math.ceil(buf.duration * ANALYSIS_TARGET_RATE));
+    const context = new OfflineCtx(channels, length, ANALYSIS_TARGET_RATE);
+    const source = context.createBufferSource();
+    source.buffer = buf;
+    source.connect(context.destination);
+    source.start();
+    return context.startRendering();
   }
 
   async function analyzeScreamer(blob) {
-    const DecoderCtx =
-      window.AudioContext ||
-      window.webkitAudioContext ||
-      window.OfflineAudioContext ||
-      window.webkitOfflineAudioContext;
-    if (!DecoderCtx) return { status: 'unsupported' };
+    const context = getDecoderContext();
+    if (!context) return { status: 'unsupported' };
 
     let buf, encoded;
     try {
       encoded = await blob.arrayBuffer();
-      if (sniffContainerAudio(encoded) === false) return { status: 'no-audio' };
-      if (!decoderContext) {
-        try {
-          decoderContext = new DecoderCtx();
-        } catch {
-          decoderContext = new DecoderCtx(1, 1, 44100);
-        }
-      }
-      buf = await decoderContext.decodeAudioData(encoded);
+      buf = await context.decodeAudioData(encoded);
       encoded = null;
+      buf = await resampleForAnalysis(buf);
     } catch (e) {
       console.warn('[spokoyno screamer] decode failed:', e);
       return {
@@ -1215,11 +1450,12 @@
     // A separate path covers near-full-scale audio before a 1 s baseline exists. It deliberately
     // requires sustained loudness plus clipping, noise-like flatness, or high-frequency energy so
     // ordinary loud intros and music do not inherit the transition detector's assumptions.
-    const startLimit = Math.min(Math.max(0, levels.length - EVENT_WINDOWS), Math.round(2 / windowSeconds));
+    const eventScratch = [],
+      startLimit = Math.min(Math.max(0, levels.length - EVENT_WINDOWS), Math.round(1 / windowSeconds));
     let startBest = 0,
       startLevel = -90;
     for (let i = 0; i <= startLimit; i++) {
-      const level = percentile(levels.slice(i, i + EVENT_WINDOWS), 0.25);
+      const level = percentileRange(levels, i, Math.min(levels.length, i + EVENT_WINDOWS), 0.25, eventScratch);
       if (level > startLevel) {
         startBest = i;
         startLevel = level;
@@ -1228,7 +1464,7 @@
     const startTarget = Math.max(-6, startLevel - 3);
     let startPreview = startBest;
     for (let i = 0; i <= startLimit; i++) {
-      if (percentile(levels.slice(i, i + EVENT_WINDOWS), 0.25) >= startTarget) {
+      if (percentileRange(levels, i, Math.min(levels.length, i + EVENT_WINDOWS), 0.25, eventScratch) >= startTarget) {
         startPreview = i;
         break;
       }
@@ -1278,17 +1514,18 @@
       bestEvent = -90,
       bestJump = 0,
       bestBaselineMad = 0;
+    const historySorted = [],
+      madScratch = [];
+    let historyLo = 0,
+      historyHi = 0;
     for (let i = 0; i + EVENT_WINDOWS <= levels.length; i++) {
       const lo = Math.max(0, i - BASELINE_WINDOWS),
         hi = i - BASELINE_GAP;
+      while (historyHi < Math.max(0, hi)) insertSorted(historySorted, levels[historyHi++]);
+      while (historyLo < lo) removeSorted(historySorted, levels[historyLo++]);
       if (hi - lo < MIN_BASELINE_WINDOWS) continue;
-      const history = levels.slice(lo, hi);
-      const baseline = percentile(history, 0.5);
-      const baselineMad = percentile(
-        Array.from(history, (level) => Math.abs(level - baseline)),
-        0.5
-      );
-      const event = percentile(levels.slice(i, i + EVENT_WINDOWS), 0.25);
+      const baseline = percentileSorted(historySorted, 0.5);
+      const event = percentileRange(levels, i, i + EVENT_WINDOWS, 0.25, eventScratch);
       const jump = event - baseline;
       const envelope = sigmoid((event + 10.5) / 2.5) ** 0.9 * sigmoid((jump - 13) / 3.5) ** 1.25;
       if (envelope > bestEnvelope) {
@@ -1297,10 +1534,15 @@
         bestBaseline = baseline;
         bestEvent = event;
         bestJump = jump;
-        bestBaselineMad = baselineMad;
+        madScratch.length = historySorted.length;
+        for (let j = 0; j < historySorted.length; j++) madScratch[j] = Math.abs(historySorted[j] - baseline);
+        madScratch.sort((a, b) => a - b);
+        bestBaselineMad = percentileSorted(madScratch, 0.5);
       }
+      if (i % 250 === 249) await yieldMain();
     }
 
+    const hasTransition = best >= 0;
     if (best < 0) {
       best = 0;
       bestBaseline = percentile(levels, 0.5);
@@ -1323,50 +1565,112 @@
       eventClips += clipCounts[i];
       eventSamples += sampleCounts[i];
     }
-    const eventNearClip = eventClips / Math.max(1, eventSamples),
-      spectralFlux = onsetSpectralFlux(buf, best, timeline.windowFrames);
+    const eventNearClip = eventClips / Math.max(1, eventSamples);
+    const transitionSpectrum = hasTransition
+      ? await transitionSpectralFeatures(buf, best, timeline)
+      : { onsetFlux: 0, nearbyFlux: 0, shapeDistance: 0 };
+    const spectralFlux = transitionSpectrum.onsetFlux,
+      spectralFluxNear = transitionSpectrum.nearbyFlux,
+      spectralShapeDistance = transitionSpectrum.shapeDistance;
     const loudComponent = sigmoid((bestEvent + 10.5) / 2.5);
     const jumpComponent = sigmoid((bestJump - 13) / 3.5);
     const durationComponent = sigmoid((duration - 0.18) / 0.09);
     const quietComponent = sigmoid((-bestBaseline - 15) / 5);
     const clipComponent = sigmoid((eventNearClip - 0.005) / 0.012);
     const fluxComponent = sigmoid((spectralFlux - 0.22) / 0.08);
-    let transitionConfidence = loudComponent ** 0.9 * jumpComponent ** 1.25 * durationComponent ** 0.65;
+    let transitionConfidence = hasTransition
+      ? loudComponent ** 0.9 * jumpComponent ** 1.25 * durationComponent ** 0.65
+      : 0;
     transitionConfidence *= 0.87 + 0.1 * quietComponent + 0.03 * clipComponent;
     transitionConfidence *= 0.65 + 0.35 * fluxComponent;
     transitionConfidence = Math.max(0, Math.min(1, transitionConfidence));
-    const transitionEligible = bestEvent >= -6 && bestJump >= 14 && duration >= 0.15;
+    const transitionEligible = hasTransition && bestEvent >= -6 && bestJump >= 14 && duration >= 0.15;
+    // Conservative rescue paths cover short edited bursts that the general score intentionally
+    // suppresses. One requires a large spectral-distribution change; the other requires severe
+    // clipping. Upper duration bounds keep ordinary sustained screams, speech, music drops, and
+    // movie effects on the main transition path. These rules were tuned after positives #5/#6,
+    // so their risk values are evidence scores, not calibrated probabilities.
+    const spectralBurstEligible =
+      hasTransition &&
+      bestEvent >= -4 &&
+      bestJump >= 16 &&
+      duration >= 0.3 &&
+      duration <= 1.05 &&
+      spectralFluxNear >= 0.3 &&
+      spectralShapeDistance >= 0.8;
+    const clippedBurstEligible =
+      hasTransition &&
+      bestEvent >= -3 &&
+      bestJump >= 10 &&
+      duration >= 0.25 &&
+      duration <= 0.55 &&
+      eventNearClip >= 0.35 &&
+      spectralFluxNear >= 0.3;
+    const spectralBurstConfidence = spectralBurstEligible
+      ? Math.min(
+          1,
+          0.8 +
+            0.04 * sigmoid((spectralShapeDistance - 0.85) / 0.08) +
+            0.04 * sigmoid((bestJump - 18) / 3) +
+            0.04 * sigmoid((bestEvent + 3) / 1.5)
+        )
+      : 0;
+    const clippedBurstConfidence = clippedBurstEligible
+      ? Math.min(
+          1,
+          0.8 +
+            0.04 * sigmoid((eventNearClip - 0.4) / 0.08) +
+            0.04 * sigmoid((bestJump - 12) / 2) +
+            0.04 * sigmoid((bestEvent + 2) / 1.2)
+        )
+      : 0;
+    const rescueMode =
+      clippedBurstConfidence > spectralBurstConfidence ? 'short-clipped-burst' : 'short-spectral-burst';
+    const rescueConfidence = Math.max(spectralBurstConfidence, clippedBurstConfidence);
     const transitionDecisionScore = transitionEligible ? transitionConfidence : 0;
     const startDecisionScore = startEligible ? startConfidence : 0;
-    const decisionScore = Math.max(transitionDecisionScore, startDecisionScore);
+    const rescueDecisionScore = rescueConfidence;
+    const decisionScore = Math.max(transitionDecisionScore, startDecisionScore, rescueDecisionScore);
     const suspicious = decisionScore >= SCREAMER_CONFIDENCE;
-    const displayRisk = Math.max(transitionConfidence, startConfidence);
-    const confidence = displayRisk;
-    const detectionMode =
-      startDecisionScore !== transitionDecisionScore
-        ? startDecisionScore > transitionDecisionScore
-          ? 'loud-start'
-          : 'transition'
-        : startConfidence > transitionConfidence
+    const decisionMode =
+      rescueDecisionScore === decisionScore && rescueDecisionScore > 0
+        ? rescueMode
+        : startDecisionScore === decisionScore && startDecisionScore > transitionDecisionScore
           ? 'loud-start'
           : 'transition';
+    const riskMode = startConfidence > transitionConfidence ? 'loud-start' : 'transition';
+    const detectionMode = suspicious ? decisionMode : riskMode;
+    const displayRisk =
+      detectionMode === 'loud-start'
+        ? startConfidence
+        : detectionMode === 'short-spectral-burst' || detectionMode === 'short-clipped-burst'
+          ? rescueConfidence
+          : transitionConfidence;
+    const confidence = displayRisk;
     const startSuspicious = suspicious && detectionMode === 'loud-start';
-    const transitionSuspicious = suspicious && detectionMode === 'transition';
-    const median = percentile(levels, 0.5);
+    const transitionSuspicious = suspicious && detectionMode !== 'loud-start';
+    const sortedLevels = Array.from(levels).sort((a, b) => a - b),
+      median = percentileSorted(sortedLevels, 0.5);
     const reason =
       detectionMode === 'loud-start'
         ? startSuspicious
           ? 'Sustained near-full-scale broadband or clipped audio begins before a reliable baseline exists'
           : 'Opening audio did not combine enough loudness, persistence, and broadband evidence'
         : transitionSuspicious
-          ? 'Sustained near-full-scale event after a quieter baseline, with a changed onset spectrum'
-          : bestJump < 14
-            ? 'No sufficiently large sustained local transition'
-            : bestEvent < -6
-              ? 'The strongest transition did not become near-full-scale'
-              : spectralFlux < 0.22
-                ? 'The loudness changed, but the onset spectrum remained similar'
-                : 'Combined evidence stayed below the warning threshold';
+          ? detectionMode === 'short-spectral-burst'
+            ? 'Short near-full-scale burst with a large local spectral-distribution change'
+            : detectionMode === 'short-clipped-burst'
+              ? 'Short near-full-scale transition with severe clipping'
+              : 'Sustained near-full-scale event after a quieter baseline, with a changed onset spectrum'
+          : !hasTransition
+            ? 'No quiet-to-loud transition had enough preceding audio for a reliable baseline'
+            : bestJump < 14
+              ? 'No sufficiently large sustained local transition'
+              : bestEvent < -6
+                ? 'The strongest transition did not become near-full-scale'
+                : spectralFlux < 0.22
+                  ? 'The loudness changed, but the onset spectrum remained similar'
+                  : 'Combined evidence stayed below the warning threshold';
     const useStartEvent = detectionMode === 'loud-start';
     const selectedSpectralFlux = useStartEvent ? onsetSpectralFlux(buf, start, timeline.windowFrames) : spectralFlux;
     const attackMs = measureAttack(buf, useStartEvent ? start : best, timeline);
@@ -1379,8 +1683,12 @@
       displayRisk,
       decisionScore,
       detectionMode,
+      decisionMode,
+      riskMode,
       transitionConfidence,
       startConfidence,
+      rescueConfidence,
+      rescueMode: rescueConfidence ? rescueMode : null,
       eventAt: (useStartEvent ? start : best) * windowSeconds,
       jumpDb: useStartEvent ? null : bestJump,
       eventDb: useStartEvent ? startLevel : bestEvent,
@@ -1392,6 +1700,8 @@
       eventPeakDb: useStartEvent ? startPeak : eventPeak,
       eventNearClipPct: (useStartEvent ? startNearClip : eventNearClip) * 100,
       spectralFlux: selectedSpectralFlux,
+      spectralFluxNear,
+      spectralShapeDistance,
       startAt: start * windowSeconds,
       startEventDb: startLevel,
       startDuration,
@@ -1399,12 +1709,12 @@
       startSpectralFlatness,
       startBrightnessDb,
       medianDb: median,
-      p10Db: percentile(levels, 0.1),
-      p25Db: percentile(levels, 0.25),
-      p75Db: percentile(levels, 0.75),
-      p90Db: percentile(levels, 0.9),
-      p95Db: percentile(levels, 0.95),
-      p99Db: percentile(levels, 0.99),
+      p10Db: percentileSorted(sortedLevels, 0.1),
+      p25Db: percentileSorted(sortedLevels, 0.25),
+      p75Db: percentileSorted(sortedLevels, 0.75),
+      p90Db: percentileSorted(sortedLevels, 0.9),
+      p95Db: percentileSorted(sortedLevels, 0.95),
+      p99Db: percentileSorted(sortedLevels, 0.99),
       peakDb: timeline.peakDb,
       rmsDb: timeline.rmsDb,
       crestDb: timeline.peakDb - timeline.rmsDb,
@@ -1419,11 +1729,11 @@
     };
   }
 
-  function queueScreamerAnalysis(url, key, blob = null) {
+  function queueScreamerAnalysis(url, key) {
     const sk = screamerKey(url);
     if (analysisResults.has(sk) || analysisQueued.has(sk)) return;
     analysisQueued.add(sk);
-    analysisQueue.push({ url, key, sk, blob, generation: analysisGeneration });
+    analysisQueue.push({ url, key, sk, generation: analysisGeneration });
     runAnalysisQueue();
   }
 
@@ -1436,11 +1746,30 @@
         analysisQueued.delete(item.sk);
         if (item.generation !== analysisGeneration || analysisResults.has(item.sk)) continue;
         try {
-          let blob = item.blob;
-          if (!blob) {
-            const r = await cache.match(item.key);
-            if (!r) continue;
-            blob = await r.blob();
+          const analysisCache = cache,
+            response = await analysisCache.match(item.key);
+          if (item.generation !== analysisGeneration) continue;
+          if (!response) {
+            cached.delete(item.key);
+            if (seenMedia.has(item.key)) {
+              enqueueMedia(item.url, item.key, true);
+              pump();
+            }
+            continue;
+          }
+          const blob = await response.blob();
+          if (item.generation !== analysisGeneration) continue;
+          try {
+            await identifyMediaBlob(blob, response.headers.get('Content-Type'), item.url);
+          } catch (e) {
+            await withCacheLock(() => analysisCache.delete(item.key));
+            if (item.generation !== analysisGeneration) continue;
+            cached.delete(item.key);
+            if (seenMedia.has(item.key)) {
+              enqueueMedia(item.url, item.key, true);
+              pump();
+            } else publishScreamerResult(item.sk, { status: 'media-error', message: String(e.message || e) });
+            continue;
           }
           const result = await analyzeScreamer(blob);
           if (item.generation === analysisGeneration) publishScreamerResult(item.sk, result);
@@ -1452,13 +1781,14 @@
       }
     } finally {
       analysisRunning = false;
+      if (tabStateDirty) await flushTabState();
     }
   }
 
   function discover(root) {
     const links = [];
-    if (root.matches?.('a[href]')) links.push(root);
-    if (root.querySelectorAll) links.push(...root.querySelectorAll('a[href]'));
+    if (root.matches?.('figure.post__image a[href]')) links.push(root);
+    if (root.querySelectorAll) links.push(...root.querySelectorAll('figure.post__image a[href]'));
     for (const a of links) {
       const url = mediaUrl(a);
       if (!url) continue;
@@ -1478,12 +1808,62 @@
     pump();
   }
 
+  function scheduleDomPrune() {
+    if (domPruneScheduled) return;
+    domPruneScheduled = true;
+    setTimeout(() => {
+      domPruneScheduled = false;
+      pruneDisconnectedMedia();
+    }, 50);
+  }
+
+  function pruneDisconnectedMedia() {
+    const wantedKeys = new Set();
+    for (const anchor of document.querySelectorAll('figure.post__image a[data-tm2ch-media-url]')) {
+      wantedKeys.add(canonicalKey(anchor.dataset.tm2chMediaUrl));
+    }
+    for (const [sk, figures] of attachmentFigures) {
+      for (const figure of figures) if (!figure.isConnected) figures.delete(figure);
+      if (!figures.size) attachmentFigures.delete(sk);
+    }
+    for (const map of [screamerBadges, communityBadges]) {
+      for (const [sk, badges] of map) {
+        for (const badge of badges) if (!badge.isConnected) badges.delete(badge);
+        if (!badges.size) map.delete(sk);
+      }
+    }
+    for (const [key] of seenMedia) {
+      if (wantedKeys.has(key)) continue;
+      seenMedia.delete(key);
+      seen.delete(key);
+      queued.delete(key);
+      failedMedia.delete(key);
+      abortDownloadsForKey(key);
+      const timer = retryTimers.get(key);
+      if (timer) clearTimeout(timer);
+      retryTimers.delete(key);
+      for (let i = queue.length - 1; i >= 0; i--) if (queue[i].key === key) queue.splice(i, 1);
+      for (let i = analysisQueue.length - 1; i >= 0; i--) {
+        if (analysisQueue[i].key !== key) continue;
+        analysisQueued.delete(analysisQueue[i].sk);
+        analysisQueue.splice(i, 1);
+      }
+    }
+    scheduleUI();
+  }
+
   function scheduleDownloadRetry(item, error) {
     const nextAttempt = item.attempt + 1;
     const message = String(error?.message || error);
     const permanent =
       /quota|QuotaExceeded/i.test(message) || (/HTTP 4\d\d/.test(message) && !/HTTP (?:408|429)/.test(message));
-    if (permanent || nextAttempt >= MAX_DOWNLOAD_ATTEMPTS || item.generation !== downloadGeneration) return false;
+    if (
+      permanent ||
+      nextAttempt >= MAX_DOWNLOAD_ATTEMPTS ||
+      item.generation !== downloadGeneration ||
+      !seenMedia.has(item.key)
+    )
+      return false;
     const delay = RETRY_BASE_DELAY * 2 ** item.attempt;
     console.warn(
       `[spokoyno] retrying ${filenameFromUrl(item.url)} in ${(delay / 1000).toFixed(0)} s ` +
@@ -1491,7 +1871,7 @@
     );
     const timer = setTimeout(() => {
       retryTimers.delete(item.key);
-      if (item.generation !== downloadGeneration || cached.has(item.key)) {
+      if (item.generation !== downloadGeneration || cached.has(item.key) || !seenMedia.has(item.key)) {
         if (item.generation === downloadGeneration) queued.delete(item.key);
         scheduleUI();
         return;
@@ -1507,16 +1887,30 @@
   function pump() {
     while (running < CONCURRENCY && queue.length) {
       const item = queue.shift();
+      if (item.generation !== downloadGeneration || !seenMedia.has(item.key)) {
+        queued.delete(item.key);
+        continue;
+      }
       let retryScheduled = false;
       running++;
-      preload(item)
+      const operation = preload(item);
+      activePreloads.add(operation);
+      operation
         .catch((e) => {
-          if (item.generation !== downloadGeneration) return;
-          errors++;
+          if (item.generation !== downloadGeneration || !seenMedia.has(item.key)) return;
           console.warn('[spokoyno] preload failed:', item.url, e);
           retryScheduled = scheduleDownloadRetry(item, e);
+          if (!retryScheduled) {
+            failedMedia.add(item.key);
+            const message = String(e?.message || e);
+            publishScreamerResult(screamerKey(item.url), {
+              status: /quota|cache|storage/i.test(message) ? 'cache-error' : 'media-error',
+              message
+            });
+          }
         })
         .finally(() => {
+          activePreloads.delete(operation);
           if (item.generation === downloadGeneration && !retryScheduled) queued.delete(item.key);
           running--;
           scheduleUI();
@@ -1526,24 +1920,32 @@
   }
 
   async function preload({ url, key, generation }) {
-    if (generation !== downloadGeneration) return;
+    if (generation !== downloadGeneration || !seenMedia.has(key)) return;
     const existing = await cache.match(key);
+    if (generation !== downloadGeneration || !seenMedia.has(key)) return;
     if (existing) {
+      failedMedia.delete(key);
       cached.add(key);
       queueScreamerAnalysis(url, key);
       scheduleUI();
       return;
     }
-    const { blob, contentType, domain } = await downloadFromBestMirror(url, key);
-    if (generation !== downloadGeneration) return;
+    const { blob, contentType, domain } = await downloadFromBestMirror(url, key, generation);
+    if (generation !== downloadGeneration || !seenMedia.has(key)) return;
     const headers = new Headers();
     if (contentType) headers.set('Content-Type', contentType);
     headers.set('X-TM-2ch-Mirror', domain);
     headers.set('X-TM-2ch-Original-Path', mediaPath(url));
-    await cache.put(key, new Response(blob, { status: 200, headers }));
+    const stored = await withCacheLock(async () => {
+      if (generation !== downloadGeneration || !seenMedia.has(key)) return false;
+      await cache.put(key, new Response(blob, { status: 200, headers }));
+      return true;
+    });
+    if (!stored || generation !== downloadGeneration || !seenMedia.has(key)) return;
+    failedMedia.delete(key);
     cached.add(key);
     touchCurrentCache().catch((e) => console.warn('[spokoyno] cache metadata touch failed:', e));
-    queueScreamerAnalysis(url, key, blob);
+    queueScreamerAnalysis(url, key);
     scheduleUI();
   }
 
@@ -1553,7 +1955,7 @@
       async (e) => {
         if (e.defaultPrevented || e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
         const a = e.target?.closest?.('a[href]');
-        if (!a) return;
+        if (!a?.closest?.('figure.post__image')) return;
         const url = a.dataset.tm2chMediaUrl || mediaUrl(a);
         if (!url) return;
         const key = canonicalKey(url);
@@ -1561,17 +1963,22 @@
         e.preventDefault();
         e.stopImmediatePropagation();
         try {
-          await showFromCache(url);
+          await showFromCache(url, a.target || '_self');
         } catch (err) {
           console.warn('[spokoyno] viewer:', err);
-          location.href = url;
+          followOriginalLink(url, a.target || '_self');
         }
       },
       true
     );
   }
 
-  async function showFromCache(url) {
+  function followOriginalLink(url, target = '_self') {
+    if (!target || target === '_self') location.href = url;
+    else GM_openInTab(url, { active: true, insert: true, setParent: true });
+  }
+
+  async function showFromCache(url, originalTarget = '_self') {
     const key = canonicalKey(url),
       r = await cache.match(key);
     if (!r) {
@@ -1580,13 +1987,25 @@
       pump();
       throw new Error('cache miss');
     }
-    const blob = await r.blob(),
-      objectUrl = URL.createObjectURL(blob);
+    const blob = await r.blob();
+    try {
+      await identifyMediaBlob(blob, r.headers.get('Content-Type'), url);
+    } catch (e) {
+      await withCacheLock(() => cache.delete(key));
+      cached.delete(key);
+      enqueueMedia(url, key, true);
+      pump();
+      throw e;
+    }
+    const objectUrl = URL.createObjectURL(blob);
     const old = document.getElementById('tm2ch-cache-viewer');
     if (old?._tmClose) old._tmClose();
     else old?.remove();
     const overlay = document.createElement('div');
     overlay.id = 'tm2ch-cache-viewer';
+    overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-modal', 'true');
+    overlay.setAttribute('aria-label', `Cached video: ${filenameFromUrl(url)}`);
     overlay.style.cssText =
       'position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;background:rgba(0,0,0,.94);cursor:zoom-out';
     const media = document.createElement('video');
@@ -1594,8 +2013,28 @@
     media.autoplay = true;
     media.loop = true;
     media.src = objectUrl;
+    media.tabIndex = 0;
     media.style.cssText = 'max-width:100%;max-height:100%;object-fit:contain;cursor:default';
     media.addEventListener('click', (e) => e.stopPropagation());
+    const closeButton = document.createElement('button');
+    closeButton.type = 'button';
+    closeButton.textContent = '×';
+    closeButton.setAttribute('aria-label', 'Close cached video');
+    closeButton.style.cssText =
+      'position:absolute;right:16px;top:12px;border:0;background:rgba(0,0,0,.55);color:#fff;font:32px/1 sans-serif;cursor:pointer;border-radius:4px;padding:2px 9px';
+    closeButton.addEventListener('click', (e) => {
+      e.stopPropagation();
+      close();
+    });
+    const errorLink = document.createElement('a');
+    errorLink.href = url;
+    errorLink.target = originalTarget;
+    errorLink.rel = originalTarget === '_blank' ? 'noopener' : '';
+    errorLink.textContent = 'Cached playback failed — open the original video';
+    errorLink.style.cssText =
+      'display:none;padding:12px 16px;border-radius:6px;background:#fff;color:#b00;font:16px/1.4 sans-serif;cursor:pointer';
+    errorLink.addEventListener('click', (e) => e.stopPropagation());
+    const previousFocus = document.activeElement;
     let closed = false;
     const close = () => {
       if (closed) return;
@@ -1604,17 +2043,45 @@
       try {
         media.pause();
       } catch {}
+      media.removeAttribute('src');
+      media.load();
       overlay.remove();
       URL.revokeObjectURL(objectUrl);
+      if (previousFocus?.isConnected) previousFocus.focus?.();
     };
     const keydown = (e) => {
-      if (e.key === 'Escape') close();
+      if (e.key === 'Escape') {
+        close();
+        return;
+      }
+      if (e.key !== 'Tab') return;
+      const focusable = [media, errorLink, closeButton].filter(
+        (element) => element.isConnected && getComputedStyle(element).display !== 'none'
+      );
+      if (!focusable.length) return;
+      const current = focusable.indexOf(document.activeElement);
+      const next = e.shiftKey
+        ? current <= 0
+          ? focusable.length - 1
+          : current - 1
+        : current < 0 || current === focusable.length - 1
+          ? 0
+          : current + 1;
+      e.preventDefault();
+      focusable[next].focus();
     };
     overlay._tmClose = close;
     overlay.addEventListener('click', close);
     document.addEventListener('keydown', keydown, true);
-    overlay.append(media);
+    media.addEventListener('error', () => {
+      if (closed || !media.src) return;
+      media.style.display = 'none';
+      errorLink.style.display = 'inline-block';
+      errorLink.focus();
+    });
+    overlay.append(media, errorLink, closeButton);
     document.documentElement.append(overlay);
+    media.focus();
   }
 
   function installUI() {
@@ -1649,7 +2116,7 @@
     summaryBox.textContent =
       `thread ${threadDone}/${seen.size} · tab ${cached.size} · via ${mirror}` +
       `${queue.length ? ` · q${queue.length}` : ''}` +
-      `${errors ? ` · err ${errors}` : ''}`;
+      `${failedMedia.size ? ` · err ${failedMedia.size}` : ''}`;
     const active = [...activeDownloads.values()];
     const totalBps = active.reduce((s, x) => s + (Number.isFinite(x.bps) ? x.bps : 0), 0);
     speedBox.replaceChildren();
@@ -1724,7 +2191,10 @@
       const tabs = await gmGetTabs(),
         states = Object.values(tabs);
       const alive = new Set(
-        states.map((x) => x?.tm2chMediaV4?.cacheName).filter((x) => typeof x === 'string' && x.startsWith(PREFIX))
+        states
+          .filter((x) => x?.tm2chMediaV4?.lastOrigin === location.origin)
+          .map((x) => x.tm2chMediaV4.cacheName)
+          .filter((x) => typeof x === 'string' && x.startsWith(PREFIX))
       );
       const now = Date.now();
       await touchCurrentCache();
@@ -1767,7 +2237,7 @@
     }
   }
 
-  GM_registerMenuCommand('Проверить и восстановить media-cache', async () => {
+  GM_registerMenuCommand('Проверить media-cache текущего зеркала', async () => {
     await reconcileCache('menu', true);
     const diagnostics = await getCacheDiagnostics();
     console.table(diagnostics);
@@ -1785,32 +2255,37 @@
   GM_registerMenuCommand('Перетестировать зеркала', async () => {
     state.mirror = null;
     state.mirrorCheckedAt = 0;
-    await gmSaveTab(tab);
+    saveTabSoon();
+    await flushTabState();
     mirrorPromise = null;
-    const a = [...document.querySelectorAll('a[href]')].find((x) => mediaUrl(x));
+    const a = [...document.querySelectorAll('figure.post__image a[href]')].find((x) => mediaUrl(x));
     if (a) await getPreferredMirror(mediaUrl(a));
     scheduleUI();
   });
 
-  GM_registerMenuCommand('Очистить media-cache этой вкладки', async () => {
+  GM_registerMenuCommand('Очистить media-cache вкладки на этом зеркале', async () => {
     cancelDownloadRetries();
     queue.length = 0;
     queued.clear();
     analysisQueue.length = 0;
     analysisQueued.clear();
     analysisGeneration++;
-    await caches.delete(cacheName);
-    cache = await caches.open(cacheName);
+    await Promise.allSettled([...activePreloads]);
+    await withCacheLock(async () => {
+      await caches.delete(cacheName);
+      cache = await caches.open(cacheName);
+    });
     lastCacheTouchAt = 0;
     await touchCurrentCache(true);
     cached.clear();
     recentDownloads.length = 0;
-    errors = 0;
+    failedMedia.clear();
     state.screamer = {};
     analysisResults.clear();
-    await gmSaveTab(tab);
-    for (const [sk, b] of screamerBadges) {
-      if (b.isConnected) renderScreamerResult(b, null);
+    saveTabSoon();
+    await flushTabState();
+    for (const [sk, badges] of screamerBadges) {
+      for (const b of badges) if (b.isConnected) renderScreamerResult(b, null);
       refreshAttachmentRisk(sk);
     }
     discover(document);
@@ -1822,12 +2297,12 @@
     analysisGeneration++;
     state.screamer = {};
     analysisResults.clear();
-    await gmSaveTab(tab);
-    for (const [sk, b] of screamerBadges) {
-      if (!b.isConnected) continue;
-      renderScreamerResult(b, null);
+    saveTabSoon();
+    await flushTabState();
+    for (const [sk, badges] of screamerBadges) {
+      for (const b of badges) if (b.isConnected) renderScreamerResult(b, null);
       refreshAttachmentRisk(sk);
-      const a = [...document.querySelectorAll('a[href]')].find(
+      const a = [...document.querySelectorAll('figure.post__image a[href]')].find(
         (x) => x.dataset.tm2chMediaUrl && screamerKey(x.dataset.tm2chMediaUrl) === sk
       );
       if (a) {
@@ -1841,33 +2316,50 @@
     installPageStyles();
     installUI();
     discover(document);
-    updateStoragePersistence(true).then((persistent) => {
+    updateStoragePersistence(false).then((persistent) => {
       console.info(`[spokoyno] origin storage: ${persistent ? 'persistent' : storagePersistence}`);
     });
     reconcileCache('start', true).then(() => cleanupOrphanCaches());
     scheduleCommunityScan();
     new MutationObserver((rs) => {
-      let communityChanged = false;
+      let communityChanged = false,
+        attachmentsRemoved = false;
       for (const r of rs) {
-        if (r.target.closest?.('.post')) communityChanged = true;
+        if (uiRoot?.contains(r.target) || r.target.closest?.('.tm2ch-screamer,#tm2ch-cache-viewer')) continue;
+        if (r.target.closest?.('.post__message')) communityChanged = true;
         for (const n of r.addedNodes) {
           if (n.nodeType !== Node.ELEMENT_NODE) continue;
           discover(n);
-          if (n.matches?.('.post') || n.querySelector?.('.post')) communityChanged = true;
+          if (
+            n.matches?.('.post,.post__message,.post-reply-link') ||
+            n.querySelector?.('.post,.post__message,.post-reply-link')
+          )
+            communityChanged = true;
         }
         for (const n of r.removedNodes) {
-          if (n.nodeType === Node.ELEMENT_NODE && (n.matches?.('.post') || n.querySelector?.('.post'))) {
+          if (n.nodeType !== Node.ELEMENT_NODE) continue;
+          if (
+            n.matches?.('.post,.post__message,.post-reply-link') ||
+            n.querySelector?.('.post,.post__message,.post-reply-link')
+          )
             communityChanged = true;
-          }
+          if (
+            n.matches?.('figure.post__image,.post,a[data-tm2ch-media-url]') ||
+            n.querySelector?.('figure.post__image,a[data-tm2ch-media-url]')
+          )
+            attachmentsRemoved = true;
         }
       }
       if (communityChanged) scheduleCommunityScan();
+      if (attachmentsRemoved) scheduleDomPrune();
     }).observe(document.documentElement, { childList: true, subtree: true });
     window.addEventListener('pageshow', () => reconcileCache('pageshow', true));
     window.addEventListener('focus', () => reconcileCache('focus'));
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'visible') reconcileCache('visible');
+      else flushTabState();
     });
+    window.addEventListener('pagehide', () => flushTabState());
     setInterval(cleanupOrphanCaches, CLEANUP_INTERVAL);
   }
 

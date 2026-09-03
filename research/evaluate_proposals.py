@@ -34,36 +34,76 @@ def spectrum(samples: np.ndarray, coarse_index: int) -> np.ndarray | None:
     start = coarse_index * WINDOW
     if start < 0 or start >= len(samples):
         return None
-    mono = np.mean(samples[start : min(len(samples), start + WINDOW)], axis=1)
+    frame = samples[start : min(len(samples), start + WINDOW)]
     fft_size = 1 << (WINDOW - 1).bit_length()
-    power = np.abs(np.fft.rfft(mono * np.hanning(len(mono)), n=fft_size)) ** 2 + 1e-12
+    fft = np.fft.rfft(frame * np.hanning(len(frame))[:, None], n=fft_size, axis=0)
+    power = np.mean(np.abs(fft) ** 2 + 1e-12, axis=1)
     return power[
         : np.searchsorted(np.fft.rfftfreq(fft_size, 1 / RATE), 7800, side="right")
     ]
 
 
-def spectral_flux(samples: np.ndarray, coarse_index: int) -> float:
-    before, current = spectrum(samples, coarse_index - 1), spectrum(
-        samples, coarse_index
+def spectral_event_features(
+    samples: np.ndarray, coarse_index: int, level_count: int
+) -> tuple[float, float, float]:
+    cache: dict[int, np.ndarray | None] = {}
+
+    def profile(index: int) -> np.ndarray | None:
+        if index < 0 or index >= level_count:
+            return None
+        if index not in cache:
+            value = spectrum(samples, index)
+            cache[index] = value / np.sum(value) if value is not None else None
+        return cache[index]
+
+    def flux(index: int) -> float:
+        before, current = profile(index - 1), profile(index)
+        if before is None or current is None:
+            return 0.0
+        return float(np.sqrt(np.sum(np.maximum(current - before, 0) ** 2)))
+
+    onset = flux(coarse_index)
+    nearby = max(
+        [onset]
+        + [
+            flux(index)
+            for index in range(
+                max(1, coarse_index - 2), min(level_count - 1, coarse_index + 2) + 1
+            )
+        ]
     )
-    if before is None or current is None:
-        return 0.0
-    before /= np.sum(before)
-    current /= np.sum(current)
-    return float(np.sqrt(np.sum(np.maximum(current - before, 0) ** 2)))
+    baseline = [
+        profile(index)
+        for index in range(max(0, coarse_index - 40), max(0, coarse_index - 2))
+    ]
+    event = [
+        profile(index)
+        for index in range(coarse_index, min(level_count, coarse_index + 6))
+    ]
+    baseline = [value for value in baseline if value is not None]
+    event = [value for value in event if value is not None]
+    if not baseline or not event:
+        return onset, nearby, 0.0
+    baseline_mean = np.mean(baseline, axis=0)
+    event_mean = np.mean(event, axis=0)
+    shape = float(
+        np.sqrt(np.sum((np.sqrt(event_mean) - np.sqrt(baseline_mean)) ** 2))
+        / np.sqrt(2)
+    )
+    return onset, nearby, shape
 
 
 def duration_above(levels: np.ndarray, start: int, threshold: float) -> float:
-    end, misses = start, 0
-    while end < len(levels) and end < start + 60:
-        if levels[end] >= threshold:
+    last_above, misses = start - 1, 0
+    for index in range(start, min(len(levels), start + 60)):
+        if levels[index] >= threshold:
+            last_above = index
             misses = 0
         else:
             misses += 1
             if misses >= 2:
                 break
-        end += 1
-    return max(0.0, (end - start - max(0, misses - 1)) * WINDOW_S)
+    return max(0.0, (last_above - start + 1) * WINDOW_S)
 
 
 def attack_time(fine_levels: np.ndarray, coarse_index: int, baseline: float) -> dict:
@@ -117,7 +157,9 @@ def finalize_transition(
     near_clip = (
         float(np.mean(event_samples >= 10 ** (-1 / 20))) if len(event_samples) else 0.0
     )
-    flux = spectral_flux(samples, best)
+    flux, nearby_flux, shape_distance = spectral_event_features(
+        samples, best, len(levels)
+    )
     loud_component = float(sigmoid((event + 10.5) / 2.5))
     jump_component = float(sigmoid((jump - 13.0) / 3.5))
     duration_component = float(sigmoid((duration - 0.18) / 0.09))
@@ -127,6 +169,52 @@ def finalize_transition(
     score = loud_component**0.9 * jump_component**1.25 * duration_component**0.65
     score *= 0.87 + 0.10 * quiet_component + 0.03 * clip_component
     score *= 0.65 + 0.35 * flux_component
+    if not candidate["has_history"]:
+        score = 0.0
+    spectral_burst_eligible = (
+        candidate["has_history"]
+        and event >= -4
+        and jump >= 16
+        and 0.3 <= duration <= 1.05
+        and nearby_flux >= 0.3
+        and shape_distance >= 0.8
+    )
+    clipped_burst_eligible = (
+        candidate["has_history"]
+        and event >= -3
+        and jump >= 10
+        and 0.25 <= duration <= 0.55
+        and near_clip >= 0.35
+        and nearby_flux >= 0.3
+    )
+    spectral_burst_score = (
+        min(
+            1.0,
+            0.8
+            + 0.04 * float(sigmoid((shape_distance - 0.85) / 0.08))
+            + 0.04 * float(sigmoid((jump - 18) / 3))
+            + 0.04 * float(sigmoid((event + 3) / 1.5)),
+        )
+        if spectral_burst_eligible
+        else 0.0
+    )
+    clipped_burst_score = (
+        min(
+            1.0,
+            0.8
+            + 0.04 * float(sigmoid((near_clip - 0.4) / 0.08))
+            + 0.04 * float(sigmoid((jump - 12) / 2))
+            + 0.04 * float(sigmoid((event + 2) / 1.2)),
+        )
+        if clipped_burst_eligible
+        else 0.0
+    )
+    rescue_score = max(spectral_burst_score, clipped_burst_score)
+    rescue_mode = (
+        "short-clipped-burst"
+        if clipped_burst_score > spectral_burst_score
+        else "short-spectral-burst"
+    )
     return (
         candidate
         | {
@@ -134,7 +222,11 @@ def finalize_transition(
             "duration_s": duration,
             "near_clip_pct": near_clip * 100,
             "spectral_flux": flux,
+            "nearby_spectral_flux": nearby_flux,
+            "spectral_shape_distance": shape_distance,
             "score": float(np.clip(score, 0, 1)),
+            "rescue_score": rescue_score,
+            "rescue_mode": rescue_mode if rescue_score else None,
         }
         | attack_time(fine_levels, best, baseline)
     )
@@ -172,6 +264,7 @@ def select_transition(levels: np.ndarray, strategy: str) -> dict:
                 "robust_scale_db": robust_scale,
                 "robust_z": z,
                 "selection_score": selection_score,
+                "has_history": True,
             }
         )
     if not candidates:
@@ -185,12 +278,13 @@ def select_transition(levels: np.ndarray, strategy: str) -> dict:
             "robust_scale_db": 2.0,
             "robust_z": float((levels[0] - baseline) / 2.0),
             "selection_score": 0.0,
+            "has_history": False,
         }
     return max(candidates, key=lambda item: item["selection_score"])
 
 
 def start_score(samples: np.ndarray, levels: np.ndarray) -> dict:
-    limit = min(max(0, len(levels) - 6), round(2 / WINDOW_S))
+    limit = min(max(0, len(levels) - 6), round(1.0 / WINDOW_S))
     events = np.asarray([percentile(levels[i : i + 6], 0.25) for i in range(limit + 1)])
     best = int(np.argmax(events))
     level = float(events[best])
@@ -216,14 +310,13 @@ def start_score(samples: np.ndarray, levels: np.ndarray) -> dict:
         if profiles
         else 0.0
     )
-    mono = np.mean(samples, axis=1)
     brightness = []
     for i in range(start, min(len(levels), start + 6)):
-        frame = mono[i * WINDOW : min(len(mono), (i + 1) * WINDOW)]
+        frame = samples[i * WINDOW : min(len(samples), (i + 1) * WINDOW)]
         brightness.append(
             float(
                 db_power(
-                    np.mean(np.diff(frame).astype(np.float64) ** 2)
+                    np.mean(np.diff(frame, axis=0).astype(np.float64) ** 2)
                     / max(np.mean(frame.astype(np.float64) ** 2), 1e-12)
                 )
             )
@@ -282,6 +375,24 @@ def analyze_one(task: tuple[dict, str]) -> dict:
         for strategy in ("current", "literal-z", "bounded-z")
     }
     start = start_score(samples, levels)
+    current = transitions["current"]
+    transition_eligible = (
+        current["has_history"]
+        and current["event_db"] >= -6
+        and current["jump_db"] >= 14
+        and current["duration_s"] >= 0.15
+    )
+    start_eligible = (
+        start["event_db"] >= -3
+        and start["duration_s"] >= 0.5
+        and start["spectral_evidence"]
+    )
+    branch_scores = {
+        "transition": current["score"] if transition_eligible else 0.0,
+        "loud-start": start["score"] if start_eligible else 0.0,
+        current["rescue_mode"] or "short-burst": current["rescue_score"],
+    }
+    decision_mode, decision_score = max(branch_scores.items(), key=lambda item: item[1])
     key = row.get("md5") or row["file"]
     split = (
         "validation"
@@ -295,6 +406,9 @@ def analyze_one(task: tuple[dict, str]) -> dict:
         "duration_s": len(samples) / RATE,
         "transition": transitions,
         "start": start,
+        "decision_mode": decision_mode,
+        "decision_score": decision_score,
+        "suspicious": decision_score >= 0.8,
     }
 
 

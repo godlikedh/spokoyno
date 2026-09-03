@@ -24,6 +24,8 @@ POSITIVE_NAMES = {
     "17883557325462786367.mp4": "confirmed positive #2",
     "17883629069140053716.mp4": "confirmed positive #3",
     "17883659327260384359.webm": "confirmed positive #4 (immediate)",
+    "17884174673280229863.mp4": "confirmed positive #5 (short spectral burst)",
+    "17884274747240014140.mp4": "confirmed positive #6 (short clipped burst)",
 }
 
 
@@ -113,18 +115,18 @@ def rolling_event_arrays(
 
 
 def duration_above(level: np.ndarray, start: int, threshold: float) -> float:
-    end = start
+    last_above = start - 1
     # Bridge one 50 ms dip, but stop after 3 s; a screamer event need not occupy the whole tail.
     misses = 0
-    while end < len(level) and end < start + 60:
-        if level[end] >= threshold:
+    for index in range(start, min(len(level), start + 60)):
+        if level[index] >= threshold:
+            last_above = index
             misses = 0
         else:
             misses += 1
             if misses >= 2:
                 break
-        end += 1
-    return max(0.0, (end - start - max(0, misses - 1)) * WINDOW_S)
+    return max(0.0, (last_above - start + 1) * WINDOW_S)
 
 
 def max_changes(level: np.ndarray) -> dict[str, float]:
@@ -214,14 +216,15 @@ def analyze(path: Path, meta: dict) -> dict:
     del weighted, wframes, fine_frames
 
     # Coarse spectral bands are deliberately limited to interpretable broadband-change evidence.
-    mono = np.mean(frames, axis=2)
-    mono_energy = np.mean(mono.astype(np.float64) ** 2, axis=1)
-    diff_energy = np.mean(np.diff(mono, axis=1).astype(np.float64) ** 2, axis=1)
-    brightness_db = db_power(diff_energy / np.maximum(mono_energy, 1e-12))
-    zcr = np.mean(np.signbit(mono[:, 1:]) != np.signbit(mono[:, :-1]), axis=1)
+    spectral_energy = np.mean(frames.astype(np.float64) ** 2, axis=(1, 2))
+    diff_energy = np.mean(np.diff(frames, axis=1).astype(np.float64) ** 2, axis=(1, 2))
+    brightness_db = db_power(diff_energy / np.maximum(spectral_energy, 1e-12))
+    zcr = np.mean(
+        np.signbit(frames[:, 1:, :]) != np.signbit(frames[:, :-1, :]), axis=(1, 2)
+    )
     fft_size = 1 << (WINDOW - 1).bit_length()
-    fft = np.fft.rfft(mono * np.hanning(WINDOW), n=fft_size, axis=1)
-    power = np.abs(fft) ** 2 + 1e-12
+    fft = np.fft.rfft(frames * np.hanning(WINDOW)[None, :, None], n=fft_size, axis=1)
+    power = np.mean(np.abs(fft) ** 2 + 1e-12, axis=2)
     freqs = np.fft.rfftfreq(fft_size, 1 / RATE)
     keep = freqs <= 7800
     power, freqs = power[:, keep], freqs[keep]
@@ -241,7 +244,7 @@ def analyze(path: Path, meta: dict) -> dict:
     flux_near = maximum_filter1d(spectral_flux, size=5, mode="nearest")
 
     # Separate safety path for a near-full-scale first event without a usable long baseline.
-    start_limit = min(max(0, len(level) - 6), round(2.0 / WINDOW_S))
+    start_limit = min(max(0, len(level) - 6), round(1.0 / WINDOW_S))
     start_events = np.array(
         [np.percentile(level[i : i + 6], 25) for i in range(start_limit + 1)]
     )
@@ -288,7 +291,8 @@ def analyze(path: Path, meta: dict) -> dict:
     baseline, event, baseline_mad = rolling_event_arrays(level)
     jump = event - baseline
     valid = np.isfinite(jump)
-    if not np.any(valid):
+    has_transition = bool(np.any(valid))
+    if not has_transition:
         best = 0
         baseline = np.where(np.isfinite(baseline), baseline, np.median(level))
         event = np.where(np.isfinite(event), event, level)
@@ -348,9 +352,56 @@ def analyze(path: Path, meta: dict) -> dict:
     )
     transition_score *= 0.87 + 0.10 * quiet_component + 0.03 * clip_component
     transition_score *= 0.65 + 0.35 * flux_component
-    transition_score = float(np.clip(transition_score, 0, 1))
+    transition_score = float(np.clip(transition_score, 0, 1)) if has_transition else 0.0
     transition_eligible = (
-        event_level >= -6 and event_jump >= 14 and event_duration >= 0.15
+        has_transition
+        and event_level >= -6
+        and event_jump >= 14
+        and event_duration >= 0.15
+    )
+    spectral_burst_eligible = (
+        has_transition
+        and event_level >= -4
+        and event_jump >= 16
+        and 0.3 <= event_duration <= 1.05
+        and flux_near[best] >= 0.3
+        and spectral_shape_distance >= 0.8
+    )
+    clipped_burst_eligible = (
+        has_transition
+        and event_level >= -3
+        and event_jump >= 10
+        and 0.25 <= event_duration <= 0.55
+        and event_near_clip >= 0.35
+        and flux_near[best] >= 0.3
+    )
+    spectral_burst_score = (
+        min(
+            1.0,
+            0.8
+            + 0.04 * float(sigmoid((spectral_shape_distance - 0.85) / 0.08))
+            + 0.04 * float(sigmoid((event_jump - 18) / 3))
+            + 0.04 * float(sigmoid((event_level + 3) / 1.5)),
+        )
+        if spectral_burst_eligible
+        else 0.0
+    )
+    clipped_burst_score = (
+        min(
+            1.0,
+            0.8
+            + 0.04 * float(sigmoid((event_near_clip - 0.4) / 0.08))
+            + 0.04 * float(sigmoid((event_jump - 12) / 2))
+            + 0.04 * float(sigmoid((event_level + 2) / 1.2)),
+        )
+        if clipped_burst_eligible
+        else 0.0
+    )
+    rescue_score = max(spectral_burst_score, clipped_burst_score)
+    rescue_mode = (
+        "short-clipped-burst"
+        if clipped_burst_score > spectral_burst_score
+        else "short-spectral-burst"
     )
     start_spectral_evidence = (
         start_flatness >= 0.04 or start_brightness >= -5.0 or start_clip >= 0.08
@@ -360,19 +411,25 @@ def analyze(path: Path, meta: dict) -> dict:
     )
     transition_decision_score = transition_score if transition_eligible else 0.0
     start_decision_score = start_score if start_eligible else 0.0
-    decision_score = float(max(transition_decision_score, start_decision_score))
+    decision_score = float(
+        max(transition_decision_score, start_decision_score, rescue_score)
+    )
     suspicious = decision_score >= 0.80
-    confidence = float(max(transition_score, start_score))
-    if start_decision_score != transition_decision_score:
-        detection_mode = (
-            "loud-start"
-            if start_decision_score > transition_decision_score
-            else "transition"
-        )
+    if rescue_score == decision_score and rescue_score > 0:
+        decision_mode = rescue_mode
+    elif start_decision_score > transition_decision_score:
+        decision_mode = "loud-start"
     else:
-        detection_mode = (
-            "loud-start" if start_score > transition_score else "transition"
-        )
+        decision_mode = "transition"
+    risk_mode = "loud-start" if start_score > transition_score else "transition"
+    detection_mode = decision_mode if suspicious else risk_mode
+    confidence = float(
+        start_score
+        if detection_mode == "loud-start"
+        else rescue_score
+        if detection_mode in ("short-spectral-burst", "short-clipped-burst")
+        else transition_score
+    )
 
     # Reproduce the old detector's ~256 samples/channel per 100 ms window.
     old_win = round(RATE * 0.1)
@@ -482,10 +539,14 @@ def analyze(path: Path, meta: dict) -> dict:
             "old_score": old_score,
             "old_classification": "suspicious" if old_score >= 3 else "normal",
             "transition_score": transition_score,
+            "rescue_score": rescue_score,
+            "rescue_mode": rescue_mode if rescue_score else None,
             "decision_score": decision_score,
             "score": confidence,
             "suspicious": suspicious,
             "detection_mode": detection_mode,
+            "decision_mode": decision_mode,
+            "risk_mode": risk_mode,
             "classification": "suspicious" if suspicious else "normal",
         }
     )
@@ -551,8 +612,11 @@ def main() -> int:
         ("event_duration_s", "event duration s"),
         ("event_near_clip_pct", "near-clip %"),
         ("spectral_flux_at_event", "onset flux"),
+        ("spectral_flux_near_event", "nearby flux"),
+        ("spectral_shape_distance", "spectral distance"),
         ("transition_score", "transition score"),
         ("start_score", "start score"),
+        ("rescue_score", "short-burst score"),
         ("decision_score", "decision score"),
         ("score", "risk score"),
         ("detection_mode", "mode"),
@@ -578,7 +642,10 @@ def main() -> int:
                             "score",
                             "transition_score",
                             "start_score",
+                            "rescue_score",
                             "spectral_flux_at_event",
+                            "spectral_flux_near_event",
+                            "spectral_shape_distance",
                         }
                         else f"{value:.2f}"
                     )
