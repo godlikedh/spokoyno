@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Spokoyno — 2ch WebM Companion
 // @namespace    local.spokoyno
-// @version      5.3.0
+// @version      5.4.0
 // @description  Tab-local video cache, fastest mirror, speed monitor and event-based screamer warning
 // @match        https://2ch.org/*
 // @match        https://2ch.su/*
@@ -39,7 +39,7 @@
   const CACHE_META_URL = `${location.origin}/__tm2ch_cache_meta_v1__`;
   const MEDIA_EXT = /\.(?:mp4|webm|m4v|mov|ogv)$/i;
   const SCREAMER_REPORT_RE = /scream|скрим/i;
-  const ANALYSIS_VERSION = 2,
+  const ANALYSIS_VERSION = 3,
     ANALYSIS_WINDOW = 0.05,
     ANALYSIS_TARGET_RATE = 16_000;
   const BASELINE_WINDOWS = 60,
@@ -606,20 +606,21 @@
       return;
     }
 
-    const confidence = Math.round(r.confidence * 100);
+    const risk = Math.round(r.confidence * 100);
     if (r.suspicious) {
       badge.textContent =
         r.detectionMode === 'loud-start'
-          ? `⚠ SCREAMER ${confidence}% · loud start @ ${formatTime(r.eventAt || 0)}`
-          : `⚠ SCREAMER ${confidence}% · +${r.jumpDb.toFixed(0)} dB @ ${formatTime(r.eventAt || 0)}`;
+          ? `⚠ SCREAMER · risk ${risk}/100 · loud start @ ${formatTime(r.eventAt || 0)}`
+          : `⚠ SCREAMER · risk ${risk}/100 · +${r.jumpDb.toFixed(0)} dB @ ${formatTime(r.eventAt || 0)}`;
       badge.dataset.state = 'bad';
     } else {
-      badge.textContent = `🔊 normal · ${confidence}%`;
+      badge.textContent = `🔊 normal · risk ${risk}/100`;
       badge.dataset.state = 'ok';
     }
 
     badge.title = [
-      `Suspicion: ${confidence}%`,
+      `Risk score: ${risk}/100 (heuristic, not a probability)`,
+      `Merged decision score: ${Math.round((r.decisionScore ?? 0) * 100)}/100`,
       `Strongest detector: ${r.detectionMode === 'loud-start' ? 'dangerous loud start' : 'quiet-to-loud transition'}`,
       `Event: ${formatTime(r.eventAt || 0)}`,
       Number.isFinite(r.baselineDb)
@@ -627,6 +628,11 @@
         : 'Baseline: unavailable near start',
       `Sustained event level: ${r.eventDb.toFixed(1)} dB`,
       Number.isFinite(r.jumpDb) ? `Jump: +${r.jumpDb.toFixed(1)} dB` : '',
+      Number.isFinite(r.baselineMadDb) ? `Baseline MAD: ${r.baselineMadDb.toFixed(1)} dB` : '',
+      Number.isFinite(r.robustZ) ? `Robust normalized jump: ${r.robustZ.toFixed(2)}` : '',
+      Number.isFinite(r.attackMs)
+        ? `10 ms attack estimate: ${r.attackMs.toFixed(0)} ms`
+        : '10 ms attack estimate: unavailable',
       `Event duration: ${r.eventDuration.toFixed(2)} s`,
       `Event peak: ${r.eventPeakDb.toFixed(1)} dBFS`,
       `Event near-clipping: ${r.eventNearClipPct.toFixed(2)}%`,
@@ -1000,6 +1006,44 @@
     return max;
   }
 
+  function measureAttack(buf, index, timeline) {
+    const { stride, windowFrames } = timeline;
+    const eventFrame = index * windowFrames;
+    const start = Math.max(0, eventFrame - Math.round(buf.sampleRate * 0.5));
+    const end = Math.min(buf.length, eventFrame + Math.round(buf.sampleRate * 0.8));
+    const fineFrames = Math.max(stride, Math.round((buf.sampleRate * 0.01) / stride) * stride);
+    const channels = Array.from({ length: buf.numberOfChannels }, (_, ch) => buf.getChannelData(ch));
+    const effectiveRate = buf.sampleRate / stride;
+    const filters = channels.map(() => [makeHighPass(effectiveRate), makeHighShelf(effectiveRate)]);
+    const levels = [];
+    for (let frameStart = start; frameStart < end; frameStart += fineFrames) {
+      const frameEnd = Math.min(end, frameStart + fineFrames);
+      let square = 0,
+        count = 0;
+      for (let i = frameStart; i < frameEnd; i += stride) {
+        for (let ch = 0; ch < channels.length; ch++) {
+          const weighted = biquad(biquad(channels[ch][i] || 0, filters[ch][0]), filters[ch][1]);
+          square += weighted * weighted;
+          count++;
+        }
+      }
+      levels.push(Math.max(-90, -0.691 + dbPower(square / Math.max(1, count))));
+    }
+    const eventAt = Math.floor((eventFrame - start) / fineFrames);
+    const peakEnd = Math.min(levels.length, eventAt + 50);
+    if (eventAt < 0 || peakEnd <= eventAt) return null;
+    let peak = eventAt;
+    for (let i = eventAt + 1; i < peakEnd; i++) if (levels[i] > levels[peak]) peak = i;
+    let lastBelow = -1;
+    for (let i = 0; i < peak; i++) if (levels[i] <= -30) lastBelow = i;
+    if (lastBelow < 0) return null;
+    const target = levels[peak] - 3;
+    for (let i = lastBelow + 1; i <= peak; i++) {
+      if (levels[i] >= target) return ((i - lastBelow) * fineFrames * 1000) / buf.sampleRate;
+    }
+    return null;
+  }
+
   async function nativeNoAudioProbe(blob) {
     return new Promise((resolve) => {
       const video = document.createElement('video'),
@@ -1209,19 +1253,24 @@
     startConfidence *= 0.68 + 0.12 * startClipComponent + 0.14 * startNoiseComponent + 0.06 * startBrightnessComponent;
     startConfidence = Math.max(0, Math.min(1, startConfidence));
     const startSpectralEvidence = startSpectralFlatness >= 0.04 || startBrightnessDb >= -5 || startNearClip >= 0.08;
-    const startSuspicious =
-      startConfidence >= SCREAMER_CONFIDENCE && startLevel >= -3 && startDuration >= 0.5 && startSpectralEvidence;
+    const startEligible = startLevel >= -3 && startDuration >= 0.5 && startSpectralEvidence;
 
     let best = -1,
       bestEnvelope = -1,
       bestBaseline = -90,
       bestEvent = -90,
-      bestJump = 0;
+      bestJump = 0,
+      bestBaselineMad = 0;
     for (let i = 0; i + EVENT_WINDOWS <= levels.length; i++) {
       const lo = Math.max(0, i - BASELINE_WINDOWS),
         hi = i - BASELINE_GAP;
       if (hi - lo < MIN_BASELINE_WINDOWS) continue;
-      const baseline = percentile(levels.slice(lo, hi), 0.5);
+      const history = levels.slice(lo, hi);
+      const baseline = percentile(history, 0.5);
+      const baselineMad = percentile(
+        Array.from(history, (level) => Math.abs(level - baseline)),
+        0.5
+      );
       const event = percentile(levels.slice(i, i + EVENT_WINDOWS), 0.25);
       const jump = event - baseline;
       const envelope = sigmoid((event + 10.5) / 2.5) ** 0.9 * sigmoid((jump - 13) / 3.5) ** 1.25;
@@ -1231,6 +1280,7 @@
         bestBaseline = baseline;
         bestEvent = event;
         bestJump = jump;
+        bestBaselineMad = baselineMad;
       }
     }
 
@@ -1239,6 +1289,10 @@
       bestBaseline = percentile(levels, 0.5);
       bestEvent = levels[0];
       bestJump = bestEvent - bestBaseline;
+      bestBaselineMad = percentile(
+        Array.from(levels, (level) => Math.abs(level - bestBaseline)),
+        0.5
+      );
     }
 
     const threshold = Math.max(-13, bestBaseline + 9);
@@ -1264,18 +1318,22 @@
     transitionConfidence *= 0.87 + 0.1 * quietComponent + 0.03 * clipComponent;
     transitionConfidence *= 0.65 + 0.35 * fluxComponent;
     transitionConfidence = Math.max(0, Math.min(1, transitionConfidence));
-    const transitionSuspicious =
-      transitionConfidence >= SCREAMER_CONFIDENCE && bestEvent >= -6 && bestJump >= 14 && duration >= 0.15;
-    const suspicious = transitionSuspicious || startSuspicious;
-    const confidence = Math.max(transitionConfidence, startConfidence);
+    const transitionEligible = bestEvent >= -6 && bestJump >= 14 && duration >= 0.15;
+    const transitionDecisionScore = transitionEligible ? transitionConfidence : 0;
+    const startDecisionScore = startEligible ? startConfidence : 0;
+    const decisionScore = Math.max(transitionDecisionScore, startDecisionScore);
+    const suspicious = decisionScore >= SCREAMER_CONFIDENCE;
+    const confidence = decisionScore;
     const detectionMode =
-      startSuspicious && startConfidence >= transitionConfidence
-        ? 'loud-start'
-        : transitionSuspicious
-          ? 'transition'
-          : startConfidence > transitionConfidence
-            ? 'loud-start'
-            : 'transition';
+      startDecisionScore !== transitionDecisionScore
+        ? startDecisionScore > transitionDecisionScore
+          ? 'loud-start'
+          : 'transition'
+        : startConfidence > transitionConfidence
+          ? 'loud-start'
+          : 'transition';
+    const startSuspicious = suspicious && detectionMode === 'loud-start';
+    const transitionSuspicious = suspicious && detectionMode === 'transition';
     const median = percentile(levels, 0.5);
     const reason =
       detectionMode === 'loud-start'
@@ -1293,11 +1351,14 @@
                 : 'Combined evidence stayed below the warning threshold';
     const useStartEvent = detectionMode === 'loud-start';
     const selectedSpectralFlux = useStartEvent ? onsetSpectralFlux(buf, start, timeline.windowFrames) : spectralFlux;
+    const attackMs = measureAttack(buf, useStartEvent ? start : best, timeline);
+    const robustScale = Math.max(2, 1.4826 * bestBaselineMad);
 
     return {
       status: 'ok',
       suspicious,
       confidence,
+      decisionScore,
       detectionMode,
       transitionConfidence,
       startConfidence,
@@ -1305,6 +1366,9 @@
       jumpDb: useStartEvent ? null : bestJump,
       eventDb: useStartEvent ? startLevel : bestEvent,
       baselineDb: useStartEvent ? null : bestBaseline,
+      baselineMadDb: useStartEvent ? null : bestBaselineMad,
+      robustZ: useStartEvent ? null : bestJump / robustScale,
+      attackMs,
       eventDuration: useStartEvent ? startDuration : duration,
       eventPeakDb: useStartEvent ? startPeak : eventPeak,
       eventNearClipPct: (useStartEvent ? startNearClip : eventNearClip) * 100,

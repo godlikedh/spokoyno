@@ -6,7 +6,7 @@ The 2ch API response for thread `336185346` contained 550 video attachments: 417
 
 FFmpeg decoded audio from 539 files: 413 AAC, 93 Vorbis, 31 Opus, and 2 MP3 tracks. Eleven files had no audio stream. The two user-confirmed screamers are positives; following the user's clarification and manual review, the other 548 attachments are high-confidence provisional negatives. Two later confirmed screamers from thread `336243339` were added as supplemental positives. One is a conventional transition event; the other begins its dangerous audio about 0.6 s into the file, before the transition path can obtain its required one-second baseline. The evaluated set therefore contains four confirmed positives and 548 provisional negatives.
 
-The complete original-thread table is in [thread-336185346.md](thread-336185346.md). Machine-readable versions, including every requested feature, are [thread-336185346.csv](thread-336185346.csv) and [thread-336185346.json](thread-336185346.json). The later positives are in [supplemental-positives.md](supplemental-positives.md), [supplemental-positives.csv](supplemental-positives.csv), and [supplemental-positives.json](supplemental-positives.json). Only the two supplied files—not their entire source thread—were analyzed for the supplemental set.
+The complete original-thread table is in [thread-336185346.md](thread-336185346.md). Machine-readable versions, including every requested feature, are [thread-336185346.csv](thread-336185346.csv) and [thread-336185346.json](thread-336185346.json). The later positives are in [supplemental-positives.md](supplemental-positives.md), [supplemental-positives.csv](supplemental-positives.csv), and [supplemental-positives.json](supplemental-positives.json). Only the two supplied files—not their entire source thread—were analyzed for the supplemental set. A later external-review proposal study is documented separately in [PROPOSAL_EVALUATION.md](PROPOSAL_EVALUATION.md).
 
 ## Method
 
@@ -68,10 +68,9 @@ transitionConfidence = loud^0.9 * jump^1.25 * duration^0.65
                        * (0.65 + 0.35*flux)
 ```
 
-It fires only when all of these hold:
+It is structurally eligible only when all of these hold:
 
 ```text
-transitionConfidence >= 0.80
 eventDb >= -6
 jumpDb >= 14
 duration >= 0.15 s
@@ -90,7 +89,11 @@ startConfidence = startLoud^1.1 * startDuration^0.7
                   * (0.68 + 0.12*startClip + 0.14*startNoise + 0.06*startBrightness)
 ```
 
-It fires only when `startConfidence >= 0.80`, `startEventDb >= -3`, duration is at least 0.50 s, and at least one of these independent spectral/damage signals holds: flatness at least 0.04, brightness at least -5 dB, or near-clipping at least 8%. Displayed confidence is `max(transitionConfidence, startConfidence)`.
+It is structurally eligible when `startEventDb >= -3`, duration is at least 0.50 s, and at least one of these independent spectral/damage signals holds: flatness at least 0.04, brightness at least -5 dB, or near-clipping at least 8%.
+
+In v5.4 the ineligible branch scores are zeroed, the eligible scores are merged with `max`, and the single merged score is compared with the 0.80 warning threshold. This is mathematically equivalent to the prior two comparisons but makes post-merge calibration explicit. The UI displays this merged value as a heuristic risk score rather than a probability.
+
+Baseline MAD, MAD-normalized jump, and a local 10 ms attack estimate are recorded as diagnostics but do not affect the score. Full-corpus testing found that literal MAD multiplication created false positives and that attack time did not separate screamers from music drops or explosions; see [PROPOSAL_EVALUATION.md](PROPOSAL_EVALUATION.md).
 
 The hard gates keep both continuous scores honest. A large rise from digital silence to a moderate sound, a short click, a high-frequency but quiet sound, or ordinary loud music cannot be promoted by unrelated bonuses alone.
 
@@ -128,4 +131,4 @@ There are unavoidable limitations:
 
 ## Reproduction
 
-The extraction program is [analyze_audio.py](analyze_audio.py). It requires FFmpeg, NumPy, and SciPy. The complete userscript is [../spokoyno.user.js](../spokoyno.user.js).
+The extraction program is [analyze_audio.py](analyze_audio.py). [cache_audio.py](cache_audio.py) can rebuild ignored `../corpus/audio/` as an audio-only float32 corpus, [../corpus/labels.json](../corpus/labels.json) preserves the labels, and [evaluate_proposals.py](evaluate_proposals.py) reproduces the proposal experiment. They require FFmpeg, NumPy, and SciPy. The complete userscript is [../spokoyno.user.js](../spokoyno.user.js).
