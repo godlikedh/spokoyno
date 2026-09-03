@@ -4,7 +4,8 @@
   "policy": {
     "confirmed_positive": "User explicitly confirmed the clip as a screamer.",
     "reviewed_negative": "User listened to the clip and described it as legitimate/non-screamer content.",
-    "provisional_negative": "All remaining attachments in thread 336185346 are treated as high-confidence negatives per user review, but can be relabeled later."
+    "provisional_negative": "All remaining attachments in thread 336185346 are treated as high-confidence negatives per user review, but can be relabeled later.",
+    "unlabeled": "Retained for future review or training, but must not be counted as either class until the user labels it."
   },
   "confirmed_positives": {
     "/b/src/336185346/17883557324650588814.webm": "confirmed screamer #1",
@@ -35,5 +36,12 @@
       "17883557325462786367.mp4"
     ],
     "source_manifest": "../research/thread-336185346.json"
+  },
+  "unlabeled_batches": {
+    "/b/src/336272252/": {
+      "count": 349,
+      "source_manifest": "../research/thread-336272252.json",
+      "note": "Audio-only corpus import requested by the user; detector output is not a ground-truth label."
+    }
   }
 }

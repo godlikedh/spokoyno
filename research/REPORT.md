@@ -8,6 +8,8 @@ FFmpeg decoded audio from 539 files: 413 AAC, 93 Vorbis, 31 Opus, and 2 MP3 trac
 
 The complete original-thread table is in [thread-336185346.md](thread-336185346.md). Machine-readable versions, including every requested feature, are [thread-336185346.csv](thread-336185346.csv) and [thread-336185346.json](thread-336185346.json). The later positives are in [supplemental-positives.md](supplemental-positives.md), [supplemental-positives.csv](supplemental-positives.csv), and [supplemental-positives.json](supplemental-positives.json). Only the two supplied files—not their entire source thread—were analyzed for the supplemental set. A later external-review proposal study is documented separately in [PROPOSAL_EVALUATION.md](PROPOSAL_EVALUATION.md).
 
+Thread `336272252` was later retained as a separate unlabeled corpus batch: all 349 video attachments had decodable audio, and none crossed the current warning threshold. Its [table](thread-336272252.md), [CSV](thread-336272252.csv), and [JSON](thread-336272252.json) contain model outputs for review, not negative ground-truth labels, so this batch is excluded from the reported 548-negative evaluation.
+
 ## Method
 
 FFmpeg decoded the complete first audio track to stereo float PCM at 16 kHz. Analysis used 50 ms non-overlapping windows. Per-track metrics include raw RMS/peak, approximate perceptual loudness, P10/P25/P50/P75/P90/P95/P99, crest factor, peak-to-median range, threshold occupancy, sample near-clipping occupancy, spectral flux, three coarse spectral bands, and maximum changes at 50/100/250/500/1000 ms.
@@ -91,7 +93,7 @@ startConfidence = startLoud^1.1 * startDuration^0.7
 
 It is structurally eligible when `startEventDb >= -3`, duration is at least 0.50 s, and at least one of these independent spectral/damage signals holds: flatness at least 0.04, brightness at least -5 dB, or near-clipping at least 8%.
 
-In v5.4 the ineligible branch scores are zeroed, the eligible scores are merged with `max`, and the single merged score is compared with the 0.80 warning threshold. This is mathematically equivalent to the prior two comparisons but makes post-merge calibration explicit. The UI separately displays `max(transitionConfidence, startConfidence)` as a continuous heuristic risk score rather than a probability; otherwise every clip that misses one hard gate would misleadingly display zero.
+In v5.4 the ineligible branch scores are zeroed, the eligible scores are merged with `max`, and the single merged score is compared with the 0.80 warning threshold. This is mathematically equivalent to the prior two comparisons but makes post-merge calibration explicit. The UI separately displays `max(transitionConfidence, startConfidence)` as a continuous heuristic risk score rather than a probability; otherwise every clip that misses one hard gate would misleadingly display zero. From v5.4.2, scores below 10/100 retain decimal precision and positive values below 0.01/100 display as `<0.01`, avoiding another misleading collapse caused by integer rounding. Analysis schema v4 forces stale tab results to be recomputed from the cached media without downloading it again.
 
 Baseline MAD, MAD-normalized jump, and a local 10 ms attack estimate are recorded as diagnostics but do not affect the score. Full-corpus testing found that literal MAD multiplication created false positives and that attack time did not separate screamers from music drops or explosions; see [PROPOSAL_EVALUATION.md](PROPOSAL_EVALUATION.md).
 
