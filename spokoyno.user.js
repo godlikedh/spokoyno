@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Spokoyno — 2ch WebM Companion
 // @namespace    local.spokoyno
-// @version      5.6.0
+// @version      5.7.0
 // @description  Tab-local video cache, fastest mirror, speed monitor and event-based screamer warning
 // @updateURL    https://raw.githubusercontent.com/godlikedh/spokoyno/main/spokoyno.user.js
 // @downloadURL  https://raw.githubusercontent.com/godlikedh/spokoyno/main/spokoyno.user.js
@@ -44,7 +44,7 @@
   const CACHE_META_URL = `${location.origin}/__tm2ch_cache_meta_v1__`;
   const MEDIA_EXT = /\.(?:mp4|webm|m4v|mov|ogv)$/i;
   const SCREAMER_REPORT_RE = /scream|скрим/i;
-  const ANALYSIS_VERSION = 6,
+  const ANALYSIS_VERSION = 7,
     ANALYSIS_WINDOW = 0.05,
     ANALYSIS_TARGET_RATE = 16_000;
   const BASELINE_WINDOWS = 60,
@@ -774,6 +774,8 @@
         'loud-start': 'dangerous loud start',
         'short-spectral-burst': 'short edited spectral burst',
         'short-clipped-burst': 'short heavily clipped burst',
+        'short-high-contrast-burst': 'short high-contrast burst',
+        'sustained-spectral-takeover': 'sustained spectral takeover',
         transition: 'quiet-to-loud transition'
       }[r.detectionMode] || 'quiet-to-loud transition';
     if (r.suspicious) {
@@ -1585,11 +1587,10 @@
     transitionConfidence *= 0.65 + 0.35 * fluxComponent;
     transitionConfidence = Math.max(0, Math.min(1, transitionConfidence));
     const transitionEligible = hasTransition && bestEvent >= -6 && bestJump >= 14 && duration >= 0.15;
-    // Conservative rescue paths cover short edited bursts that the general score intentionally
-    // suppresses. One requires a large spectral-distribution change; the other requires severe
-    // clipping. Upper duration bounds keep ordinary sustained screams, speech, music drops, and
-    // movie effects on the main transition path. These rules were tuned after positives #5/#6,
-    // so their risk values are evidence scores, not calibrated probabilities.
+    // Conservative rescue paths cover edited bursts that the general score intentionally
+    // suppresses. Independent gates require spectral replacement, severe clipping, or extreme
+    // short-event contrast. These rules were tuned from a tiny positive set, so their risk values
+    // are evidence scores, not calibrated probabilities.
     const spectralBurstEligible =
       hasTransition &&
       bestEvent >= -4 &&
@@ -1606,6 +1607,22 @@
       duration <= 0.55 &&
       eventNearClip >= 0.35 &&
       spectralFluxNear >= 0.3;
+    const highContrastBurstEligible =
+      hasTransition &&
+      bestEvent >= -4 &&
+      bestJump >= 30 &&
+      duration >= 0.25 &&
+      duration <= 0.5 &&
+      eventNearClip >= 0.15 &&
+      spectralFluxNear >= 0.35 &&
+      spectralShapeDistance >= 0.5;
+    const sustainedSpectralTakeoverEligible =
+      hasTransition &&
+      bestEvent >= -3.5 &&
+      bestJump >= 25 &&
+      duration >= 2 &&
+      spectralFluxNear >= 0.4 &&
+      spectralShapeDistance >= 0.8;
     const spectralBurstConfidence = spectralBurstEligible
       ? Math.min(
           1,
@@ -1624,9 +1641,31 @@
             0.04 * sigmoid((bestEvent + 2) / 1.2)
         )
       : 0;
-    const rescueMode =
-      clippedBurstConfidence > spectralBurstConfidence ? 'short-clipped-burst' : 'short-spectral-burst';
-    const rescueConfidence = Math.max(spectralBurstConfidence, clippedBurstConfidence);
+    const highContrastBurstConfidence = highContrastBurstEligible
+      ? Math.min(
+          1,
+          0.8 +
+            0.04 * sigmoid((eventNearClip - 0.2) / 0.08) +
+            0.04 * sigmoid((bestJump - 35) / 6) +
+            0.04 * sigmoid((bestEvent + 3.5) / 1.2)
+        )
+      : 0;
+    const sustainedSpectralTakeoverConfidence = sustainedSpectralTakeoverEligible
+      ? Math.min(
+          1,
+          0.8 +
+            0.04 * sigmoid((spectralShapeDistance - 0.85) / 0.08) +
+            0.04 * sigmoid((spectralFluxNear - 0.4) / 0.08) +
+            0.04 * sigmoid((bestJump - 30) / 6)
+        )
+      : 0;
+    const strongestRescue = [
+      ['short-spectral-burst', spectralBurstConfidence],
+      ['short-clipped-burst', clippedBurstConfidence],
+      ['short-high-contrast-burst', highContrastBurstConfidence],
+      ['sustained-spectral-takeover', sustainedSpectralTakeoverConfidence]
+    ].reduce((best, candidate) => (candidate[1] > best[1] ? candidate : best));
+    const [rescueMode, rescueConfidence] = strongestRescue;
     const transitionDecisionScore = transitionEligible ? transitionConfidence : 0;
     const startDecisionScore = startEligible ? startConfidence : 0;
     const rescueDecisionScore = rescueConfidence;
@@ -1643,7 +1682,7 @@
     const displayRisk =
       detectionMode === 'loud-start'
         ? startConfidence
-        : detectionMode === 'short-spectral-burst' || detectionMode === 'short-clipped-burst'
+        : detectionMode !== 'transition'
           ? rescueConfidence
           : transitionConfidence;
     const confidence = displayRisk;
@@ -1661,7 +1700,11 @@
             ? 'Short near-full-scale burst with a large local spectral-distribution change'
             : detectionMode === 'short-clipped-burst'
               ? 'Short near-full-scale transition with severe clipping'
-              : 'Sustained near-full-scale event after a quieter baseline, with a changed onset spectrum'
+              : detectionMode === 'short-high-contrast-burst'
+                ? 'Short near-full-scale burst combining extreme contrast, clipping, and spectral change'
+                : detectionMode === 'sustained-spectral-takeover'
+                  ? 'Sustained near-full-scale event that replaces the baseline spectrum'
+                  : 'Sustained near-full-scale event after a quieter baseline, with a changed onset spectrum'
           : !hasTransition
             ? 'No quiet-to-loud transition had enough preceding audio for a reliable baseline'
             : bestJump < 14

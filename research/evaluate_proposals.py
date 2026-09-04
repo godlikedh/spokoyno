@@ -187,6 +187,23 @@ def finalize_transition(
         and near_clip >= 0.35
         and nearby_flux >= 0.3
     )
+    high_contrast_burst_eligible = (
+        candidate["has_history"]
+        and event >= -4
+        and jump >= 30
+        and 0.25 <= duration <= 0.5
+        and near_clip >= 0.15
+        and nearby_flux >= 0.35
+        and shape_distance >= 0.5
+    )
+    sustained_spectral_takeover_eligible = (
+        candidate["has_history"]
+        and event >= -3.5
+        and jump >= 25
+        and duration >= 2
+        and nearby_flux >= 0.4
+        and shape_distance >= 0.8
+    )
     spectral_burst_score = (
         min(
             1.0,
@@ -209,11 +226,36 @@ def finalize_transition(
         if clipped_burst_eligible
         else 0.0
     )
-    rescue_score = max(spectral_burst_score, clipped_burst_score)
-    rescue_mode = (
-        "short-clipped-burst"
-        if clipped_burst_score > spectral_burst_score
-        else "short-spectral-burst"
+    high_contrast_burst_score = (
+        min(
+            1.0,
+            0.8
+            + 0.04 * float(sigmoid((near_clip - 0.2) / 0.08))
+            + 0.04 * float(sigmoid((jump - 35) / 6))
+            + 0.04 * float(sigmoid((event + 3.5) / 1.2)),
+        )
+        if high_contrast_burst_eligible
+        else 0.0
+    )
+    sustained_spectral_takeover_score = (
+        min(
+            1.0,
+            0.8
+            + 0.04 * float(sigmoid((shape_distance - 0.85) / 0.08))
+            + 0.04 * float(sigmoid((nearby_flux - 0.4) / 0.08))
+            + 0.04 * float(sigmoid((jump - 30) / 6)),
+        )
+        if sustained_spectral_takeover_eligible
+        else 0.0
+    )
+    rescue_mode, rescue_score = max(
+        (
+            ("short-spectral-burst", spectral_burst_score),
+            ("short-clipped-burst", clipped_burst_score),
+            ("short-high-contrast-burst", high_contrast_burst_score),
+            ("sustained-spectral-takeover", sustained_spectral_takeover_score),
+        ),
+        key=lambda item: item[1],
     )
     return (
         candidate

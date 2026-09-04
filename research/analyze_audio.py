@@ -26,7 +26,41 @@ POSITIVE_NAMES = {
     "17883659327260384359.webm": "confirmed positive #4 (immediate)",
     "17884174673280229863.mp4": "confirmed positive #5 (short spectral burst)",
     "17884274747240014140.mp4": "confirmed positive #6 (short clipped burst)",
+    "17885024222391568056.mp4": "confirmed positive #7 (boosted porn audio)",
+    "17885460222141837902.mp4": "confirmed positive #8 (slower screamer)",
+    "17885474189950590427.webm": "confirmed positive #9 (boosted cartoon scream)",
+    "17885487431220276835.mp4": "confirmed positive #10 (boosted porn audio)",
 }
+VISUAL_ONLY_NAMES = {
+    "17885181380740506509.mp4": "confirmed visual-only screamer (outside audio detector scope)"
+}
+REVIEWED_NEGATIVE_NAMES = {
+    "17885509617340308491.mp4": "reviewed negative (legitimate loud phonk)"
+}
+
+
+def label_for(meta: dict, source_name: str) -> str:
+    if source_name in POSITIVE_NAMES:
+        return POSITIVE_NAMES[source_name]
+    if source_name in VISUAL_ONLY_NAMES:
+        return VISUAL_ONLY_NAMES[source_name]
+    if source_name in REVIEWED_NEGATIVE_NAMES:
+        return REVIEWED_NEGATIVE_NAMES[source_name]
+    if meta["path"].startswith("/b/src/336291305/"):
+        return "provisional negative (user-reviewed thread)"
+    return meta.get("label", "unlabeled")
+
+
+def metadata_row(meta: dict) -> dict:
+    source_name = Path(meta["path"]).name
+    return {
+        "file": source_name,
+        "path": meta["path"],
+        "md5": meta.get("md5", ""),
+        "api_duration_s": meta.get("duration_secs", meta.get("api_duration_s")),
+        "api_size_kib": meta.get("size", meta.get("api_size_kib")),
+        "label": label_for(meta, source_name),
+    }
 
 
 def db_power(x: np.ndarray | float) -> np.ndarray | float:
@@ -161,15 +195,7 @@ def attack_time(fine_level: np.ndarray, coarse_index: int) -> float | None:
 
 
 def analyze(path: Path, meta: dict) -> dict:
-    source_name = Path(meta["path"]).name
-    row = {
-        "file": source_name,
-        "path": meta["path"],
-        "md5": meta.get("md5", ""),
-        "api_duration_s": meta.get("duration_secs", meta.get("api_duration_s")),
-        "api_size_kib": meta.get("size", meta.get("api_size_kib")),
-        "label": POSITIVE_NAMES.get(source_name, meta.get("label", "unlabeled")),
-    }
+    row = metadata_row(meta)
     samples, error = decode(path)
     if error:
         return row | {"status": "decode-error", "error": error}
@@ -375,6 +401,23 @@ def analyze(path: Path, meta: dict) -> dict:
         and event_near_clip >= 0.35
         and flux_near[best] >= 0.3
     )
+    high_contrast_burst_eligible = (
+        has_transition
+        and event_level >= -4
+        and event_jump >= 30
+        and 0.25 <= event_duration <= 0.5
+        and event_near_clip >= 0.15
+        and flux_near[best] >= 0.35
+        and spectral_shape_distance >= 0.5
+    )
+    sustained_spectral_takeover_eligible = (
+        has_transition
+        and event_level >= -3.5
+        and event_jump >= 25
+        and event_duration >= 2
+        and flux_near[best] >= 0.4
+        and spectral_shape_distance >= 0.8
+    )
     spectral_burst_score = (
         min(
             1.0,
@@ -397,11 +440,36 @@ def analyze(path: Path, meta: dict) -> dict:
         if clipped_burst_eligible
         else 0.0
     )
-    rescue_score = max(spectral_burst_score, clipped_burst_score)
-    rescue_mode = (
-        "short-clipped-burst"
-        if clipped_burst_score > spectral_burst_score
-        else "short-spectral-burst"
+    high_contrast_burst_score = (
+        min(
+            1.0,
+            0.8
+            + 0.04 * float(sigmoid((event_near_clip - 0.2) / 0.08))
+            + 0.04 * float(sigmoid((event_jump - 35) / 6))
+            + 0.04 * float(sigmoid((event_level + 3.5) / 1.2)),
+        )
+        if high_contrast_burst_eligible
+        else 0.0
+    )
+    sustained_spectral_takeover_score = (
+        min(
+            1.0,
+            0.8
+            + 0.04 * float(sigmoid((spectral_shape_distance - 0.85) / 0.08))
+            + 0.04 * float(sigmoid((flux_near[best] - 0.4) / 0.08))
+            + 0.04 * float(sigmoid((event_jump - 30) / 6)),
+        )
+        if sustained_spectral_takeover_eligible
+        else 0.0
+    )
+    rescue_mode, rescue_score = max(
+        (
+            ("short-spectral-burst", spectral_burst_score),
+            ("short-clipped-burst", clipped_burst_score),
+            ("short-high-contrast-burst", high_contrast_burst_score),
+            ("sustained-spectral-takeover", sustained_spectral_takeover_score),
+        ),
+        key=lambda item: item[1],
     )
     start_spectral_evidence = (
         start_flatness >= 0.04 or start_brightness >= -5.0 or start_clip >= 0.08
@@ -427,7 +495,7 @@ def analyze(path: Path, meta: dict) -> dict:
         start_score
         if detection_mode == "loud-start"
         else rescue_score
-        if detection_mode in ("short-spectral-burst", "short-clipped-burst")
+        if detection_mode != "transition"
         else transition_score
     )
 
@@ -583,7 +651,15 @@ def main() -> int:
         path = args.media_dir / f"{Path(meta['path']).name}.audio.wav"
         print(f"[{index}/{len(files)}] {path.name}", file=sys.stderr, flush=True)
         if not path.exists() and meta.get("status") == "no-audio":
-            rows.append(meta)
+            rows.append(
+                metadata_row(meta)
+                | {
+                    "status": "no-audio",
+                    "score": 0.0,
+                    "old_score": 0,
+                    "classification": "no audio",
+                }
+            )
         else:
             rows.append(analyze(path, meta))
     rows.sort(key=lambda r: float(r.get("score", -1)), reverse=True)
@@ -616,7 +692,7 @@ def main() -> int:
         ("spectral_shape_distance", "spectral distance"),
         ("transition_score", "transition score"),
         ("start_score", "start score"),
-        ("rescue_score", "short-burst score"),
+        ("rescue_score", "rescue score"),
         ("decision_score", "decision score"),
         ("score", "risk score"),
         ("detection_mode", "mode"),

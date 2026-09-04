@@ -3,8 +3,9 @@
   "identity": "The mirror hostname is ignored; /board/src/thread/file identifies a clip.",
   "policy": {
     "confirmed_positive": "User explicitly confirmed the clip as a screamer.",
+    "confirmed_visual_only_screamer": "User confirmed a visual jump-scare whose audio is not expected to identify it; excluded from audio-detector recall.",
     "reviewed_negative": "User listened to the clip and described it as legitimate/non-screamer content.",
-    "provisional_negative": "All remaining attachments in thread 336185346 are treated as high-confidence negatives per user review, but can be relabeled later.",
+    "provisional_negative": "Attachments in an explicitly reviewed thread that were not labeled as screamers are treated as high-confidence negatives, but can be relabeled later.",
     "unlabeled": "Retained for future review or training, but must not be counted as either class until the user labels it."
   },
   "confirmed_positives": {
@@ -13,7 +14,14 @@
     "/b/src/336243339/17883629069140053716.mp4": "confirmed screamer #3",
     "/b/src/336243339/17883659327260384359.webm": "confirmed screamer #4; dangerous loud start",
     "/b/src/336272252/17884174673280229863.mp4": "confirmed screamer #5; short spectral burst near the end",
-    "/b/src/336272252/17884274747240014140.mp4": "confirmed screamer #6; short heavily clipped burst"
+    "/b/src/336272252/17884274747240014140.mp4": "confirmed screamer #6; short heavily clipped burst",
+    "/b/src/336291305/17885024222391568056.mp4": "confirmed audio screamer #7; porn audio boosted to extreme loudness",
+    "/b/src/336291305/17885460222141837902.mp4": "confirmed audio screamer #8; slower transition",
+    "/b/src/336291305/17885474189950590427.webm": "confirmed audio screamer #9; rat trap plus boosted Tom scream",
+    "/b/src/336291305/17885487431220276835.mp4": "confirmed audio screamer #10; porn audio boosted to extreme loudness"
+  },
+  "confirmed_visual_only_screamers": {
+    "/b/src/336291305/17885181380740506509.mp4": "fast monster action; intentionally excluded from audio-detector recall"
   },
   "reviewed_negatives": {
     "/b/src/336185346/17882984411551286220.webm": "TV-show clip; no screamer or unusually loud sound heard",
@@ -28,13 +36,29 @@
     "/b/src/336185346/17882962082822601629.mp4": "ball thrown at camera; visually startling but not an audio screamer",
     "/b/src/336185346/17882991086611750790.webm": "legitimate loud laughter at the end",
     "/b/src/336185346/17882989062590377833.webm": "voice chat with poor-quality audio",
-    "/b/src/336185346/17882997637612360215.webm": "legitimate video with screaming girls"
+    "/b/src/336185346/17882997637612360215.webm": "legitimate video with screaming girls",
+    "/b/src/336291305/17885509617340308491.mp4": "legitimate loud phonk"
   },
   "provisional_negative_set": {
     "thread": 336185346,
     "count": 548,
     "exclude_confirmed_positive_files": ["17883557324650588814.webm", "17883557325462786367.mp4"],
     "source_manifest": "../research/thread-336185346.json"
+  },
+  "additional_provisional_negative_sets": {
+    "/b/src/336291305/": {
+      "thread": 336291305,
+      "count": 342,
+      "exclude_confirmed_screamer_files": [
+        "17885024222391568056.mp4",
+        "17885181380740506509.mp4",
+        "17885460222141837902.mp4",
+        "17885474189950590427.webm",
+        "17885487431220276835.mp4"
+      ],
+      "source_manifest": "../research/thread-336291305.json",
+      "note": "The user reviewed the thread and marked every other video as a non-screamer; the explicit phonk hard negative is included in this count."
+    }
   },
   "unlabeled_batches": {
     "/b/src/336272252/": {

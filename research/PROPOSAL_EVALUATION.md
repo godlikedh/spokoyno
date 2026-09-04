@@ -116,3 +116,26 @@ v5.6 therefore adds two narrow short-burst rescue paths, one requiring spectral 
 | 347 remaining explicitly unlabeled clips |    0/347 | no warnings; not counted as known negatives |
 
 Positive #5 scores 0.855 through the spectral-burst path and positive #6 scores 0.862 through the clipped-burst path. This is not held-out validation: both new positives directly motivated the new rules. The six-positive Wilson interval remains too broad for a useful recall claim, and the unchanged 548-negative set remains too small to demonstrate the requested production FPR.
+
+## v5.7 follow-up: thread 336291305
+
+The next fully reviewed thread supplied four audio-target screamers, one visual-only monster jump-scare, and 342 negatives. Eight of its 347 attachments contain no audio stream. The visual-only example is retained under a separate label and deliberately excluded from audio recall.
+
+v5.6 caught two of the four audio examples. The two misses were qualitatively different:
+
+| file                        | event dB | jump dB | duration | near-clip | nearby flux | spectral distance | v5.6 score |
+| --------------------------- | -------: | ------: | -------: | --------: | ----------: | ----------------: | ---------: |
+| `17885024222391568056.mp4` |    -2.93 |   36.34 |   3.00 s |     2.89% |       0.500 |             0.866 |      0.728 |
+| `17885460222141837902.mp4` |    -3.63 |   61.49 |   0.30 s |    21.79% |       0.424 |             0.559 |      0.792 |
+
+The first is a sustained replacement of the prior spectrum whose exact-boundary flux is weak. The second is a slower but extremely high-contrast short burst. v5.7 adds separate, tightly gated rescue paths for those structures. Neither path fires on the accumulated negative or unlabeled corpus. The merged post-tuning regression is:
+
+| set                                      | warnings | result                                      |
+| ---------------------------------------- | -------: | ------------------------------------------- |
+| ten confirmed audio-target positives     |    10/10 | all retained                                |
+| 871 audio-bearing labeled negatives      |    0/871 | no false warnings                           |
+| 19 no-audio labeled negatives            |     0/19 | no warning                                  |
+| 347 explicitly unlabeled audio clips     |    0/347 | no warnings; not counted as known negatives |
+| one confirmed visual-only screamer       |      0/1 | normal by design                            |
+
+The new positive scores are 0.883, 0.881, 0.812, and 0.900. The explicit loud-phonk negative scores 0.615. As before, the new rules were designed after inspecting their motivating positives; this is a regression check, not an unbiased recall estimate.

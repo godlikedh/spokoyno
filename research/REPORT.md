@@ -4,11 +4,13 @@
 
 The 2ch API response for thread `336185346` contained 550 video attachments: 417 MP4 and 133 WebM files, 548 unique MD5 values, about 3.47 GiB, and about 8.5 hours of media. Every attachment was downloaded from `2ch.su` with mirror fallback available. The hostname is not part of media identity; the dataset retains `/b/src/336185346/<file>` as the key.
 
-FFmpeg decoded audio from 539 files: 413 AAC, 93 Vorbis, 31 Opus, and 2 MP3 tracks. Eleven files had no audio stream. The two user-confirmed screamers are positives; following the user's clarification and manual review, the other 548 attachments are high-confidence provisional negatives. Two later confirmed screamers from thread `336243339` were added as supplemental positives. One is a conventional transition event; the other begins its dangerous audio about 0.6 s into the file, before the transition path can obtain its required one-second baseline. Two clips in thread `336272252` were subsequently confirmed as screamers. The labeled evaluation set therefore contains six confirmed positives and 548 provisional negatives, plus 347 explicitly unlabeled comparison clips.
+FFmpeg decoded audio from 539 files: 413 AAC, 93 Vorbis, 31 Opus, and 2 MP3 tracks. Eleven files had no audio stream. The two user-confirmed screamers are positives; following the user's clarification and manual review, the other 548 attachments are high-confidence provisional negatives. Two later confirmed screamers from thread `336243339` were added as supplemental positives. One is a conventional transition event; the other begins its dangerous audio about 0.6 s into the file, before the transition path can obtain its required one-second baseline. Two clips in thread `336272252` and four audio clips in thread `336291305` were subsequently confirmed as screamers. The current labeled evaluation set therefore contains ten audio-target positives and 890 provisional/reviewed negatives, plus 347 explicitly unlabeled comparison clips. One additional confirmed visual-only screamer is retained but excluded from audio-detector recall.
 
 The complete original-thread table is in [thread-336185346.md](thread-336185346.md). Machine-readable versions, including every requested feature, are [thread-336185346.csv](thread-336185346.csv) and [thread-336185346.json](thread-336185346.json). The later positives are in [supplemental-positives.md](supplemental-positives.md), [supplemental-positives.csv](supplemental-positives.csv), and [supplemental-positives.json](supplemental-positives.json). Only the two supplied files—not their entire source thread—were analyzed for the supplemental set. A later external-review proposal study is documented separately in [PROPOSAL_EVALUATION.md](PROPOSAL_EVALUATION.md).
 
 Thread `336272252` was retained as a separate corpus batch, and all 349 video attachments had decodable audio. The user later labeled `17884174673280229863.mp4` and `17884274747240014140.mp4` as screamers; the remaining 347 clips are still unlabeled rather than presumed negative. Its [table](thread-336272252.md), [CSV](thread-336272252.csv), and [JSON](thread-336272252.json) preserve that distinction, so the unlabeled remainder is excluded from the reported 548-negative evaluation.
+
+Thread `336291305` adds 347 attachments: 339 with audio and eight with no audio stream. Four are confirmed audio screamers, one is a confirmed visual-only monster jump-scare, and the other 342 are user-reviewed negatives. The explicit hard negative `17885509617340308491.mp4` is legitimate loud phonk. Its [table](thread-336291305.md), [CSV](thread-336291305.csv), and [JSON](thread-336291305.json) contain the full metrics. Twenty media duplicates were reused by source MD5 before download; corpus-wide WAV hashing found another 17 identical audio payloads, all represented as hard links rather than duplicate storage.
 
 ## Method
 
@@ -37,6 +39,10 @@ The supplemental immediate screamer exposed a blind spot: a baseline-relative de
 | 17883629069140053716.mp4  | confirmed #3         | transition     |     -4.15 |     +1.72 |    6.70 |      -39.56 |    -2.47 |  +37.10 |       3.00 |        4.51 | flux 0.313                  | 88.2% |
 | 17884274747240014140.mp4  | confirmed #6         | clipped burst  |    -14.00 |     +5.16 |    9.55 |      -14.44 |    -2.36 |  +12.08 |       0.45 |       43.82 | nearby flux 0.401           | 86.2% |
 | 17884174673280229863.mp4  | confirmed #5         | spectral burst |    -18.28 |     +1.55 |    3.00 |      -19.87 |    -3.33 |  +16.54 |       0.90 |        1.33 | shape 0.869; flux 0.339     | 85.5% |
+| 17885024222391568056.mp4  | confirmed #7         | spectral takeover | -37.38 |    +0.30 |    9.25 |      -39.26 |    -2.93 |  +36.34 |       3.00 |        2.89 | shape 0.866; flux 0.500     | 88.3% |
+| 17885460222141837902.mp4  | confirmed #8         | high-contrast burst | -3.36 | +3.58 |    1.35 |      -65.12 |    -3.63 |  +61.49 |       0.30 |       21.79 | shape 0.559; flux 0.424     | 88.1% |
+| 17885474189950590427.webm | confirmed #9         | transition     |    -31.84 |     +1.38 |    3.75 |      -40.11 |    -4.81 |  +35.29 |       0.85 |        8.34 | flux 0.283                  | 81.2% |
+| 17885487431220276835.mp4  | confirmed #10        | spectral burst |    -57.67 |     +2.74 |    3.05 |      -58.19 |    -0.20 |  +57.99 |       0.60 |       65.94 | shape 0.893; flux 0.435     | 90.0% |
 | 17882984411551286220.webm | provisional negative | normal         |    -32.10 |     +0.50 |   76.65 |      -43.70 |    -6.35 |  +37.35 |       0.40 |        2.97 | flux 0.384                  | 77.4% |
 | 17881699236063425442.mp4  | reviewed negative    | normal         |    -12.73 |     +2.68 |   13.30 |      -58.10 |    -0.60 |  +57.50 |       1.55 |       55.16 | flux 0.138                  | 73.0% |
 | 17881887457541053716.mp4  | reviewed negative    | normal         |     -8.64 |     +1.90 |   16.05 |      -25.51 |    -5.76 |  +19.75 |       3.00 |       27.45 | flux 0.448                  | 72.2% |
@@ -45,11 +51,15 @@ The supplemental immediate screamer exposed a blind spot: a baseline-relative de
 
 Positives #1–#3 are not merely loud: each has a sustained near-full-scale section after an ordinary or quiet local baseline and a changed onset spectrum. Positive #1 is extreme, with decoded lossy PCM overshooting nominal full scale heavily. Positive #4 is different: it has no usable pre-event baseline, but its opening combines a -1.21 dB robust level, three seconds of persistence, 28.28% near-clipping, high spectral flatness, and unusually strong high-frequency energy. Positive #5 is a short end burst whose exact boundary flux is modest, but the maximum flux within ±100 ms is 0.339 and its baseline-to-event spectral distance is 0.869; its high-frequency band rises by about 63 dB. Positive #6 is not a high-frequency example: its decisive evidence is a 450 ms event with 43.82% near-clipping after a 12.08 dB rise.
 
-For the general transition path, spectral flatness, zero-crossing rate, direct low/mid/high band jumps, brightness change, global crest factor, and maximum derivative did not add stable separation beyond the local envelope plus normalized onset flux. Full-spectrum shape distance is used only by the conservative short-spectral-burst rescue path introduced after positive #5. Flatness and brightness are used only by the loud-start path, where no baseline comparison is possible.
+Positive #7 is a sustained spectral takeover: its exact-boundary flux underestimates the edit, but nearby flux is 0.500 and the spectral distance is 0.866 for a three-second event at -2.93 dB. Positive #8 rises more slowly than the classic examples but still creates a 61.49 dB contrast in a clipped 300 ms burst. Positive #9 passes the general transition rule. Positive #10 is an extreme short spectral burst with 65.94% near-clipping. The separate visual-only monster clip has an audio decision score of zero and is intentionally not forced into the audio model.
+
+For the general transition path, spectral flatness, zero-crossing rate, direct low/mid/high band jumps, brightness change, global crest factor, and maximum derivative did not add stable separation beyond the local envelope plus normalized onset flux. Full-spectrum shape distance is reserved for the conservative spectral rescue paths introduced for atypical confirmed positives. Flatness and brightness are used only by the loud-start path, where no baseline comparison is possible.
 
 ## Old detector
 
 On the original thread, the old rule detected both positives but also flagged 36 of 537 decodable provisional negatives. On those provisional labels that is 100% recall, 5.3% precision, and a 6.7% false-positive rate. It missed supplemental positive #3 and both newly labeled short-burst positives (`old_score=2` for all three), while detecting immediate positive #4 (`old_score=4`). Its whole-file peak and median mix unrelated parts of a clip, its “peak” is actually maximum 100 ms RMS, and its one-second baseline allows short impulses or scene cuts to supply independent score points. A file can receive three points without containing one coherent dangerous event.
+
+Among positives #7–#10, the old rule catches #7, #9, and #10 but misses the slower #8 (`old_score=2`). Those extra hits do not cure its original 6.7% false-positive rate.
 
 Old false-positive filenames (all have `old_classification=suspicious` in the CSV):
 
@@ -95,7 +105,7 @@ startConfidence = startLoud^1.1 * startDuration^0.7
 
 It is structurally eligible when `startEventDb >= -3`, duration is at least 0.50 s, and at least one of these independent spectral/damage signals holds: flatness at least 0.04, brightness at least -5 dB, or near-clipping at least 8%.
 
-Two conservative rescue paths handle short edited bursts that the general transition score deliberately suppresses:
+Four conservative rescue paths handle edited bursts that the general transition score deliberately suppresses:
 
 ```text
 short spectral burst:
@@ -107,17 +117,27 @@ short clipped burst:
   eventDb >= -3, jumpDb >= 10, 0.25 <= duration <= 0.55 s,
   event near-clipping >= 35%,
   max spectral flux within +/-100 ms >= 0.30
+
+short high-contrast burst:
+  eventDb >= -4, jumpDb >= 30, 0.25 <= duration <= 0.50 s,
+  event near-clipping >= 15%, max nearby spectral flux >= 0.35,
+  baseline-to-event spectral distance >= 0.50
+
+sustained spectral takeover:
+  eventDb >= -3.5, jumpDb >= 25, duration >= 2.0 s,
+  max nearby spectral flux >= 0.40,
+  baseline-to-event spectral distance >= 0.80
 ```
 
-The upper duration bounds are intentional: the closest reviewed loud-human-scream negative lasts 1.55 s, the phonk drop lasts at least 3 s, and the movie explosion lasts 1.9 s. Those clips remain on the conservative general path. An eligible rescue begins at 0.80 and receives only small bounded margin bonuses, producing risk 85.5/100 for positive #5 and 86.2/100 for positive #6. These values were tuned after seeing those examples and must not be interpreted as calibrated probabilities.
+The short-path upper duration bounds are intentional: the closest reviewed loud-human-scream negative lasts 1.55 s, the phonk drop lasts at least 3 s, and the movie explosion lasts 1.9 s. The sustained path instead requires a large full-spectrum replacement, rejecting that music drop. An eligible rescue begins at 0.80 and receives only small bounded margin bonuses. These paths were tuned after seeing the examples and must not be interpreted as calibrated probabilities.
 
-The ineligible branch scores are zeroed, all eligible scores are merged with `max`, and the single merged score is compared with the 0.80 warning threshold. This makes post-merge calibration explicit. For a normal result, the UI displays the stronger raw general branch so clips that miss one hard gate do not misleadingly collapse to zero. For a warning, it displays the eligible branch that actually triggered the warning, keeping the shown event and score consistent. Scores below 10/100 retain decimal precision and positive values below 0.01/100 display as `<0.01`. Analysis schema v6 forces older tab results to be recomputed from cached media without downloading it again.
+The ineligible branch scores are zeroed, all eligible scores are merged with `max`, and the single merged score is compared with the 0.80 warning threshold. This makes post-merge calibration explicit. For a normal result, the UI displays the stronger raw general branch so clips that miss one hard gate do not misleadingly collapse to zero. For a warning, it displays the eligible branch that actually triggered the warning, keeping the shown event and score consistent. Scores below 10/100 retain decimal precision and positive values below 0.01/100 display as `<0.01`. Analysis schema v7 forces older tab results to be recomputed from cached media without downloading it again.
 
 Baseline MAD, MAD-normalized jump, and a local 10 ms attack estimate are recorded as diagnostics but do not affect the score. Full-corpus testing found that literal MAD multiplication created false positives and that attack time did not separate screamers from music drops or explosions; see [PROPOSAL_EVALUATION.md](PROPOSAL_EVALUATION.md).
 
 The hard gates keep both continuous scores honest. A large rise from digital silence to a moderate sound, a short click, a high-frequency but quiet sound, or ordinary loud music cannot be promoted by unrelated bonuses alone.
 
-The combined rule flags all six confirmed positives and no provisional negatives. On the full original thread it still flags exactly the original two. The immediate positive scores 90.2% on the start path; the highest raw start score among the 548 original comparison files is 68.1% and fails the absolute-level gate. No rescue rule fires among the 347 still-unlabeled clips. This is a post-label calibration result, not an estimate of real-world accuracy: six positive examples are still far too few, and positives #5/#6 were used to design their rescue paths.
+The combined rule flags all ten audio-target positives and no labeled negative. On the full original thread it still flags exactly the original two. No rescue rule fires among the 347 still-unlabeled clips. The visual-only monster jump-scare remains normal by design. This is a post-label calibration result, not an estimate of real-world accuracy: ten positive examples are still far too few, and several positives directly motivated rescue paths.
 
 ## Difficult negatives and labeling priorities
 
@@ -139,7 +159,7 @@ Community reports remain a separate boolean axis. The script scans `.post__messa
 
 `decodeAudioData()` is the only broadly available way to obtain the entire PCM track faster than real time without shipping a demuxer/decoder. v5.5+ decodes at 16 kHz where supported and uses `OfflineAudioContext` for anti-aliased 16 kHz resampling otherwise; it no longer skips device-rate samples. The browser scans fixed 800-sample windows, yields during long timeline, candidate, and spectral-context scans, stores only small per-window arrays, and retains no PCM after the current result. Channel powers are combined independently for spectral evidence so antiphase stereo does not disappear. Radix-2 FFTs are limited to six opening windows plus at most two seconds of context around the winning transition; there is no full-track spectrogram allocation.
 
-The v5.6 offline parity regression analyzed all 890 retained audio tracks. Confirmed positives #1–#6 score 88.8%, 89.1%, 88.2%, 90.2%, 85.5%, and 86.2%, retaining all six warnings. No warning occurs among 537 audio-bearing provisional negatives, and the 11 no-audio negatives remain nonwarnings. The two new warnings are exactly the newly labeled clips; no warning occurs among the remaining 347 explicitly unlabeled tracks. Because the rescue rules were selected after inspecting positives #5/#6, this is a regression result rather than held-out validation.
+The v5.7 offline parity regression analyzed all 1,229 retained audio tracks. All ten audio-target positives warn. No warning occurs among 871 audio-bearing labeled negatives, and the 19 no-audio negatives remain nonwarnings. No warning occurs among the 347 explicitly unlabeled tracks or the one visual-only positive. The legitimate loud-phonk hard negative scores 61.5/100. Because the rescue rules were selected after inspecting the new positives, this is a regression result rather than held-out validation.
 
 There are unavoidable limitations:
 
