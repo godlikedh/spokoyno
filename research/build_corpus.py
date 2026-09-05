@@ -391,6 +391,18 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--thread", action="append", default=[], help="2ch thread URL")
     parser.add_argument(
+        "--reviewed",
+        action="store_true",
+        help="user reviewed this thread; non-screamer attachments in this snapshot are negative",
+    )
+    parser.add_argument(
+        "--screamer",
+        action="append",
+        default=[],
+        help="confirmed audio screamer filename/path; repeat; timings can follow later",
+    )
+    parser.add_argument("--labels", type=Path, default=Path("corpus/labels.json"))
+    parser.add_argument(
         "--audio-dir",
         "--output",
         dest="audio_dir",
@@ -414,6 +426,12 @@ def main() -> int:
     args = parse_args()
     if not args.sources and not args.thread:
         raise SystemExit("provide at least one JSON source or --thread URL")
+    if args.screamer and not args.reviewed:
+        raise SystemExit("--screamer requires --reviewed")
+    if args.reviewed and (len(args.thread) != 1 or args.sources or args.replace_index):
+        raise SystemExit(
+            "--reviewed requires exactly one --thread and no other sources/--replace-index"
+        )
     args.audio_dir.mkdir(parents=True, exist_ok=True)
     rows = []
     for source in args.sources:
@@ -424,6 +442,16 @@ def main() -> int:
             rows_from_payload(
                 fetch_thread(thread, tuple(args.mirrors)), f"{board}/{number}"
             )
+        )
+    updated_labels = None
+    if args.reviewed:
+        from review_labels import reviewed_labels
+
+        updated_labels = reviewed_labels(
+            json.loads(args.labels.read_text()),
+            args.thread[0],
+            merge_rows(rows),
+            args.screamer,
         )
     if args.index.exists() and not args.replace_index:
         supplied = {row["path"] for row in rows}
@@ -440,6 +468,12 @@ def main() -> int:
         max(1, args.workers),
         not args.no_deduplicate,
     )
+    if updated_labels is not None:
+        atomic_json(args.labels, updated_labels)
+        print(
+            "Saved reviewed-thread labels. Failed downloads remain failed, not successful safe analyses; timings can be supplied later.",
+            file=sys.stderr,
+        )
     counts = {}
     for item in payload["items"]:
         counts[item["status"]] = counts.get(item["status"], 0) + 1

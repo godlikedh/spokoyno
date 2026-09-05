@@ -1,4 +1,5 @@
 .venv/
+.venv-audio/
 corpus/audio/
 corpus/index.json
 corpus/manifests/

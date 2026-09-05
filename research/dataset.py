@@ -18,6 +18,10 @@ def label_for(media_path: str, labels: dict) -> str:
     if media_path in labels.get("reviewed_negatives", {}):
         return "negative"
 
+    for prefix, spec in labels.get("reviewed_thread_sets", {}).items():
+        if media_path.startswith(prefix):
+            return "negative" if media_path in spec["reviewed_paths"] else "unlabeled"
+
     original = labels.get("provisional_negative_set", {})
     thread = str(original.get("thread", ""))
     if thread and media_path.startswith(f"/b/src/{thread}/"):

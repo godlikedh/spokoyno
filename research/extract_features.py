@@ -255,7 +255,7 @@ def event_features(
         "robust_z": candidate["jump"] / max(2, 1.4826 * candidate["mad"]),
         "attack_ms": attack_ms(fine, index),
     }
-    guard = index - 2
+    guard = max(0, index - 2)
     baselines = {}
     for seconds, windows in ((0.5, 10), (1.0, 20), (3.0, 60), (6.0, 120)):
         history = level[max(0, guard - windows) : guard]

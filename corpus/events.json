@@ -1,0 +1,82 @@
+{
+  "schema": 1,
+  "time_reference": "Seconds from the beginning of the retained audio. Only user-confirmed intervals belong here; an absent entry means timing is not yet annotated. estimated_boundary_error_s is the user's approximate plus/minus measurement error, not a guaranteed bound. It applies to manually measured boundaries; explicitly annotated end-of-file boundaries use the exact retained WAV duration.",
+  "events": {
+    "/b/src/336185346/17883557324650588814.webm": {
+      "source": "user",
+      "audio_sha256": "712324fdd5e05deb4f0658221ae99f788fcb7ae9d5b52e4d4551c78ebb2a9916",
+      "estimated_boundary_error_s": 0.05,
+      "intervals": [{ "start_s": 15.67, "end_s": 17.8080625 }],
+      "note": "Manually measured by eye. Screamer continues to end of file."
+    },
+    "/b/src/336185346/17883557325462786367.mp4": {
+      "source": "user",
+      "audio_sha256": "ca1e7647fe8fbe8b2b5b44655a8a9807eb9751fb212392a314929a4d09ab03ef",
+      "estimated_boundary_error_s": 0.05,
+      "intervals": [{ "start_s": 7.76, "end_s": 10.42 }],
+      "note": "Manually measured by eye."
+    },
+    "/b/src/336243339/17883629069140053716.mp4": {
+      "source": "user",
+      "audio_sha256": "b5ae00c522f2a9d17c2cacc36432c32275c61a2eff03e5831651226261601d23",
+      "estimated_boundary_error_s": 0.05,
+      "intervals": [
+        { "start_s": 5.3, "end_s": 10.18 },
+        { "start_s": 10.33, "end_s": 15.2 }
+      ],
+      "note": "Manually measured by eye. Two separate intervals; the intervening gap is preserved."
+    },
+    "/b/src/336243339/17883659327260384359.webm": {
+      "source": "user",
+      "audio_sha256": "2dca40524f5fbaa441af09a0ca67a669ae16b7d53db6a0b8868353e70779f56a",
+      "estimated_boundary_error_s": 0.05,
+      "intervals": [{ "start_s": 0.6, "end_s": 8.8 }],
+      "note": "Manually measured by eye."
+    },
+    "/b/src/336272252/17884174673280229863.mp4": {
+      "source": "user",
+      "audio_sha256": "2d1ab07310d549153fdb9dde60eee44c3313bb97049c590c12113ea54a44683f",
+      "estimated_boundary_error_s": 0.05,
+      "intervals": [{ "start_s": 2.85, "end_s": 3.9009375 }],
+      "note": "Manually measured by eye. Screamer continues to end of file."
+    },
+    "/b/src/336272252/17884274747240014140.mp4": {
+      "source": "user",
+      "audio_sha256": "919d9373840a2d8555bcae0027b9b5d95b5386a7a1fa0818e1c7070bff34350a",
+      "estimated_boundary_error_s": 0.05,
+      "intervals": [{ "start_s": 8.79, "end_s": 12.7245625 }],
+      "note": "Manually measured by eye. Screamer continues to end of file."
+    },
+    "/b/src/336291305/17885024222391568056.mp4": {
+      "source": "user",
+      "audio_sha256": "152707436142e3f2c9ec2a0eff7511b56e7465e70d4b0a6f397c62a7cd1aa90e",
+      "estimated_boundary_error_s": 0.05,
+      "intervals": [{ "start_s": 9.0, "end_s": 15.3019375 }],
+      "note": "Manually measured by eye. Screamer continues to end of file."
+    },
+    "/b/src/336291305/17885460222141837902.mp4": {
+      "source": "user",
+      "audio_sha256": "50326a2fa7e9c6c5d4c5751182029ec650c49c69f91d3fd0ba6c6800b1afc031",
+      "estimated_boundary_error_s": 0.05,
+      "intervals": [
+        { "start_s": 1.23, "end_s": 24.48 },
+        { "start_s": 24.69, "end_s": 41.470875 }
+      ],
+      "note": "Manually measured by eye. The second interval repeats the same screamer audio and continues to end of file; it is not an independent positive example. The intervening gap is preserved."
+    },
+    "/b/src/336291305/17885474189950590427.webm": {
+      "source": "user",
+      "audio_sha256": "be823b66878cac630f4a6b982dec3b9c537eb6adf5e10b83c73228d457c90b8b",
+      "estimated_boundary_error_s": 0.05,
+      "intervals": [{ "start_s": 2.51, "end_s": 4.837 }],
+      "note": "Manually measured by eye. Screamer continues to end of file."
+    },
+    "/b/src/336291305/17885487431220276835.mp4": {
+      "source": "user",
+      "audio_sha256": "910c82438cd3c781cf48bcb05cdf3ef8e6b0ec552cf6ca72d3390bf0d4d16039",
+      "estimated_boundary_error_s": 0.05,
+      "intervals": [{ "start_s": 2.9, "end_s": 3.62 }],
+      "note": "Manually measured by eye."
+    }
+  }
+}

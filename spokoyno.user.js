@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Spokoyno — 2ch WebM Companion
 // @namespace    local.spokoyno
-// @version      5.7.0
+// @version      5.8.0
 // @description  Tab-local video cache, fastest mirror, speed monitor and event-based screamer warning
 // @updateURL    https://raw.githubusercontent.com/godlikedh/spokoyno/main/spokoyno.user.js
 // @downloadURL  https://raw.githubusercontent.com/godlikedh/spokoyno/main/spokoyno.user.js
@@ -44,7 +44,7 @@
   const CACHE_META_URL = `${location.origin}/__tm2ch_cache_meta_v1__`;
   const MEDIA_EXT = /\.(?:mp4|webm|m4v|mov|ogv)$/i;
   const SCREAMER_REPORT_RE = /scream|скрим/i;
-  const ANALYSIS_VERSION = 7,
+  const ANALYSIS_VERSION = 8,
     ANALYSIS_WINDOW = 0.05,
     ANALYSIS_TARGET_RATE = 16_000;
   const BASELINE_WINDOWS = 60,
@@ -52,6 +52,7 @@
     MIN_BASELINE_WINDOWS = 20,
     EVENT_WINDOWS = 6;
   const EVENT_LOOKAHEAD = 10,
+    SCREAMER_MAYBE_CONFIDENCE = 0.6,
     SCREAMER_CONFIDENCE = 0.8;
 
   if (!THREAD_PATH_RE.test(location.pathname)) return;
@@ -716,12 +717,15 @@
     s.textContent = `
     .tm2ch-screamer{display:inline-block;margin-left:6px;padding:1px 5px;border-radius:4px;font:11px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;vertical-align:middle;background:rgba(0,0,0,.10);cursor:default;user-select:none}
     .tm2ch-screamer[data-state="bad"]{font-weight:700;background:rgba(220,35,35,.22);color:#c22}
+    .tm2ch-screamer[data-state="maybe"]{font-weight:700;background:rgba(245,185,25,.28);color:#805600}
     .tm2ch-screamer[data-state="ok"]{background:rgba(40,150,60,.12)}
     .tm2ch-screamer[data-state="error"]{opacity:.65}
     .tm2ch-report{text-decoration:none!important}
     .tm2ch-report[data-state="bad"]{background:rgba(220,35,35,.30);color:#c22}
     .post__image.tm2ch-risk .post__file-preview,
     .post__image.tm2ch-risk video{outline:3px solid rgba(210,30,30,.88)!important;box-shadow:0 0 12px rgba(220,25,25,.58)!important}
+    .post__image.tm2ch-risk-maybe .post__file-preview,
+    .post__image.tm2ch-risk-maybe video{outline:3px solid rgba(225,165,15,.95)!important;box-shadow:0 0 12px rgba(225,165,15,.38)!important}
   `;
     document.documentElement.append(s);
   }
@@ -765,10 +769,17 @@
       return;
     }
 
-    const displayRisk = Number.isFinite(r.displayRisk)
-      ? r.displayRisk
-      : Math.max(r.transitionConfidence ?? 0, r.startConfidence ?? 0, r.rescueConfidence ?? 0, r.confidence ?? 0);
-    const risk = formatRiskPoints(displayRisk);
+    const score = screamerScore(r);
+    const tier = screamerTier(score);
+    if (tier === 'unknown') {
+      badge.textContent = '❔ audio score unavailable';
+      badge.title = 'No valid analysis score is available. This is unknown, not safe.';
+      badge.dataset.state = 'error';
+      expose();
+      return;
+    }
+    // Do not round a yellow 0.79999 up to a displayed red-threshold 0.800.
+    const risk = (Math.floor(score * 1000) / 1000).toFixed(3);
     const detectorName =
       {
         'loud-start': 'dangerous loud start',
@@ -778,20 +789,24 @@
         'sustained-spectral-takeover': 'sustained spectral takeover',
         transition: 'quiet-to-loud transition'
       }[r.detectionMode] || 'quiet-to-loud transition';
-    if (r.suspicious) {
+    if (tier === 'alert') {
       badge.textContent =
         r.detectionMode === 'loud-start'
-          ? `⚠ SCREAMER · risk ${risk}/100 · loud start @ ${formatTime(r.eventAt || 0)}`
-          : `⚠ SCREAMER · risk ${risk}/100 · +${r.jumpDb.toFixed(0)} dB @ ${formatTime(r.eventAt || 0)}`;
+          ? `⚠ SCREAMER · score ${risk} · loud start @ ${formatTime(r.eventAt || 0)}`
+          : `⚠ SCREAMER · score ${risk} · +${r.jumpDb.toFixed(0)} dB @ ${formatTime(r.eventAt || 0)}`;
       badge.dataset.state = 'bad';
+    } else if (tier === 'maybe') {
+      badge.textContent = `⚠ MAYBE · score ${risk} · @ ${formatTime(r.eventAt || 0)}`;
+      badge.dataset.state = 'maybe';
     } else {
-      badge.textContent = `🔊 normal · risk ${risk}/100`;
+      badge.textContent = `🔊 low risk · score ${risk}`;
       badge.dataset.state = 'ok';
     }
 
     badge.title = [
-      `Risk score: ${risk}/100 (heuristic, not a probability)`,
-      `Merged decision score: ${formatRiskPoints(r.decisionScore ?? 0)}/100`,
+      `Screamer score: ${score} (heuristic evidence after eligibility checks, not a probability)`,
+      `Yellow: ${SCREAMER_MAYBE_CONFIDENCE} ≤ score < ${SCREAMER_CONFIDENCE}; red: score ≥ ${SCREAMER_CONFIDENCE}`,
+      `Raw detector evidence before eligibility checks: ${formatRiskPoints(r.displayRisk ?? 0)}/100`,
       `Strongest detector: ${detectorName}`,
       `Event: ${formatTime(r.eventAt || 0)}`,
       Number.isFinite(r.baselineDb)
@@ -827,12 +842,17 @@
   }
 
   function refreshAttachmentRisk(sk) {
-    const modelRisk = analysisResults.get(sk)?.suspicious === true;
+    const score = screamerScore(analysisResults.get(sk));
+    const tier = screamerTier(score);
+    const modelRisk = tier === 'alert';
     const reportedRisk = communityReports.has(sk);
     for (const figure of attachmentFigures.get(sk) || []) {
       if (!figure.isConnected) continue;
       figure.classList.toggle('tm2ch-risk', modelRisk || reportedRisk);
+      figure.classList.toggle('tm2ch-risk-maybe', !reportedRisk && tier === 'maybe');
       figure.dataset.tm2chModelRisk = String(modelRisk);
+      figure.dataset.tm2chRiskTier = tier;
+      figure.dataset.tm2chScore = score === null ? '' : String(score);
       figure.dataset.tm2chReportedRisk = String(reportedRisk);
     }
   }
@@ -988,6 +1008,17 @@
   const dbPower = (x) => 10 * Math.log10(Math.max(x, 1e-9));
   const dbAmp = (x) => 20 * Math.log10(Math.max(x, 10 ** (-90 / 20)));
   const sigmoid = (x) => 1 / (1 + Math.exp(-Math.max(-30, Math.min(30, x))));
+
+  function screamerScore(result) {
+    if (result?.status !== 'ok') return null;
+    const score = result.score ?? result.decisionScore;
+    return Number.isFinite(score) && score >= 0 && score <= 1 ? score : null;
+  }
+
+  function screamerTier(score) {
+    if (!Number.isFinite(score) || score < 0 || score > 1) return 'unknown';
+    return score >= SCREAMER_CONFIDENCE ? 'alert' : score >= SCREAMER_MAYBE_CONFIDENCE ? 'maybe' : 'low';
+  }
 
   function percentile(values, p) {
     if (!values.length) return -90;
@@ -1678,7 +1709,7 @@
           ? 'loud-start'
           : 'transition';
     const riskMode = startConfidence > transitionConfidence ? 'loud-start' : 'transition';
-    const detectionMode = suspicious ? decisionMode : riskMode;
+    const detectionMode = decisionScore >= SCREAMER_MAYBE_CONFIDENCE ? decisionMode : riskMode;
     const displayRisk =
       detectionMode === 'loud-start'
         ? startConfidence
@@ -1721,6 +1752,9 @@
 
     return {
       status: 'ok',
+      score: decisionScore,
+      scoreKind: 'uncalibrated-heuristic',
+      riskTier: screamerTier(decisionScore),
       suspicious,
       confidence,
       displayRisk,

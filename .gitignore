@@ -2,6 +2,7 @@
 /corpus/index.json
 /corpus/manifests/
 /.venv/
+/.venv-audio/
 /research/artifacts/
 /research/thread-*.json
 /research/thread-*.csv

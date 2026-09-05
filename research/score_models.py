@@ -11,6 +11,7 @@ import os
 from pathlib import Path
 
 import numpy as np
+from risk_score import POLICY, risk_tier
 from train_models import predict_serialized
 
 
@@ -79,12 +80,14 @@ def main() -> int:
         for result, score in zip(result_rows, scores, strict=True):
             result["models"][artifact["experiment"]] = {
                 "score": float(score),
+                "risk_tier": risk_tier(float(score)),
                 "threshold": threshold,
                 "above_training_threshold": bool(score > threshold),
             }
 
     payload = {
         "schema": 1,
+        "risk_policy": POLICY,
         "feature_version": features["feature_version"],
         "warning": "Shadow scores are uncalibrated and do not change production warnings.",
         "models": [artifact["experiment"] for artifact in artifacts],

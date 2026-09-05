@@ -1,0 +1,4 @@
+# Separate Python 3.12/3.13 environment; TensorFlow has no Python 3.14 wheel.
+-r requirements.txt
+tensorflow>=2.20,<2.22
+tf-keras>=2.20,<2.22

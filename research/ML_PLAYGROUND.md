@@ -1,6 +1,6 @@
 # Spokoyno ML playground
 
-The ML pipeline is deliberately separate from `spokoyno.user.js`. Production remains on the frozen v5.7 event detector; exported models are uncalibrated shadow scorers.
+The ML pipeline is deliberately separate from `spokoyno.user.js`. The v5.8 userscript uses the v5.7 red-decision rules with numeric scores and a yellow tier; exported ML models are uncalibrated shadow scorers.
 
 ## Setup
 
@@ -24,12 +24,26 @@ The historical corpus already exists locally in this working copy. Back up the w
 
 ## 1. Extend the corpus
 
-Append a future thread directly:
+Import a thread the user has reviewed, listing every known audio screamer:
 
 ```bash
 .venv/bin/python research/build_corpus.py \
-  --thread https://2ch.life/b/res/THREAD.html
+  --thread https://2ch.life/b/res/THREAD.html --reviewed \
+  --screamer FIRST.mp4 --screamer SECOND.webm
 ```
+
+Every other video attachment in this fetched snapshot becomes a negative, without individual negative labels. For an all-safe thread, use `--reviewed` without any `--screamer`. A misspelled screamer filename is rejected before downloads or label writes. Existing explicit positive labels and visual-only exclusions are preserved. Later unseen attachments do not inherit the review. Failed downloads remain indexed as failures and are excluded from audio training; a negative content label does not imply successful analysis.
+
+Importing without `--reviewed` retains the previous unlabeled-import workflow. Timing annotations are optional and separate:
+
+```bash
+.venv/bin/python research/event_annotations.py \
+  --set FIRST.mp4 --interval 7.76:10.42 --uncertainty 0.05
+.venv/bin/python research/event_annotations.py \
+  --set SECOND.webm --interval 15.67:end --uncertainty 0.05
+```
+
+Repeat `--interval` for separate events. `end` resolves to the actual WAV duration. The uncertainty is an estimated plus/minus measurement error, not a guaranteed bound. Positive recordings without timings stay positive at clip level; their event windows are not silently trained as negatives.
 
 The builder also accepts saved analysis manifests or raw 2ch API JSON files as positional arguments. It extracts only the first audio track, tries all configured mirrors, retains existing index entries, and hard-links duplicates first by source MD5 and then by decoded WAV SHA-256. `--replace-index` intentionally drops absent catalog entries; it never deletes audio files.
 
@@ -72,13 +86,17 @@ Promoted outputs are tracked in `research/models/`:
 
 The model files contain pure numerical inference definitions and identify their untracked training matrix by SHA-256. Forest artifacts require float32 inputs; JavaScript inference must apply `Math.fround()` after imputation to match scikit-learn split decisions.
 
-## 4. Freeze predictions before labeling
+## 4. Freeze predictions before retraining
 
 ```bash
 .venv/bin/python research/score_models.py
 ```
 
-Run the scorer after importing a new thread but before changing `corpus/labels.json` or retraining. Preserve the ignored scoring snapshot separately when it is intended as prospective evidence. Do not estimate population false-positive rates from detector-selected review candidates; label complete threads or random samples too.
+In the reviewed-thread workflow, labels are recorded during import. Score with the previously frozen models before fitting anything on the new thread, and retain model hashes and training membership. These are future-thread results against frozen models, not blinded labels. If predictions can be captured before the human review, preserve those too. The original scorer's default file is overwritten; use an explicit fresh `--output` when preserving that scorer's snapshots. The event scorer below automatically creates timestamped snapshots.
+
+Do not estimate population false-positive rates from detector-selected review candidates; whole reviewed threads remain the primary negative collection method.
+
+The event-level workflow and measured comparison are in [Event results](EVENT_RESULTS.md). Both old and new scorers output a continuous score plus `low` / `maybe` / `alert`; the 0.6/0.8 cutoffs are display/decision policy, not evidence of probability calibration.
 
 ## Current result
 
@@ -88,8 +106,11 @@ At zero-training-false-positive thresholds, the final all-data fits mark 5/10 an
 
 ## Checks
 
+For the separate frozen-YAMNet comparison, known-screamer fingerprint matcher, and user-confirmed event timings, see [Audio experiments](AUDIO_EXPERIMENTS.md). These additions preserve the existing thread-wide negative-label workflow and do not replace production warnings or the original shadow models.
+
 ```bash
 .venv/bin/python -m unittest discover -s research -p 'test_*.py' -v
 .venv/bin/ruff check research
 .venv/bin/ruff format --check research
+node --test research/test_userscript.cjs
 ```
