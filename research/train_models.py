@@ -228,7 +228,7 @@ def evaluate_experiment(
                 "false_positive": int(np.sum(warned & (test_y == 0))),
             }
         )
-        for row, score, decision in zip(test, test_score, warned):
+        for row, score, decision in zip(test, test_score, warned, strict=True):
             predictions.append(
                 {
                     "path": row["path"],
@@ -349,12 +349,12 @@ def feature_ranking(
         values = model.coef_[0]
         rows = [
             {"feature": name, "weight": float(value), "importance": abs(float(value))}
-            for name, value in zip(names, values)
+            for name, value in zip(names, values, strict=True)
         ]
     elif isinstance(model, RandomForestClassifier):
         rows = [
             {"feature": name, "importance": float(value)}
-            for name, value in zip(names, model.feature_importances_)
+            for name, value in zip(names, model.feature_importances_, strict=True)
         ]
     else:
         return []
@@ -449,9 +449,9 @@ def model_card(
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "--features", type=Path, default=Path("research/ml/features-v1.json")
+        "--features", type=Path, default=Path("research/artifacts/features-v1.json")
     )
-    parser.add_argument("--output-dir", type=Path, default=Path("research/ml"))
+    parser.add_argument("--output-dir", type=Path, default=Path("research/models"))
     parser.add_argument(
         "--select", help="force a named experiment instead of automatic selection"
     )

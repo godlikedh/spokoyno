@@ -8,7 +8,7 @@
   "training_content_groups": 859,
   "training_positive": 10,
   "training_negative": 849,
-  "training_zero_fp_threshold": 0.6869547873754143,
+  "training_zero_fp_threshold": 0.6869547873754142,
   "decision_operator": ">",
   "model": {
     "feature_names": [

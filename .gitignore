@@ -1,4 +1,15 @@
 /corpus/audio/
+/corpus/index.json
+/corpus/manifests/
 /.venv/
+/research/artifacts/
+/research/thread-*.json
+/research/thread-*.csv
+/research/thread-*.md
+/research/supplemental-positives.*
+/.ruff_cache/
+/.pytest_cache/
+/node_modules/
 __pycache__/
 *.py[cod]
+.DS_Store

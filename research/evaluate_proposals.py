@@ -10,8 +10,6 @@ import multiprocessing
 from pathlib import Path
 
 import numpy as np
-from scipy.signal import butter, sosfilt
-
 from analyze_audio import (
     FLOOR_DB,
     RATE,
@@ -22,6 +20,7 @@ from analyze_audio import (
     high_shelf_sos,
     sigmoid,
 )
+from scipy.signal import butter, sosfilt
 
 FINE_WINDOW = round(RATE * 0.01)
 
@@ -393,8 +392,9 @@ def analyze_one(task: tuple[dict, str]) -> dict:
         return {"file": row["file"], "error": error or "no audio"}
     usable = len(samples) // WINDOW * WINDOW
     samples = samples[:usable]
-    hp, shelf = butter(2, 70, btype="highpass", fs=RATE, output="sos"), high_shelf_sos(
-        RATE
+    hp, shelf = (
+        butter(2, 70, btype="highpass", fs=RATE, output="sos"),
+        high_shelf_sos(RATE),
     )
     weighted = np.empty_like(samples)
     for channel in range(2):

@@ -24,7 +24,7 @@ def atomic_json(path: Path, payload: object) -> None:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "--features", type=Path, default=Path("research/ml/features-v1.json")
+        "--features", type=Path, default=Path("research/artifacts/features-v1.json")
     )
     parser.add_argument(
         "--model",
@@ -34,13 +34,13 @@ def main() -> int:
         help="exported model JSON; repeat for multiple models",
     )
     parser.add_argument(
-        "--output", type=Path, default=Path("research/ml/scores-v1.json")
+        "--output", type=Path, default=Path("research/artifacts/scores-v1.json")
     )
     args = parser.parse_args()
     if not args.models:
         args.models = [
-            Path("research/ml/shadow-model.json"),
-            Path("research/ml/challenger-model.json"),
+            Path("research/models/shadow-model.json"),
+            Path("research/models/challenger-model.json"),
         ]
 
     features = json.loads(args.features.read_text())
@@ -76,7 +76,7 @@ def main() -> int:
             raise ValueError(
                 f"unsupported decision operator in {artifact['experiment']}"
             )
-        for result, score in zip(result_rows, scores):
+        for result, score in zip(result_rows, scores, strict=True):
             result["models"][artifact["experiment"]] = {
                 "score": float(score),
                 "threshold": threshold,
@@ -90,7 +90,7 @@ def main() -> int:
         "models": [artifact["experiment"] for artifact in artifacts],
         "model_artifacts": {
             artifact["experiment"]: hashlib.sha256(path.read_bytes()).hexdigest()
-            for artifact, path in zip(artifacts, args.models)
+            for artifact, path in zip(artifacts, args.models, strict=True)
         },
         "rows": result_rows,
     }

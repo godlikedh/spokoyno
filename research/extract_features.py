@@ -394,7 +394,7 @@ def main() -> int:
     parser.add_argument("--labels", type=Path, default=Path("corpus/labels.json"))
     parser.add_argument("--audio-dir", type=Path, default=Path("corpus/audio"))
     parser.add_argument(
-        "--output", type=Path, default=Path("research/ml/features-v1.json")
+        "--output", type=Path, default=Path("research/artifacts/features-v1.json")
     )
     parser.add_argument("--workers", type=int, default=2)
     parser.add_argument("--refresh", action="store_true")

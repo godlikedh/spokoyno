@@ -1,0 +1,8 @@
+.venv/
+corpus/audio/
+corpus/index.json
+corpus/manifests/
+research/artifacts/
+research/models/*.json
+research/thread-*
+research/supplemental-positives.*

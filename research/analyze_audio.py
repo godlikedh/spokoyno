@@ -112,7 +112,7 @@ def decode(path: Path) -> tuple[np.ndarray | None, str | None]:
         "f32le",
         "pipe:1",
     ]
-    p = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    p = subprocess.run(cmd, capture_output=True, check=False)
     if p.returncode:
         if "does not contain any stream" in p.stderr.decode("utf-8", "replace"):
             return np.empty((0, 2), dtype=np.float32), None
@@ -370,7 +370,6 @@ def analyze(path: Path, meta: dict) -> dict:
     jump_component = float(sigmoid((event_jump - 13.0) / 3.5))
     duration_component = float(sigmoid((event_duration - 0.18) / 0.09))
     quiet_component = float(sigmoid((-base - 15.0) / 5.0))
-    broadband_component = float(sigmoid((broadband_jump - 5.0) / 4.0))
     clip_component = float(sigmoid((event_near_clip - 0.005) / 0.012))
     flux_component = float(sigmoid((spectral_flux[best] - 0.22) / 0.08))
     transition_score = (

@@ -1,6 +1,6 @@
 # Spokoyno ML playground
 
-The ML pipeline is intentionally separate from `spokoyno.user.js`. Production remains on the frozen v5.7 event detector. Exported models are shadow scorers whose numbers are not calibrated probabilities.
+The ML pipeline is deliberately separate from `spokoyno.user.js`. Production remains on the frozen v5.7 event detector; exported models are uncalibrated shadow scorers.
 
 ## Setup
 
@@ -11,46 +11,47 @@ python3 -m venv .venv
 
 FFmpeg and FFprobe must also be available on `PATH`.
 
-## 1. Build or extend the audio corpus
+## Local data layout
 
-The corpus builder accepts saved analysis manifests, raw 2ch thread-API JSON, or a live thread URL. It extracts only the first audio track as stereo float32 WAV at 16 kHz. Mirror fallback is built in.
+Git tracks the label policy in `corpus/labels.json`, but not the media-derived corpus:
 
-```bash
-.venv/bin/python research/build_corpus.py \
-  research/thread-336185346.json \
-  research/supplemental-positives.json \
-  research/thread-336272252.json \
-  research/thread-336291305.json
-```
+- `corpus/audio/` — stereo float32 WAV audio at 16 kHz;
+- `corpus/index.json` — canonical media identity, extraction status, hashes, and deduplication metadata;
+- `corpus/manifests/` — optional saved thread/API inputs;
+- `research/artifacts/` — extracted feature matrices and frozen scoring snapshots.
 
-To append a future thread directly:
+The historical corpus already exists locally in this working copy. Back up the whole `corpus/` directory, including the index. A fresh clone does not contain the audio, and expired imageboard threads may be impossible to recover.
+
+## 1. Extend the corpus
+
+Append a future thread directly:
 
 ```bash
 .venv/bin/python research/build_corpus.py \
   --thread https://2ch.life/b/res/THREAD.html
 ```
 
-Existing index entries are retained unless `--replace-index` is supplied. Source-media MD5 matches are hard-linked before downloading. After extraction, normalized WAV SHA-256 matches are hard-linked as well. `corpus/index.json` records media identity, audio hashes, statuses, and duplicate ownership; `corpus/audio/` remains ignored by Git.
+The builder also accepts saved analysis manifests or raw 2ch API JSON files as positional arguments. It extracts only the first audio track, tries all configured mirrors, retains existing index entries, and hard-links duplicates first by source MD5 and then by decoded WAV SHA-256. `--replace-index` intentionally drops absent catalog entries; it never deletes audio files.
 
-## 2. Extract model features
+## 2. Extract features
 
 ```bash
 .venv/bin/python research/extract_features.py
 ```
 
-The extractor processes one representative of every exact-audio group, then attaches the resulting vector to each logical media path. Existing vectors are reused by audio hash. Use `--refresh` only after changing the feature schema.
+The extractor processes one representative of each exact-audio group and reuses its vector for equivalent media paths. Existing vectors are reused by audio hash; use `--refresh` after changing the feature schema.
 
-Feature version 1 contains:
+Feature version 1 contains 150 values covering:
 
-- whole-file loudness, dynamic range, derivative, clipping, and loud/quiet occupancy;
+- whole-file loudness, dynamic range, derivatives, clipping, and loud/quiet occupancy;
 - a dedicated first-second loud-start summary;
 - the top three non-overlapping candidate events;
 - 100/300/600/1000 ms event levels and 0.5/1/3/6 s baselines;
 - baseline MAD/IQR/derivative and preceding abrupt-event count;
-- attack, persistence, multiple duration definitions, and loudness area;
-- near-clipping, spectral flux, nearby flux, Hellinger spectral distance, centroid/flatness change, and six band-energy changes.
+- attack, persistence, duration, and loudness area;
+- near-clipping, spectral flux, Hellinger spectral distance, centroid/flatness change, and six band-energy changes.
 
-The generated JSON is the canonical training input. The CSV is convenient for manual exploration.
+The JSON and companion CSV are written to ignored `research/artifacts/`.
 
 ## 3. Train grouped experiments
 
@@ -58,37 +59,37 @@ The generated JSON is the canonical training input. The CSV is convenient for ma
 .venv/bin/python research/train_models.py
 ```
 
-Training collapses identical labeled audio to one content group. Visual-only and unlabeled clips are excluded. Evaluation holds out one positive-bearing source thread at a time; a conservative threshold is learned from each training fold without looking at that fold's test scores.
+Training collapses identical labeled audio into content groups and excludes unlabeled and visual-only clips. Evaluation holds out one positive-bearing source thread at a time; each fold learns its conservative threshold from training negatives without inspecting test scores.
 
-Five intentionally constrained candidates are compared: two L2-logistic models, two compact random forests of depth 2/3, and one rich depth-3 forest. Automatic export first requires zero grouped out-of-fold false positives, then prefers recall, average precision, and simplicity. `--max-oof-fp` can change that research constraint, and `--select` can export a named experiment explicitly.
+Five constrained candidates are compared: two L2-logistic models, two compact depth-2/3 forests, and one rich depth-3 forest. Automatic selection first constrains grouped out-of-fold false positives, then prefers held-out recall, average precision, and simplicity.
 
-Outputs:
+Promoted outputs are tracked in `research/models/`:
 
-- `MODEL_CARD.md`: readable grouped results and every held-out error;
-- `model-results.json`: folds, positive predictions, and false-positive/negative records;
-- `shadow-model.json`: conservative selected model;
-- `challenger-model.json`: higher-recall experimental model.
+- `MODEL_CARD.md` — readable grouped results and every held-out error;
+- `model-results.json` — fold metrics and error records;
+- `shadow-model.json` — conservative selected model;
+- `challenger-model.json` — higher-recall experimental model.
 
-Both model formats are compact JSON with a pure numerical inference definition. Forest artifacts declare float32 input precision; JavaScript inference must apply `Math.fround()` after imputation before traversing their splits to match scikit-learn exactly. Training remains offline; no server, upload, TensorFlow, or WASM runtime is required.
+The model files contain pure numerical inference definitions and identify their untracked training matrix by SHA-256. Forest artifacts require float32 inputs; JavaScript inference must apply `Math.fround()` after imputation to match scikit-learn split decisions.
 
-## 4. Freeze predictions before adding labels
+## 4. Freeze predictions before labeling
 
 ```bash
 .venv/bin/python research/score_models.py
 ```
 
-Run this after importing and extracting a new thread but before editing `corpus/labels.json` or retraining. Commit or archive `scores-v1.json`; it preserves the label state, model score, and threshold decision made at that time. This is the prospective evidence needed to distinguish genuine generalization from post-label tuning.
-
-Do not estimate population false-positive rate from detector-selected review candidates. Continue labeling complete threads or random samples as well.
+Run the scorer after importing a new thread but before changing `corpus/labels.json` or retraining. Preserve the ignored scoring snapshot separately when it is intended as prospective evidence. Do not estimate population false-positive rates from detector-selected review candidates; label complete threads or random samples too.
 
 ## Current result
 
-The dataset contains 10 positive and 849 negative exact-audio groups. The conservative logistic candidate obtains 3/10 positive warnings with 0/849 false positives under grouped thread holdout. The rich shallow forest obtains 7/10 with 2/849 false positives. The forest's high ranking AUC does not make its output calibrated or production-safe, and both short-burst positives are missed when their entire source thread is excluded.
+The labeled dataset contains 10 positive and 849 negative exact-audio groups. Under grouped thread holdout, the conservative logistic candidate detects 3/10 positives with 0/849 false positives; the rich shallow forest detects 7/10 with 2/849 false positives. These small-sample results are model-development diagnostics, not production accuracy or calibrated probabilities.
 
-At their zero-training-FP thresholds, the final all-data conservative fit marks 5/10 positives and the challenger marks 9/10. These fits are provided only for shadow scoring. Their training performance is not validation and must not be compared to production's post-label regression as though the numbers measured the same thing.
+At zero-training-false-positive thresholds, the final all-data fits mark 5/10 and 9/10 positives respectively. Those are training results, not validation.
 
-Run the fast pipeline tests with:
+## Checks
 
 ```bash
 .venv/bin/python -m unittest discover -s research -p 'test_*.py' -v
+.venv/bin/ruff check research
+.venv/bin/ruff format --check research
 ```
