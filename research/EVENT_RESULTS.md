@@ -2,9 +2,9 @@
 
 Measured on 2026-09-05. These are development experiments on the existing corpus, not independent estimates of production accuracy. No ML or fingerprint result has been promoted into the userscript.
 
-## Browser behavior
+## Browser behavior — initial 5.8.0 results
 
-Spokoyno 5.8 shows the eligible, merged heuristic decision score on a 0–1 scale:
+Spokoyno 5.8.0 initially showed the eligible, merged heuristic decision score on a 0–1 scale:
 
 | Score                                    | Presentation                       |
 | ---------------------------------------- | ---------------------------------- |
@@ -28,7 +28,24 @@ node --test research/test_userscript.cjs
 node research/userscript_harness.cjs
 ```
 
-The corpus replay compares the working userscript with `HEAD:spokoyno.user.js`. Its JSON output is `research/artifacts/userscript-tiers-v1.json`.
+The historical 5.8.0 replay is retained in `research/artifacts/userscript-tiers-v1.json`.
+
+### 5.8.1 — continuous evidence and parallel analysis
+
+The initial score was zero for most ordinary clips because eligibility gates suppressed the raw evidence. Version 5.8.1 retains the exact strict red-decision score whenever it reaches 0.8. Otherwise, the displayed score is `max(decisionScore, min(rawRisk, 0.799))`, where `rawRisk` is the maximum transition, opening, and rescue evidence. This exposes weak and intermediate evidence without adding new red alerts. Values between zero and 0.001 use scientific notation rather than displaying `0.000`. The tooltip explicitly distinguishes evidence from probability and explains when the score is capped.
+
+Replaying all 1,191 uniquely labeled recordings against 5.8.0 still gives **10/10 positives red and zero red alerts on 1,181 negatives**. No strict decision score or red decision changed. Scores for 1,173 previously zero-scored recordings are now nonzero. Ten negatives are yellow, up from four: more caution, not additional confirmed screamers. These remain development-corpus regression results, not held-out accuracy.
+
+The analysis queue now uses the existing `CONCURRENCY` value (6), independently of the download pool. It overlaps decoding and uses one reusable local Web Worker per active slot for CPU-heavy analysis. Worker source is generated from the same detector functions, not a separately maintained implementation. Owned channel copies are transferred; the original decoded buffer remains available for an identical main-thread fallback if workers fail or are blocked. This increases peak memory and does not guarantee a sixfold speedup. Native decoding is browser-managed; the [Web Audio specification](https://webaudio.github.io/web-audio-api/) permits multiple decoding threads, while [Web Workers](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers) run script computation off the main thread.
+
+Pending and active jobs share duplicate suppression. Generation checks prevent reset/pruned jobs from publishing stale results or deleting newer queue markers. Reset terminates workers; non-abortable native decodes retain their slots until they settle, then discard their results. Cache deletion checks the generation again after acquiring the cache lock. The panel shows active/limit and queued analyses; diagnostics expose worker/fallback mode.
+
+```sh
+node --test research/test_userscript.cjs research/test_analysis_concurrency.cjs
+node research/userscript_harness.cjs
+```
+
+The corpus replay compares the working userscript with `HEAD:spokoyno.user.js` and writes `research/artifacts/userscript-parallel-v1.json`. Tests exercise queue limits of 1, 3, and 6, deduplication, slot reuse, reset races, failures, cancellation, and worker fallback. The actual generated worker program is executed in Node worker threads and compared with main-thread inference, including the ten retained positives when the local corpus is present. Browser decoding, Tampermonkey permissions/CSP, and end-to-end speed have not been manually benchmarked here.
 
 ## Event-level physical / YAMNet comparison
 
@@ -105,7 +122,7 @@ For a new thread, score with the previously frozen models and save the timestamp
 .venv/bin/python -m unittest discover -s research -p 'test_*.py'
 .venv/bin/ruff check research
 .venv/bin/ruff format --check research
-node --test research/test_userscript.cjs
+node --test research/test_userscript.cjs research/test_analysis_concurrency.cjs
 node --check spokoyno.user.js
 ```
 

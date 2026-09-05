@@ -1,6 +1,6 @@
 # Spokoyno ML playground
 
-The ML pipeline is deliberately separate from `spokoyno.user.js`. The v5.8 userscript uses the v5.7 red-decision rules with numeric scores and a yellow tier; exported ML models are uncalibrated shadow scorers.
+The ML pipeline is deliberately separate from `spokoyno.user.js`. The v5.8.1 userscript preserves the existing red-decision rules with continuous evidence scores, a yellow tier, and parallel audio analysis; exported ML models are uncalibrated shadow scorers.
 
 ## Setup
 
@@ -112,5 +112,5 @@ For the separate frozen-YAMNet comparison, known-screamer fingerprint matcher, a
 .venv/bin/python -m unittest discover -s research -p 'test_*.py' -v
 .venv/bin/ruff check research
 .venv/bin/ruff format --check research
-node --test research/test_userscript.cjs
+node --test research/test_userscript.cjs research/test_analysis_concurrency.cjs
 ```

@@ -42,8 +42,9 @@ const renderSource = SOURCE.slice(
 const render = new Function(
   'screamerScore',
   'screamerTier',
+  'formatScreamerScore',
   `const SCREAMER_CONFIDENCE=.8, SCREAMER_MAYBE_CONFIDENCE=.6; const formatTime = x => x.toFixed(1); const formatRiskPoints = x => String(x); ${renderSource}; return renderScreamerResult;`
-)(engine.score, engine.tier);
+)(engine.score, engine.tier, engine.formatScore);
 function fixture(score) {
   return Object.assign(
     Object.fromEntries(
@@ -137,7 +138,20 @@ test('real detector emits a numeric score and silence stays low', async () => {
   const result = await analyze(engine, [new Float32Array(32000), new Float32Array(32000)]);
   assert.equal(result.status, 'ok');
   assert.ok(Number.isFinite(result.score));
-  assert.equal(result.score, result.decisionScore);
+  assert.equal(result.score, engine.continuousScore(result.decisionScore, result.rawRisk));
   assert.equal(result.riskTier, 'low');
   assert.equal(result.suspicious, false);
+});
+
+test('ungated evidence remains continuous but cannot bypass the red requirements', () => {
+  assert.equal(engine.continuousScore(0, 0.25), 0.25);
+  assert.equal(engine.continuousScore(0, 0.7), 0.7);
+  assert.equal(engine.tier(engine.continuousScore(0, 0.99)), 'maybe');
+  assert.equal(engine.continuousScore(0.9, 0.99), 0.9);
+  assert.equal(engine.formatScore(0), '0.000');
+  assert.notEqual(engine.formatScore(0.0000123), '0.000');
+  assert.equal(engine.formatScore(0.799999), '0.799');
+  const b = badge();
+  render(b, { ...fixture(0.0000123), decisionScore: 0 });
+  assert.match(b.textContent, /1\.23e-5/);
 });

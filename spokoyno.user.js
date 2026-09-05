@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Spokoyno — 2ch WebM Companion
 // @namespace    local.spokoyno
-// @version      5.8.0
+// @version      5.8.1
 // @description  Tab-local video cache, fastest mirror, speed monitor and event-based screamer warning
 // @updateURL    https://raw.githubusercontent.com/godlikedh/spokoyno/main/spokoyno.user.js
 // @downloadURL  https://raw.githubusercontent.com/godlikedh/spokoyno/main/spokoyno.user.js
@@ -44,9 +44,10 @@
   const CACHE_META_URL = `${location.origin}/__tm2ch_cache_meta_v1__`;
   const MEDIA_EXT = /\.(?:mp4|webm|m4v|mov|ogv)$/i;
   const SCREAMER_REPORT_RE = /scream|скрим/i;
-  const ANALYSIS_VERSION = 8,
+  const ANALYSIS_VERSION = 9,
     ANALYSIS_WINDOW = 0.05,
-    ANALYSIS_TARGET_RATE = 16_000;
+    ANALYSIS_TARGET_RATE = 16_000,
+    ANALYSIS_WORKER_TIMEOUT = 120_000;
   const BASELINE_WINDOWS = 60,
     BASELINE_GAP = 2,
     MIN_BASELINE_WINDOWS = 20,
@@ -115,15 +116,18 @@
   const analysisResults = new Map(
     Object.entries(state.screamer).filter(([, r]) => r?.analysisVersion === ANALYSIS_VERSION)
   );
-  const analysisQueued = new Set(),
-    analysisQueue = [];
+  const analysisQueued = new Map(),
+    analysisQueue = [],
+    activeAnalyses = new Map(),
+    analysisWorkers = new Map();
+  let analysisWorkerUrl = null,
+    analysisWorkersUnavailable = false;
   const screamerBadges = new Map(),
     communityBadges = new Map(),
     communityReports = new Map(),
     attachmentFigures = new Map();
 
-  let analysisRunning = false,
-    analysisGeneration = 0,
+  let analysisGeneration = 0,
     downloadGeneration = 0;
   let uiRoot = null,
     summaryBox = null,
@@ -452,6 +456,11 @@
       quota: estimate.quota,
       queued: queued.size,
       active: running,
+      analysisQueued: analysisQueue.length,
+      analysisActive: activeAnalyses.size,
+      analysisConcurrency: CONCURRENCY,
+      analysisWorkers: analysisWorkers.size,
+      analysisMode: analysisWorkersUnavailable || typeof Worker !== 'function' ? 'main-thread fallback' : 'worker pool',
       knownOrigins: Object.keys(state.cacheOrigins)
     };
   }
@@ -468,6 +477,8 @@
       `Storage mode: ${d.persistence}`,
       `Origin usage / quota: ${Number.isFinite(d.usage) ? formatBytes(d.usage) : 'unknown'} / ${Number.isFinite(d.quota) ? formatBytes(d.quota) : 'unknown'}`,
       `Downloads queued / active: ${d.queued} / ${d.active}`,
+      `Audio analyses queued / active / limit: ${d.analysisQueued} / ${d.analysisActive} / ${d.analysisConcurrency}`,
+      `Audio computation: ${d.analysisMode}`,
       `Origins seen by this tab: ${d.knownOrigins.join(', ')}`
     ]
       .filter(Boolean)
@@ -778,8 +789,7 @@
       expose();
       return;
     }
-    // Do not round a yellow 0.79999 up to a displayed red-threshold 0.800.
-    const risk = (Math.floor(score * 1000) / 1000).toFixed(3);
+    const risk = formatScreamerScore(score);
     const detectorName =
       {
         'loud-start': 'dangerous loud start',
@@ -804,10 +814,12 @@
     }
 
     badge.title = [
-      `Screamer score: ${score} (heuristic evidence after eligibility checks, not a probability)`,
+      `Screamer score: ${score} (heuristic evidence, not a probability)`,
       `Yellow: ${SCREAMER_MAYBE_CONFIDENCE} ≤ score < ${SCREAMER_CONFIDENCE}; red: score ≥ ${SCREAMER_CONFIDENCE}`,
-      `Raw detector evidence before eligibility checks: ${formatRiskPoints(r.displayRisk ?? 0)}/100`,
-      `Strongest detector: ${detectorName}`,
+      `Strict red-decision score: ${r.decisionScore ?? 'unavailable'}`,
+      `Raw detector evidence: ${formatRiskPoints(r.rawRisk ?? r.displayRisk ?? 0)}/100`,
+      r.scoreCapped ? 'Evidence is capped below 0.8 because the strict red-alert requirements were not met' : '',
+      `Selected detector: ${detectorName}`,
       `Event: ${formatTime(r.eventAt || 0)}`,
       Number.isFinite(r.baselineDb)
         ? `Baseline (previous 1–3 s): ${r.baselineDb.toFixed(1)} dB`
@@ -1018,6 +1030,20 @@
   function screamerTier(score) {
     if (!Number.isFinite(score) || score < 0 || score > 1) return 'unknown';
     return score >= SCREAMER_CONFIDENCE ? 'alert' : score >= SCREAMER_MAYBE_CONFIDENCE ? 'maybe' : 'low';
+  }
+
+  function formatScreamerScore(score) {
+    if (score > 0 && score < 0.001) return score.toExponential(2);
+    // Keep threshold-adjacent values in their actual displayed tier.
+    return (Math.floor(score * 1000) / 1000).toFixed(3);
+  }
+
+  function continuousScreamerScore(decisionScore, rawRisk) {
+    // Preserve all existing red decisions. Ineligible raw evidence may still
+    // distinguish low-risk clips or justify yellow, but cannot create a red alert.
+    return decisionScore >= SCREAMER_CONFIDENCE
+      ? decisionScore
+      : Math.max(decisionScore, Math.min(rawRisk, SCREAMER_CONFIDENCE - 0.001));
   }
 
   function percentile(values, p) {
@@ -1458,22 +1484,31 @@
     return context.startRendering();
   }
 
-  async function analyzeScreamer(blob) {
+  async function analyzeScreamer(blob, slot = null, isCurrent = () => true) {
+    if (!isCurrent()) return null;
     const context = getDecoderContext();
     if (!context) return { status: 'unsupported' };
 
     let buf, encoded;
     try {
       encoded = await blob.arrayBuffer();
+      if (!isCurrent()) return null;
       buf = await context.decodeAudioData(encoded);
       encoded = null;
+      if (!isCurrent()) return null;
       buf = await resampleForAnalysis(buf);
     } catch (e) {
+      if (!isCurrent()) return null;
       console.warn('[spokoyno screamer] decode failed:', e);
       return {
         status: (await nativeNoAudioProbe(blob)) === true ? 'no-audio' : 'decode-error'
       };
     }
+    if (!isCurrent()) return null;
+    return slot === null ? analyzeAudioBuffer(buf) : analyzeDecodedAudio(buf, slot, isCurrent);
+  }
+
+  async function analyzeAudioBuffer(buf) {
     if (!buf?.numberOfChannels || !buf.length) return { status: 'no-audio' };
 
     const timeline = await extractTimeline(buf),
@@ -1709,7 +1744,9 @@
           ? 'loud-start'
           : 'transition';
     const riskMode = startConfidence > transitionConfidence ? 'loud-start' : 'transition';
-    const detectionMode = decisionScore >= SCREAMER_MAYBE_CONFIDENCE ? decisionMode : riskMode;
+    const detectionMode = suspicious ? decisionMode : riskMode;
+    const rawRisk = Math.max(transitionConfidence, startConfidence, rescueConfidence);
+    const score = continuousScreamerScore(decisionScore, rawRisk);
     const displayRisk =
       detectionMode === 'loud-start'
         ? startConfidence
@@ -1744,7 +1781,7 @@
                 ? 'The strongest transition did not become near-full-scale'
                 : spectralFlux < 0.22
                   ? 'The loudness changed, but the onset spectrum remained similar'
-                  : 'Combined evidence stayed below the warning threshold';
+                  : 'Combined evidence stayed below the red-alert threshold';
     const useStartEvent = detectionMode === 'loud-start';
     const selectedSpectralFlux = useStartEvent ? onsetSpectralFlux(buf, start, timeline.windowFrames) : spectralFlux;
     const attackMs = measureAttack(buf, useStartEvent ? start : best, timeline);
@@ -1752,9 +1789,11 @@
 
     return {
       status: 'ok',
-      score: decisionScore,
+      score,
       scoreKind: 'uncalibrated-heuristic',
-      riskTier: screamerTier(decisionScore),
+      riskTier: screamerTier(score),
+      rawRisk,
+      scoreCapped: rawRisk >= SCREAMER_CONFIDENCE && !suspicious,
       suspicious,
       confidence,
       displayRisk,
@@ -1806,60 +1845,225 @@
     };
   }
 
+  function makeAnalysisWorkerSource() {
+    const constants = {
+      ANALYSIS_WINDOW,
+      BASELINE_WINDOWS,
+      BASELINE_GAP,
+      MIN_BASELINE_WINDOWS,
+      EVENT_WINDOWS,
+      EVENT_LOOKAHEAD,
+      SCREAMER_CONFIDENCE,
+      SCREAMER_MAYBE_CONFIDENCE
+    };
+    // Serialize the same pure functions used by the fallback: no second copy of
+    // the detector, no external worker script, and no audio leaves this browser.
+    const functions = {
+      dbPower,
+      dbAmp,
+      sigmoid,
+      screamerTier,
+      continuousScreamerScore,
+      percentile,
+      percentileSorted,
+      sortedIndex,
+      insertSorted,
+      removeSorted,
+      percentileRange,
+      makeHighPass,
+      makeHighShelf,
+      biquad,
+      extractTimeline,
+      fft,
+      spectrumProfile,
+      onsetSpectralFlux,
+      profileFlux,
+      transitionSpectralFeatures,
+      windowBrightness,
+      eventDuration,
+      maxChange,
+      measureAttack,
+      analyzeAudioBuffer
+    };
+    return `'use strict';
+      const { ${Object.keys(constants).join(', ')} } = ${JSON.stringify(constants)};
+      const yieldMain = async () => {};
+      ${Object.entries(functions)
+        .map(([name, fn]) => `const ${name} = ${fn.toString()};`)
+        .join('\n')}
+      self.onmessage = async ({data}) => {
+        try {
+          const {channels, sampleRate} = data;
+          const length = channels[0]?.length || 0;
+          const result = await analyzeAudioBuffer({sampleRate, length, duration: length / sampleRate,
+            numberOfChannels: channels.length, getChannelData: channel => channels[channel]});
+          self.postMessage({result});
+        } catch (error) {
+          self.postMessage({error: String(error?.message || error)});
+        }
+      };`;
+  }
+
+  function getAnalysisWorker(slot) {
+    if (analysisWorkersUnavailable || typeof Worker !== 'function') return null;
+    if (!analysisWorkers.has(slot)) {
+      if (!analysisWorkerUrl)
+        analysisWorkerUrl = URL.createObjectURL(new Blob([makeAnalysisWorkerSource()], { type: 'text/javascript' }));
+      const worker = new Worker(analysisWorkerUrl, { name: `spokoyno-analysis-${slot + 1}` });
+      analysisWorkers.set(slot, { worker, cancel: null });
+    }
+    return analysisWorkers.get(slot);
+  }
+
+  function stopAnalysisWorker(slot) {
+    const entry = analysisWorkers.get(slot);
+    if (!entry) return;
+    analysisWorkers.delete(slot);
+    entry.worker.terminate();
+    entry.cancel?.();
+    if (!analysisWorkers.size && analysisWorkerUrl) {
+      URL.revokeObjectURL(analysisWorkerUrl);
+      analysisWorkerUrl = null;
+    }
+  }
+
+  async function analyzeDecodedAudio(buf, slot, isCurrent) {
+    if (!isCurrent()) return null;
+    if (!buf?.numberOfChannels || !buf.length) return { status: 'no-audio' };
+    try {
+      const entry = getAnalysisWorker(slot);
+      if (entry) {
+        // Transfer owned copies, not AudioBuffer storage: retain the original for
+        // a same-detector fallback if workers are blocked or fail to start.
+        const channels = Array.from({ length: buf.numberOfChannels }, (_, ch) => buf.getChannelData(ch).slice());
+        return await new Promise((resolve, reject) => {
+          const worker = entry.worker;
+          let settled = false;
+          const finish = (result, error) => {
+            if (settled) return;
+            settled = true;
+            clearTimeout(timer);
+            worker.onmessage = worker.onerror = worker.onmessageerror = null;
+            entry.cancel = null;
+            if (error) reject(error);
+            else resolve(result);
+          };
+          const timer = setTimeout(() => finish(null, new Error('analysis worker timed out')), ANALYSIS_WORKER_TIMEOUT);
+          entry.cancel = () => finish(null);
+          worker.onmessage = ({ data }) =>
+            data?.result
+              ? finish(data.result)
+              : finish(null, new Error(data?.error || 'invalid analysis worker response'));
+          worker.onerror = (event) => {
+            event.preventDefault?.();
+            finish(null, new Error(event.message || 'analysis worker unavailable'));
+          };
+          worker.onmessageerror = () => finish(null, new Error('analysis worker message failed'));
+          try {
+            worker.postMessage(
+              { sampleRate: buf.sampleRate, channels },
+              channels.map((channel) => channel.buffer)
+            );
+          } catch (error) {
+            finish(null, error);
+          }
+        });
+      }
+    } catch (error) {
+      stopAnalysisWorker(slot);
+      if (!analysisWorkers.size && analysisWorkerUrl) {
+        URL.revokeObjectURL(analysisWorkerUrl);
+        analysisWorkerUrl = null;
+      }
+      analysisWorkersUnavailable = true;
+      console.warn('[spokoyno screamer] worker unavailable; using the same detector on the main thread:', error);
+    }
+    return isCurrent() ? analyzeAudioBuffer(buf) : null;
+  }
+
   function queueScreamerAnalysis(url, key) {
     const sk = screamerKey(url);
     if (analysisResults.has(sk) || analysisQueued.has(sk)) return;
-    analysisQueued.add(sk);
-    analysisQueue.push({ url, key, sk, generation: analysisGeneration });
+    const item = { url, key, sk, generation: analysisGeneration };
+    analysisQueued.set(sk, item);
+    analysisQueue.push(item);
     runAnalysisQueue();
   }
 
-  async function runAnalysisQueue() {
-    if (analysisRunning) return;
-    analysisRunning = true;
+  function isCurrentAnalysis(item) {
+    return item.generation === analysisGeneration && analysisQueued.get(item.sk) === item;
+  }
+
+  async function runAnalysisItem(item, slot) {
+    const isCurrent = () => isCurrentAnalysis(item);
     try {
-      while (analysisQueue.length) {
-        const item = analysisQueue.shift();
-        analysisQueued.delete(item.sk);
-        if (item.generation !== analysisGeneration || analysisResults.has(item.sk)) continue;
-        try {
-          const analysisCache = cache,
-            response = await analysisCache.match(item.key);
-          if (item.generation !== analysisGeneration) continue;
-          if (!response) {
-            cached.delete(item.key);
-            if (seenMedia.has(item.key)) {
-              enqueueMedia(item.url, item.key, true);
-              pump();
-            }
-            continue;
-          }
-          const blob = await response.blob();
-          if (item.generation !== analysisGeneration) continue;
-          try {
-            await identifyMediaBlob(blob, response.headers.get('Content-Type'), item.url);
-          } catch (e) {
-            await withCacheLock(() => analysisCache.delete(item.key));
-            if (item.generation !== analysisGeneration) continue;
-            cached.delete(item.key);
-            if (seenMedia.has(item.key)) {
-              enqueueMedia(item.url, item.key, true);
-              pump();
-            } else publishScreamerResult(item.sk, { status: 'media-error', message: String(e.message || e) });
-            continue;
-          }
-          const result = await analyzeScreamer(blob);
-          if (item.generation === analysisGeneration) publishScreamerResult(item.sk, result);
-        } catch (e) {
-          console.warn('[spokoyno screamer] analysis failed:', item.url, e);
-          if (item.generation === analysisGeneration) publishScreamerResult(item.sk, { status: 'decode-error' });
+      const analysisCache = cache,
+        response = await analysisCache.match(item.key);
+      if (!isCurrent()) return;
+      if (!response) {
+        cached.delete(item.key);
+        if (seenMedia.has(item.key)) {
+          enqueueMedia(item.url, item.key, true);
+          pump();
         }
-        await yieldMain();
+        return;
       }
+      const blob = await response.blob();
+      if (!isCurrent()) return;
+      try {
+        await identifyMediaBlob(blob, response.headers.get('Content-Type'), item.url);
+      } catch (e) {
+        // A reset may happen while waiting for the cache lock. Never let an old
+        // analysis delete media belonging to the new generation.
+        await withCacheLock(() => (isCurrent() ? analysisCache.delete(item.key) : undefined));
+        if (!isCurrent()) return;
+        cached.delete(item.key);
+        if (seenMedia.has(item.key)) {
+          enqueueMedia(item.url, item.key, true);
+          pump();
+        } else publishScreamerResult(item.sk, { status: 'media-error', message: String(e.message || e) });
+        return;
+      }
+      if (!isCurrent()) return;
+      const result = await analyzeScreamer(blob, slot, isCurrent);
+      if (isCurrent() && result) publishScreamerResult(item.sk, result);
+    } catch (e) {
+      console.warn('[spokoyno screamer] analysis failed:', item.url, e);
+      if (isCurrent()) publishScreamerResult(item.sk, { status: 'decode-error' });
     } finally {
-      analysisRunning = false;
-      if (tabStateDirty) await flushTabState();
+      if (analysisQueued.get(item.sk) === item) analysisQueued.delete(item.sk);
     }
+  }
+
+  function runAnalysisQueue() {
+    while (activeAnalyses.size < CONCURRENCY && analysisQueue.length) {
+      const item = analysisQueue.shift();
+      if (!isCurrentAnalysis(item) || analysisResults.has(item.sk)) {
+        if (analysisQueued.get(item.sk) === item) analysisQueued.delete(item.sk);
+        continue;
+      }
+      let slot = 0;
+      while (activeAnalyses.has(slot)) slot++;
+      activeAnalyses.set(slot, item);
+      runAnalysisItem(item, slot)
+        .finally(() => {
+          activeAnalyses.delete(slot);
+          runAnalysisQueue();
+          if (!activeAnalyses.size && !analysisQueue.length && tabStateDirty) void flushTabState();
+          scheduleUI();
+        })
+        .catch((error) => console.warn('[spokoyno screamer] analysis queue completion failed:', error));
+    }
+    scheduleUI();
+  }
+
+  function resetAnalysisQueue() {
+    analysisGeneration++;
+    analysisQueue.length = 0;
+    analysisQueued.clear();
+    for (const slot of analysisWorkers.keys()) stopAnalysisWorker(slot);
+    // Native decodes cannot be aborted. Keep their slots occupied until they
+    // settle; their generation checks prevent work or publication afterward.
   }
 
   function discover(root) {
@@ -1924,6 +2128,11 @@
         if (analysisQueue[i].key !== key) continue;
         analysisQueued.delete(analysisQueue[i].sk);
         analysisQueue.splice(i, 1);
+      }
+      for (const [slot, item] of activeAnalyses) {
+        if (item.key !== key) continue;
+        if (analysisQueued.get(item.sk) === item) analysisQueued.delete(item.sk);
+        stopAnalysisWorker(slot);
       }
     }
     scheduleUI();
@@ -2193,6 +2402,7 @@
     summaryBox.textContent =
       `thread ${threadDone}/${seen.size} · tab ${cached.size} · via ${mirror}` +
       `${queue.length ? ` · q${queue.length}` : ''}` +
+      `${activeAnalyses.size || analysisQueue.length ? ` · audio ${activeAnalyses.size}/${CONCURRENCY} +${analysisQueue.length} queued` : ''}` +
       `${failedMedia.size ? ` · err ${failedMedia.size}` : ''}`;
     const active = [...activeDownloads.values()];
     const totalBps = active.reduce((s, x) => s + (Number.isFinite(x.bps) ? x.bps : 0), 0);
@@ -2344,9 +2554,7 @@
     cancelDownloadRetries();
     queue.length = 0;
     queued.clear();
-    analysisQueue.length = 0;
-    analysisQueued.clear();
-    analysisGeneration++;
+    resetAnalysisQueue();
     await Promise.allSettled([...activePreloads]);
     await withCacheLock(async () => {
       await caches.delete(cacheName);
@@ -2369,9 +2577,7 @@
   });
 
   GM_registerMenuCommand('Сбросить результаты screamer detector', async () => {
-    analysisQueue.length = 0;
-    analysisQueued.clear();
-    analysisGeneration++;
+    resetAnalysisQueue();
     state.screamer = {};
     analysisResults.clear();
     saveTabSoon();

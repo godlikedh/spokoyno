@@ -4,7 +4,7 @@ const path = require('node:path');
 const ROOT = path.resolve(__dirname, '..');
 const SOURCE = fs.readFileSync(path.join(ROOT, 'spokoyno.user.js'), 'utf8');
 
-function detector(source = SOURCE) {
+function detector(source = SOURCE, environment = {}) {
   const constants = source.slice(
     source.indexOf('  const ANALYSIS_VERSION'),
     source.indexOf('\n\n  if (!THREAD_PATH_RE')
@@ -12,8 +12,22 @@ function detector(source = SOURCE) {
   const core = source.slice(source.indexOf('  const dbPower'), source.indexOf('  function queueScreamerAnalysis'));
   if (!constants || !core) throw Error('Userscript extraction markers changed');
   return new Function(
-    `${constants}\nconst yieldMain = async () => {};\nlet decoderContext = { decodeAudioData: async value => value };\n${core}\nreturn {analyzeScreamer, score: typeof screamerScore === 'function' ? screamerScore : null, tier: typeof screamerTier === 'function' ? screamerTier : null};`
-  )();
+    'environment',
+    `${constants}\nconst yieldMain = async () => {};
+    const Worker = environment.Worker;
+    const analysisWorkers = new Map(); let analysisWorkerUrl = null, analysisWorkersUnavailable = false;
+    let decoderContext = { decodeAudioData: async value => value };
+    ${core}
+    return {analyzeScreamer,
+      score: typeof screamerScore === 'function' ? screamerScore : null,
+      tier: typeof screamerTier === 'function' ? screamerTier : null,
+      formatScore: typeof formatScreamerScore === 'function' ? formatScreamerScore : null,
+      continuousScore: typeof continuousScreamerScore === 'function' ? continuousScreamerScore : null,
+      workerSource: typeof makeAnalysisWorkerSource === 'function' ? makeAnalysisWorkerSource : null,
+      workerAnalyze: typeof analyzeDecodedAudio === 'function' ? analyzeDecodedAudio : null,
+      stopWorker: typeof stopAnalysisWorker === 'function' ? stopAnalysisWorker : null,
+      workers: analysisWorkers};`
+  )(environment);
 }
 
 function readWav(filename) {
@@ -72,7 +86,9 @@ if (require.main === module)
         alertNegative: 0,
         maybePositive: 0,
         maybeNegative: 0,
-        changedRedDecisions: 0
+        changedRedDecisions: 0,
+        changedScores: 0,
+        formerlyZeroNowPositive: 0
       };
     for (const row of rows) {
       if (seen.has(row.audio_sha256) || !['positive', 'negative'].includes(row.label)) continue;
@@ -83,7 +99,10 @@ if (require.main === module)
       summary[row.label]++;
       if (after.riskTier === 'alert') summary[row.label === 'positive' ? 'alertPositive' : 'alertNegative']++;
       if (after.riskTier === 'maybe') summary[row.label === 'positive' ? 'maybePositive' : 'maybeNegative']++;
-      if (before.suspicious !== after.suspicious || before.decisionScore !== after.score) summary.changedRedDecisions++;
+      if (before.suspicious !== after.suspicious || before.decisionScore !== after.decisionScore)
+        summary.changedRedDecisions++;
+      if (before.score !== after.score) summary.changedScores++;
+      if (before.score === 0 && after.score > 0) summary.formerlyZeroNowPositive++;
       results.push({
         path: row.path,
         label: row.label,
@@ -93,7 +112,7 @@ if (require.main === module)
       });
       if (results.length % 100 === 0) console.log(JSON.stringify({ processed: results.length, summary }));
     }
-    const target = path.join(ROOT, 'research/artifacts/userscript-tiers-v1.json');
+    const target = path.join(ROOT, 'research/artifacts/userscript-parallel-v1.json');
     fs.writeFileSync(target, JSON.stringify({ summary, rows: results }, null, 2) + '\n');
     console.log(JSON.stringify({ summary, output: target }));
     if (summary.changedRedDecisions) process.exitCode = 1;
