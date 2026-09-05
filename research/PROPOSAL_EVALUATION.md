@@ -86,16 +86,16 @@ The loud-start search now covers only the first second of possible event-window 
 
 The complete 541-track labeled/provisional regression after these changes produced:
 
-| set                                      | warnings | result                                                  |
-| ---------------------------------------- | -------: | ------------------------------------------------------- |
-| four confirmed positives                 |      4/4 | all retained                                            |
-| 537 audio-bearing provisional negatives  |    0/537 | no false warnings                                       |
-| 11 no-audio provisional negatives        |     0/11 | no warning                                              |
-| 349 separately collected unlabeled clips |    0/349 | no warnings at the time; not counted as known negatives |
+| set                                     | warnings | result                                                   |
+| --------------------------------------- | -------: | -------------------------------------------------------- |
+| four confirmed positives                |      4/4 | all retained                                             |
+| 537 audio-bearing provisional negatives |    0/537 | no false warnings                                        |
+| 11 no-audio provisional negatives       |     0/11 | no warning                                               |
+| 349 separately collected clips          |    0/349 | unlabeled at the time; two were later confirmed positive |
 
-The confirmed-positive merged scores are 0.888, 0.891, 0.882, and 0.902. The largest eligible negative score is 0.730. In the separate unlabeled batch, the largest raw display score is 0.458. These measurements preserve the existing statistical caveat: four positives and 548 provisional negatives are not enough to establish production recall or a sub-0.08% false-positive rate.
+The confirmed-positive merged scores are 0.888, 0.891, 0.882, and 0.902. The largest eligible negative score is 0.730. In the separate then-unlabeled batch, the largest raw display score is 0.458. These measurements preserve the existing statistical caveat: four positives and 548 provisional negatives are not enough to establish production recall or a sub-0.08% false-positive rate.
 
-## v5.6 follow-up: two labels from the unlabeled batch
+## v5.6 follow-up: two positives from the then-unlabeled batch
 
 The user subsequently confirmed two of those 349 clips as screamers. This is exactly why the batch was never counted as negative ground truth. v5.5 missed both:
 
@@ -108,12 +108,12 @@ The first demonstrates a 50 ms boundary-alignment failure: the exact onset flux 
 
 v5.6 therefore adds two narrow short-burst rescue paths, one requiring spectral distance and one requiring severe clipping. Both require a short near-full-scale transition plus nearby spectral flux, and both retain upper duration bounds. Those bounds preserve the reviewed 1.55 s human scream, 1.9 s movie explosion, and 3 s phonk drop as normal. The post-tuning regression is:
 
-| set                                      | warnings | result                                      |
-| ---------------------------------------- | -------: | ------------------------------------------- |
-| six confirmed positives                  |      6/6 | all retained                                |
-| 537 audio-bearing provisional negatives  |    0/537 | no false warnings                           |
-| 11 no-audio provisional negatives        |     0/11 | no warning                                  |
-| 347 remaining explicitly unlabeled clips |    0/347 | no warnings; not counted as known negatives |
+| set                                     | warnings | result                            |
+| --------------------------------------- | -------: | --------------------------------- |
+| six confirmed positives                 |      6/6 | all retained                      |
+| 537 audio-bearing provisional negatives |    0/537 | no false warnings                 |
+| 11 no-audio provisional negatives       |     0/11 | no warning                        |
+| 347 remaining clips                     |    0/347 | subsequently labeled as negatives |
 
 Positive #5 scores 0.855 through the spectral-burst path and positive #6 scores 0.862 through the clipped-burst path. This is not held-out validation: both new positives directly motivated the new rules. The six-positive Wilson interval remains too broad for a useful recall claim, and the unchanged 548-negative set remains too small to demonstrate the requested production FPR.
 
@@ -128,14 +128,13 @@ v5.6 caught two of the four audio examples. The two misses were qualitatively di
 | `17885024222391568056.mp4` |    -2.93 |   36.34 |   3.00 s |     2.89% |       0.500 |             0.866 |      0.728 |
 | `17885460222141837902.mp4` |    -3.63 |   61.49 |   0.30 s |    21.79% |       0.424 |             0.559 |      0.792 |
 
-The first is a sustained replacement of the prior spectrum whose exact-boundary flux is weak. The second is a slower but extremely high-contrast short burst. v5.7 adds separate, tightly gated rescue paths for those structures. Neither path fires on the accumulated negative or unlabeled corpus. The merged post-tuning regression is:
+The first is a sustained replacement of the prior spectrum whose exact-boundary flux is weak. The second is a slower but extremely high-contrast short burst. v5.7 adds separate, tightly gated rescue paths for those structures. Neither path fires on the accumulated negative corpus. The merged post-tuning regression is:
 
-| set                                  | warnings | result                                      |
-| ------------------------------------ | -------: | ------------------------------------------- |
-| ten confirmed audio-target positives |    10/10 | all retained                                |
-| 871 audio-bearing labeled negatives  |    0/871 | no false warnings                           |
-| 19 no-audio labeled negatives        |     0/19 | no warning                                  |
-| 347 explicitly unlabeled audio clips |    0/347 | no warnings; not counted as known negatives |
-| one confirmed visual-only screamer   |      0/1 | normal by design                            |
+| set                                   | warnings | result            |
+| ------------------------------------- | -------: | ----------------- |
+| ten confirmed audio-target positives  |    10/10 | all retained      |
+| 1,218 audio-bearing labeled negatives |  0/1,218 | no false warnings |
+| 19 no-audio labeled negatives         |     0/19 | no warning        |
+| one confirmed visual-only screamer    |      0/1 | normal by design  |
 
 The new positive scores are 0.883, 0.881, 0.812, and 0.900. The explicit loud-phonk negative scores 0.615. As before, the new rules were designed after inspecting their motivating positives; this is a regression check, not an unbiased recall estimate.

@@ -46,6 +46,13 @@
     "source_thread": "https://2ch.life/b/res/336185346.html"
   },
   "additional_provisional_negative_sets": {
+    "/b/src/336272252/": {
+      "thread": 336272252,
+      "count": 347,
+      "exclude_confirmed_screamer_files": ["17884174673280229863.mp4", "17884274747240014140.mp4"],
+      "source_thread": "https://2ch.su/b/res/336272252.html",
+      "note": "The user explicitly labeled every remaining video in this thread as not a screamer; the two confirmed positives remain excluded."
+    },
     "/b/src/336291305/": {
       "thread": 336291305,
       "count": 342,
@@ -58,15 +65,6 @@
       ],
       "source_thread": "https://2ch.life/b/res/336291305.html",
       "note": "The user reviewed the thread and marked every other video as a non-screamer; the explicit phonk hard negative is included in this count."
-    }
-  },
-  "unlabeled_batches": {
-    "/b/src/336272252/": {
-      "count": 349,
-      "remaining_unlabeled_count": 347,
-      "exclude_confirmed_positive_files": ["17884174673280229863.mp4", "17884274747240014140.mp4"],
-      "source_thread": "https://2ch.su/b/res/336272252.html",
-      "note": "Audio-only corpus import requested by the user; detector output is not a ground-truth label."
     }
   }
 }

@@ -59,7 +59,7 @@ The JSON and companion CSV are written to ignored `research/artifacts/`.
 .venv/bin/python research/train_models.py
 ```
 
-Training collapses identical labeled audio into content groups and excludes unlabeled and visual-only clips. Evaluation holds out one positive-bearing source thread at a time; each fold learns its conservative threshold from training negatives without inspecting test scores.
+Training collapses identical labeled audio into content groups and excludes visual-only clips and any future unlabeled clips. Evaluation holds out one positive-bearing source thread at a time; each fold learns its conservative threshold from training negatives without inspecting test scores.
 
 Five constrained candidates are compared: two L2-logistic models, two compact depth-2/3 forests, and one rich depth-3 forest. Automatic selection first constrains grouped out-of-fold false positives, then prefers held-out recall, average precision, and simplicity.
 
@@ -82,9 +82,9 @@ Run the scorer after importing a new thread but before changing `corpus/labels.j
 
 ## Current result
 
-The labeled dataset contains 10 positive and 849 negative exact-audio groups. Under grouped thread holdout, the conservative logistic candidate detects 3/10 positives with 0/849 false positives; the rich shallow forest detects 7/10 with 2/849 false positives. These small-sample results are model-development diagnostics, not production accuracy or calibrated probabilities.
+The labeled dataset contains 10 positive and 1,181 negative exact-audio groups. Under grouped thread holdout, the conservative logistic candidate detects 4/10 positives with 0/1,181 false positives; the rich shallow forest detects 7/10 with 2/1,181 false positives. These small-sample results are model-development diagnostics, not production accuracy or calibrated probabilities.
 
-At zero-training-false-positive thresholds, the final all-data fits mark 5/10 and 9/10 positives respectively. Those are training results, not validation.
+At zero-training-false-positive thresholds, the final all-data fits mark 5/10 and 10/10 positives respectively. Those are training results, not validation.
 
 ## Checks
 

@@ -391,7 +391,7 @@ def model_card(
         f"- {dataset['content_groups']} exact-content groups after deduplication",
         f"- {dataset['positive']} positive and {dataset['negative']} negative groups",
         f"- feature dataset SHA-256: `{dataset_hash}`",
-        "- visual-only and unlabeled clips excluded from training",
+        "- visual-only and any unlabeled clips excluded from training",
         "- folds hold out one positive-bearing thread at a time",
         "- ranking metrics pool score-minus-training-threshold margins so separately fitted fold scores share a conservative reference",
         "",

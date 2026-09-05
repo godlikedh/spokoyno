@@ -75,7 +75,7 @@ class LabelTests(unittest.TestCase):
         )
         self.assertEqual(
             label_for("/b/src/336272252/17884170000000000000.mp4", labels),
-            "unlabeled",
+            "negative",
         )
 
 
