@@ -1,3 +1,4 @@
 /corpus/audio/
+/.venv/
 __pycache__/
 *.py[cod]
