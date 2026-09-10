@@ -37,7 +37,8 @@
     "/b/src/336185346/17882991086611750790.webm": "legitimate loud laughter at the end",
     "/b/src/336185346/17882989062590377833.webm": "voice chat with poor-quality audio",
     "/b/src/336185346/17882997637612360215.webm": "legitimate video with screaming girls",
-    "/b/src/336291305/17885509617340308491.mp4": "legitimate loud phonk"
+    "/b/src/336291305/17885509617340308491.mp4": "legitimate loud phonk",
+    "/b/src/336466927/17890419134091135246.mp4": "User-confirmed non-screamer on 2026-09-11: poor-quality but normal video; reported detector false positive during ongoing thread review"
   },
   "provisional_negative_set": {
     "thread": 336185346,
