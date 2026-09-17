@@ -37,6 +37,7 @@ def reviewed_labels(
             path, "User-confirmed audio screamer; timing may follow later"
         )
         result.get("reviewed_negatives", {}).pop(path, None)
+        result.get("reviewed_ambiguous", {}).pop(path, None)
     reviews = result.setdefault("reviewed_thread_sets", {})
     previous = reviews.get(prefix, {})
     paths = sorted(
@@ -46,6 +47,6 @@ def reviewed_labels(
         "source_thread": thread_url,
         "reviewed_at": datetime.now(UTC).isoformat(),
         "reviewed_paths": paths,
-        "note": "User reviewed these attachments. Every listed path without an explicit screamer label is negative. Later unseen attachments are not covered by this review. Existing explicit positives and visual-only exclusions are preserved.",
+        "note": "User reviewed these attachments. Every listed path without an explicit screamer, visual-only, or ambiguous label is negative. Later unseen attachments are not covered by this review. Existing explicit labels are preserved unless the user explicitly supplies a new screamer label.",
     }
     return result

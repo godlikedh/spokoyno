@@ -34,6 +34,8 @@ Import a thread the user has reviewed, listing every known audio screamer:
 
 Every other video attachment in this fetched snapshot becomes a negative, without individual negative labels. For an all-safe thread, use `--reviewed` without any `--screamer`. A misspelled screamer filename is rejected before downloads or label writes. Existing explicit positive labels and visual-only exclusions are preserved. Later unseen attachments do not inherit the review. Failed downloads remain indexed as failures and are excluded from audio training; a negative content label does not imply successful analysis.
 
+Borderline examples can be recorded separately in `corpus/labels.json` under `reviewed_ambiguous`, keyed by canonical media path with the user's description. These are retained for qualitative review but resolve to `unlabeled` for binary training/evaluation, even inside a reviewed thread. Repeated whole-thread reviews preserve this exception; explicitly listing the clip with `--screamer` resolves it to positive. To resolve it to negative, explicitly remove the ambiguous entry and record the negative review. This metadata does not force a browser score or change the detector. Rebuild feature/event datasets after label edits; existing generated snapshots retain their historical labels.
+
 Importing without `--reviewed` retains the previous unlabeled-import workflow. Timing annotations are optional and separate:
 
 ```bash

@@ -11,6 +11,10 @@ def load_labels(path: Path) -> dict:
 
 
 def label_for(media_path: str, labels: dict) -> str:
+    # Keep reviewed borderline clips out of binary targets, even when a broader
+    # thread review (or an older explicit label) would otherwise call them safe.
+    if media_path in labels.get("reviewed_ambiguous", {}):
+        return "unlabeled"
     if media_path in labels.get("confirmed_positives", {}):
         return "positive"
     if media_path in labels.get("confirmed_visual_only_screamers", {}):

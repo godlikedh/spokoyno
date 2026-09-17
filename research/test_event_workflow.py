@@ -102,6 +102,33 @@ class ReviewWorkflowTests(unittest.TestCase):
             self.assertEqual(entry["estimated_boundary_error_s"], 0.05)
             self.assertEqual(entry["intervals"], [{"start_s": 1.2, "end_s": 2.0}])
 
+    def test_ambiguous_clip_survives_whole_thread_reviews(self):
+        path = self.rows[0]["path"]
+        original = {
+            "reviewed_ambiguous": {path: "Loud meme; retain borderline behavior"},
+            "reviewed_negatives": {path: "Earlier label"},
+        }
+        labels = reviewed_labels(original, "/b/res/1.html", self.rows, [])
+        labels = reviewed_labels(labels, "/b/res/1.html", self.rows, [])
+        self.assertEqual(label_for(path, labels), "unlabeled")
+        self.assertEqual(label_for(self.rows[1]["path"], labels), "negative")
+        self.assertEqual(labels["reviewed_ambiguous"], original["reviewed_ambiguous"])
+        groups = grouped_rows(
+            [dict(row, audio_sha256=row["file"]) for row in self.rows],
+            labels,
+            {"events": {}},
+        )
+        self.assertEqual(groups[0]["label"], "unlabeled")
+        self.assertEqual(window_label(groups[0]["label"], None, 1, 2, 3), -1)
+
+    def test_explicit_screamer_review_can_resolve_an_ambiguous_label(self):
+        path = self.rows[0]["path"]
+        original = {"reviewed_ambiguous": {path: "Borderline"}}
+        labels = reviewed_labels(original, "/b/res/1.html", self.rows, ["a.mp4"])
+        self.assertEqual(label_for(path, labels), "positive")
+        self.assertNotIn(path, labels["reviewed_ambiguous"])
+        self.assertIn(path, original["reviewed_ambiguous"])
+
     def test_builder_records_review_but_keeps_failed_download_status(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

@@ -1,7 +1,22 @@
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
 const { test } = require('node:test');
-const { SOURCE, detector, analyze } = require('./userscript_harness.cjs');
+const { ROOT, SOURCE, detector, analyze, readWav } = require('./userscript_harness.cjs');
 const engine = detector();
+
+test('reviewed borderline loud meme stays yellow rather than becoming a red alert or low', async (t) => {
+  const wav = path.join(ROOT, 'corpus/audio/17894779850601558010.webm.audio.wav');
+  if (!fs.existsSync(wav)) {
+    t.skip('Retained audio corpus is local-only');
+    return;
+  }
+  const result = await analyze(engine, readWav(wav));
+  assert.equal(result.status, 'ok');
+  assert.equal(result.riskTier, 'maybe');
+  assert.ok(result.score >= 0.6 && result.score < 0.8);
+  assert.equal(result.suspicious, false);
+});
 
 test('risk tiers use precise inclusive boundaries and keep invalid results unknown', () => {
   for (const [score, tier] of [
