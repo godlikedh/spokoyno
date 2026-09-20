@@ -1,8 +1,11 @@
 # Detector stability and saved-model inventory — 2026-09-21
 
-Status: **candidate only; do not merge as a production improvement yet**.
-The requested condition of fewer false positives than comparable saved ML is
-not satisfied once the forest's already-saved threshold is included.
+Status: **user approved merging the handcrafted 5.8.2 fix on 2026-09-21**.
+This accepts the browser-stability fix with its measured false-positive tradeoff;
+it does not establish superiority over ML or generalization to unseen screamers.
+The original condition of fewer false positives than comparable saved ML is
+not satisfied once the forest's already-saved threshold is included. ML remains
+in offline shadow mode.
 
 ## What "frozen forest" means
 
@@ -45,17 +48,17 @@ once, and visual-only screamers are excluded from this audio task.
 The shared display policy is red at score >= 0.8, yellow at 0.6 <= score < 0.8.
 Scores are uncalibrated and are not interchangeable probabilities.
 
-| Detector / saved model                | Red positives / 11 | Red false positives / 2,810 | Yellow-only negatives |
-| ------------------------------------- | -----------------: | --------------------------: | --------------------: |
-| Production 5.8.1, retained-WAV replay |                 11 |                           2 |                    28 |
-| Candidate neighborhood fix            |                 11 |                           5 |                    35 |
-| Logistic shadow                       |                 11 |                          19 |                    32 |
-| Forest challenger                     |                  8 |                           0 |                     3 |
-| Whole-clip physical                   |                 11 |                          19 |                    32 |
-| Whole-clip embedding                  |                  2 |                          89 |                   530 |
-| Whole-clip hybrid                     |                 11 |                          18 |                    25 |
-| Event physical                        |                 11 |                          47 |                    44 |
-| Event hybrid                          |                 11 |                          47 |                    43 |
+| Detector / saved model              | Red positives / 11 | Red false positives / 2,810 | Yellow-only negatives |
+| ----------------------------------- | -----------------: | --------------------------: | --------------------: |
+| Baseline 5.8.1, retained-WAV replay |                 11 |                           2 |                    28 |
+| 5.8.2 neighborhood fix              |                 11 |                           5 |                    35 |
+| Logistic shadow                     |                 11 |                          19 |                    32 |
+| Forest challenger                   |                  8 |                           0 |                     3 |
+| Whole-clip physical                 |                 11 |                          19 |                    32 |
+| Whole-clip embedding                |                  2 |                          89 |                   530 |
+| Whole-clip hybrid                   |                 11 |                          18 |                    25 |
+| Event physical                      |                 11 |                          47 |                    44 |
+| Event hybrid                        |                 11 |                          47 |                    43 |
 
 ### Historical saved thresholds also matter
 
@@ -81,7 +84,7 @@ source-thread-held-out forest experiment detected 7/10 positives with two false
 alerts; those results must not be replaced with the optimistic all-corpus fit
 results above. See `models/MODEL_CARD.md` for its original evaluation protocol.
 
-## Browser discrepancy and candidate fix
+## Browser discrepancy and 5.8.2 fix
 
 The baseline replay is commit `5f32be88c3dfe0ee0601252c34cb68562b2ec79d`.
 The retained audio is FFmpeg-decoded float32 WAV, not original-media browser
@@ -93,7 +96,7 @@ A fresh, isolated, muted Brave/Chromium 150 profile reproduces approximately
 the selected window from 26.80 to 26.75 seconds. Its single-frame spectral flux
 changes from about 0.313 to 0.012 despite essentially the same loudness jump.
 
-The candidate uses the already-computed maximum spectral change within
+Version 5.8.2 uses the already-computed maximum spectral change within
 plus/minus 100 ms for the main transition score, leaving loudness, duration,
 red thresholds, and rescue eligibility unchanged. It scores the original WebM
 about **0.9357, red**, in both browser worker and fallback paths. The analysis
@@ -111,19 +114,23 @@ The corpus was not re-downloaded in its original encoded form: an attempted
 fetch of the oldest positive returned 404. Full-corpus numbers must therefore
 remain labeled retained-WAV results, not an all-browser original-media test.
 
-## Recommendation / merge gate
+## Deployment decision
 
-Do not silently deploy this candidate: it fixes the reported browser failure,
-but increases false positives and loses to the forest at matched corpus recall.
-Also do not silently promote the forest. A production port needs numerical
-feature/inference parity, real-browser decoding tests, and an explicit decision
-about mapping its saved cutoff to the desired 0.8 UI boundary. A remapped score
-would still be evidence, not a calibrated screamer probability.
+The user approved merging PR #5 after reviewing these results and the concern
+that the forest's apparent accuracy may reflect overfitting. Release the
+handcrafted 5.8.2 browser-stability fix, accepting the increase from two to five
+false alerts among 2,810 retained-audio negatives. It fixes the reported browser
+failure, but does not beat the forest at matched corpus recall. This is a
+deployment choice with a known tradeoff, not proof that handcrafted rules
+generalize better than ML; both approaches risk overfitting this small positive
+corpus.
 
-Keep all saved ML artifacts unchanged. Preserve this candidate and evaluation
-in a reviewable PR while the deployment choice is resolved. New reviewed threads
-remain necessary to compare future behavior without repeatedly tuning to these
-eleven screamers.
+All saved ML artifacts remain unchanged and in offline shadow mode. Promoting
+the forest would require numerical feature/inference parity, real-browser
+decoding tests, and an explicit decision about mapping its saved cutoff to the
+desired 0.8 UI boundary. A remapped score would still be evidence, not a calibrated
+screamer probability. New reviewed threads remain necessary to compare future
+behavior without repeatedly tuning to these eleven screamers.
 
 ## Reproduction and artifacts
 
