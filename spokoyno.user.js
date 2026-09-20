@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Spokoyno — 2ch WebM Companion
 // @namespace    local.spokoyno
-// @version      5.8.1
+// @version      5.8.2
 // @description  Tab-local video cache, fastest mirror, speed monitor and event-based screamer warning
 // @updateURL    https://raw.githubusercontent.com/godlikedh/spokoyno/main/spokoyno.user.js
 // @downloadURL  https://raw.githubusercontent.com/godlikedh/spokoyno/main/spokoyno.user.js
@@ -44,7 +44,7 @@
   const CACHE_META_URL = `${location.origin}/__tm2ch_cache_meta_v1__`;
   const MEDIA_EXT = /\.(?:mp4|webm|m4v|mov|ogv)$/i;
   const SCREAMER_REPORT_RE = /scream|скрим/i;
-  const ANALYSIS_VERSION = 9,
+  const ANALYSIS_VERSION = 10,
     ANALYSIS_WINDOW = 0.05,
     ANALYSIS_TARGET_RATE = 16_000,
     ANALYSIS_WORKER_TIMEOUT = 120_000;
@@ -1645,7 +1645,10 @@
     const durationComponent = sigmoid((duration - 0.18) / 0.09);
     const quietComponent = sigmoid((-bestBaseline - 15) / 5);
     const clipComponent = sigmoid((eventNearClip - 0.005) / 0.012);
-    const fluxComponent = sigmoid((spectralFlux - 0.22) / 0.08);
+    // Decoder/resampler differences can move the loudness-selected window by
+    // one 50 ms step. Use the existing bounded +/-100 ms onset neighborhood
+    // rather than letting one almost-tied window erase the spectral evidence.
+    const fluxComponent = sigmoid((spectralFluxNear - 0.22) / 0.08);
     let transitionConfidence = hasTransition
       ? loudComponent ** 0.9 * jumpComponent ** 1.25 * durationComponent ** 0.65
       : 0;
@@ -1779,7 +1782,7 @@
               ? 'No sufficiently large sustained local transition'
               : bestEvent < -6
                 ? 'The strongest transition did not become near-full-scale'
-                : spectralFlux < 0.22
+                : spectralFluxNear < 0.22
                   ? 'The loudness changed, but the onset spectrum remained similar'
                   : 'Combined evidence stayed below the red-alert threshold';
     const useStartEvent = detectionMode === 'loud-start';
