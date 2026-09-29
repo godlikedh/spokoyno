@@ -71,6 +71,15 @@ The JSON and companion CSV are written to ignored `research/artifacts/`.
 
 ## 3. Train grouped experiments
 
+For the expanded corpus, use the [2026-09-30 retraining workflow](RETRAINING_20260930.md).
+It compares ten fixed candidates on shared whole-thread/family-held-out folds,
+includes negative-only threads, preserves earlier frozen artifacts, and supports
+untimed positive clips through a separate experimental weak-label event model.
+New final fits are versioned under `research/models/retrained-20260930/`; they do
+not replace the original shadow files or production warnings. The older command
+below is retained for reproducing the initial tabular study, not the latest
+evaluation protocol.
+
 ```bash
 .venv/bin/python research/train_models.py
 ```
