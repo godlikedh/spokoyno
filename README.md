@@ -18,6 +18,7 @@ All analysis stays in the browser. Decode, cache, and download failures are disp
 - [Event-level experiments and score-tier results](research/EVENT_RESULTS.md)
 - [Browser-decoding stability and full-corpus model comparison](research/SCORING_COMPARISON_20260921.md)
 - [Reviewed-thread results and new detector misses (2026-09-30)](research/reviews/336991612.md)
+- [Retrained models and new algorithm comparison (2026-09-30)](research/RETRAINING_20260930.md)
 - [Versioned label policy](corpus/labels.json)
 
 The audio corpus and generated research artifacts are intentionally local. `corpus/audio/` contains 16 kHz WAV files, while `corpus/index.json` maps them to canonical media paths and hashes. Back up the entire ignored `corpus/` directory: expired imageboard media cannot necessarily be reconstructed from a fresh clone.
