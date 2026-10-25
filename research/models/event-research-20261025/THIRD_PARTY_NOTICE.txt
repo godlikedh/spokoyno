@@ -1,0 +1,12 @@
+The semantic models contain a 22-category subset of the frozen YAMNet classifier
+head. The classifier head is not fine-tuned. The surrounding screamer classifiers
+are trained separately on the Spokoyno corpus.
+
+YAMNet: Copyright 2019 The TensorFlow Authors. All Rights Reserved.
+TensorFlow Models repository: Copyright 2022 Google LLC. All rights reserved.
+
+Source: https://github.com/tensorflow/models/tree/d598fb8b23d9cd2fb26b5789b8242de3f494aca7/research/audioset/yamnet
+Weights: https://storage.googleapis.com/audioset/yamnet.h5
+Original weights SHA-256: 13c3308955bbfaef262f175ac9c40e47b134573a93984f009220dd7cc12a1744
+
+The original license is reproduced in YAMNET_LICENSE.txt.
