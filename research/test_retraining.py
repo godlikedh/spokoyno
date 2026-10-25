@@ -13,6 +13,49 @@ import score_retrained as score
 
 
 class RetrainingTests(unittest.TestCase):
+    def test_evaluation_thread_defaults_to_newest_and_rejects_missing_fold(self):
+        folds = [{"thread": t} for t in ("9", "10", "337690329", "336991612")]
+        self.assertEqual(retrain.evaluation_thread_for(folds), "337690329")
+        self.assertEqual(retrain.evaluation_thread_for(folds, "336991612"), "336991612")
+        with self.assertRaisesRegex(ValueError, "must have"):
+            retrain.evaluation_thread_for(folds, "unreviewed")
+        with self.assertRaisesRegex(ValueError, "no labeled"):
+            retrain.evaluation_thread_for([])
+
+    def test_full_thread_view_uses_requested_fold_and_includes_earlier_copies(self):
+        clips = [
+            {"label": "positive", "threads": ["old", "new"]},
+            {"label": "negative", "threads": ["new"]},
+        ]
+        data = {"clips": clips, "y": np.asarray([1, 0])}
+        folds = [{"thread": "new", "train": [0], "test": [1]}]
+        scores = np.asarray([0.9, 0.1])
+
+        def rows(data, scores, indices, threshold):
+            return [
+                {
+                    "label": clips[i]["label"],
+                    "score": scores[i],
+                    "above_training_threshold": scores[i] > threshold,
+                }
+                for i in indices
+            ]
+
+        with (
+            patch.object(retrain, "fit_candidate", return_value={"used_clips": [0, 1]}),
+            patch.object(retrain, "predict_candidate", return_value=scores),
+            patch.object(retrain, "save_fit", return_value={"threshold": 0.2}),
+            patch.object(retrain, "prediction_rows", side_effect=rows),
+            patch.object(retrain, "atomic_json"),
+        ):
+            result = retrain.run_candidate(
+                "fixture", data, folds, Path("unused"), "new"
+            )
+        self.assertEqual(result["evaluation_thread"], "new")
+        self.assertEqual(result["held_out"]["positive"], 0)
+        self.assertEqual(result["latest_thread_excluded"]["positive"], 1)
+        self.assertEqual(result["latest_thread_excluded"]["negative"], 1)
+
     def test_new_feature_columns_cannot_shift_saved_model_inputs(self):
         data = {
             "names": ["new", "a", "b"],
