@@ -53,7 +53,7 @@ EVENT_DATA = Path("research/artifacts/event-data-v1")
 FAMILIES = Path("research/artifacts/fingerprints/evaluation.json")
 
 
-def load_inputs() -> dict:
+def load_inputs(families_path: Path = FAMILIES) -> dict:
     logical, _, embeddings, context = load_context(FEATURES, CONTEXT, LABELS)
     manifest, event_physical, event_audio, targets = load_data(EVENT_DATA)
     expected = {
@@ -74,12 +74,12 @@ def load_inputs() -> dict:
     # Do not rebuild groups from labeled paths only and lose source membership.
     names = features["feature_names"]
     compact = compact_features(names)
-    links = family_links(json.loads(FAMILIES.read_text()))
+    links = family_links(json.loads(families_path.read_text()))
     provenance = expected | {
         "event_manifest_sha256": sha256(EVENT_DATA / "manifest.json"),
         "event_matrix_sha256": manifest["matrix_sha256"],
         "context_matrix_sha256": context["matrix_sha256"],
-        "family_source_sha256": sha256(FAMILIES),
+        "family_source_sha256": sha256(families_path),
         "encoder_sha256": hashlib.sha256(
             json.dumps(context["encoder"], sort_keys=True).encode()
         ).hexdigest(),
@@ -376,7 +376,18 @@ def save_fit(
     return spec
 
 
-def run_candidate(name: str, data: dict, folds: list[dict], output: Path) -> dict:
+def evaluation_thread_for(folds: list[dict], requested: str | None = None) -> str:
+    threads = {fold["thread"] for fold in folds}
+    if not threads:
+        raise ValueError("no labeled source-thread folds")
+    if requested is not None and requested not in threads:
+        raise ValueError("evaluation thread must have a labeled source-thread fold")
+    return requested or max(threads, key=lambda thread: (len(thread), thread))
+
+
+def run_candidate(
+    name: str, data: dict, folds: list[dict], output: Path, evaluation_thread: str
+) -> dict:
     oof, fold_rows, latest_rows = [], [], []
     for fold in folds:
         training, testing, thread = fold["train"], fold["test"], fold["thread"]
@@ -397,7 +408,7 @@ def run_candidate(name: str, data: dict, folds: list[dict], output: Path) -> dic
                 "metrics": summary(rows),
             }
         )
-        if thread == "336991612":
+        if thread == evaluation_thread:
             # Full thread includes groups owned by earlier folds. This extra
             # view overlaps OOF rows and must never be pooled into OOF totals.
             indices = [i for i, c in enumerate(data["clips"]) if thread in c["threads"]]
@@ -414,6 +425,7 @@ def run_candidate(name: str, data: dict, folds: list[dict], output: Path) -> dic
     )
     result = {
         "name": name,
+        "evaluation_thread": evaluation_thread,
         "held_out": summary(oof),
         "folds": fold_rows,
         "held_out_predictions": oof,
@@ -436,6 +448,11 @@ def main() -> int:
         "--candidates", nargs="+", choices=CANDIDATES, default=list(CANDIDATES)
     )
     parser.add_argument("--jobs", type=int, default=2)
+    parser.add_argument("--families", type=Path, default=FAMILIES)
+    parser.add_argument(
+        "--evaluation-thread",
+        help="Full-thread excluded view; defaults to the newest labeled source-thread fold",
+    )
     args = parser.parse_args()
     if not 1 <= args.jobs <= 4 or len(set(args.candidates)) != len(args.candidates):
         raise ValueError("use 1..4 jobs and distinct candidates")
@@ -443,14 +460,18 @@ def main() -> int:
         raise ValueError(
             "refusing to overwrite a retraining run; choose a fresh directory"
         )
-    data = load_inputs()
+    data = load_inputs(args.families)
     folds = folds_for(data["clips"], data["links"])
+    evaluation_thread = evaluation_thread_for(folds, args.evaluation_thread)
+    positives = [c for c in data["clips"] if c["label"] == "positive"]
+    timed = sum(c.get("annotation") is not None for c in positives)
     args.output_dir.mkdir(parents=True, exist_ok=False)
     plan = {
         "schema": 1,
         "created_at": datetime.now(UTC).isoformat(),
         "status": "shadow-only",
         "candidates": args.candidates,
+        "evaluation_thread": evaluation_thread,
         "seed": SEED,
         "data": dict(Counter(c["label"] for c in data["clips"])),
         "source_sha256": sha256(Path(__file__)),
@@ -458,12 +479,14 @@ def main() -> int:
         "folds": folds,
         "related_audio_links": {k: sorted(v) for k, v in data["links"].items()},
         "policy": "Fixed configurations declared before fitting. All source threads held out, including negative-only threads; all duplicate source memberships and known transitive families excluded. Each labeled audio group tested once. Preprocessing and latent event selection use training rows only. 0.6/0.8 fixed tiers plus training-negative-max diagnostic; no held-out threshold tuning. Model comparisons are development diagnostics, not nested model-selection validation.",
-        "limitations": "Only 14 distinct positives. Feature design has seen this corpus; incomplete related-audio detection remains possible. Ten timed positive recordings; four untimed positives can supervise clip models and experimental MIL, not original annotated-event models. Future threads are needed before promotion.",
+        "limitations": f"Only {len(positives)} distinct positive audio groups. Feature design has seen this corpus; incomplete related-audio detection remains possible. {timed} timed positive recordings; {len(positives) - timed} untimed positives can supervise clip models and experimental MIL, not original annotated-event models. Future threads are needed before promotion.",
     }
     atomic_json(args.output_dir / "plan.json", plan)
     with concurrent.futures.ThreadPoolExecutor(max_workers=args.jobs) as pool:
         futures = {
-            pool.submit(run_candidate, name, data, folds, args.output_dir): name
+            pool.submit(
+                run_candidate, name, data, folds, args.output_dir, evaluation_thread
+            ): name
             for name in args.candidates
         }
         results = [
