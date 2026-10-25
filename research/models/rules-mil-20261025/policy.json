@@ -1,0 +1,14 @@
+{
+  "schema": 1,
+  "status": "exploratory-shadow-only",
+  "candidate": "mil-linear-softmax",
+  "model_snapshot": "research/models/event-research-20261025",
+  "model_snapshot_manifest_sha256": "eab9ac1ca3e8178fd861300112bb89f966891a28459a702f380802263f415f41",
+  "userscript_version": "5.8.2",
+  "userscript_sha256": "1c51b0ac4cd552932a0e6af90c59faac79072492c9d97e4459dde2597305a47b",
+  "operation": "maximum",
+  "yellow_threshold": 0.6,
+  "red_threshold": 0.8,
+  "score_semantics": "Maximum of two uncalibrated evidence scores, not a probability.",
+  "warning": "Selected after development-corpus comparisons. Rules were developed on part of this corpus. Freeze for future-thread evaluation; not approved as a production replacement. Own-training scores are not validation. Joblib model snapshots require trusted provenance."
+}
