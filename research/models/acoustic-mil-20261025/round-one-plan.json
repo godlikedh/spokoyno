@@ -1,0 +1,33 @@
+{
+  "created_at": "2026-10-25T20:51:34.553709+00:00",
+  "source_sha256": "fc6ce630cca1f3272f9c40b945e8a954fd217e108acb1b25e5bf64c0a2dc4436",
+  "feature_manifest_sha256": "c1bdb58bd62641fbaf119fbeb5aad8b064996a81438e71ebd8d08bfee9d67efa",
+  "synthetic_manifest_sha256": "851c70c22696900588051601dcaf91cd0aee991f9a0c7f2c747e8e92dd146bc4",
+  "baseline_plan_sha256": "a677a10d39f8430bb95f895410e80e97f36168379804916dd80f050fc6bfea86",
+  "candidates": [
+    "event-hybrid",
+    "add-burst",
+    "duration-burst",
+    "add-rhythm",
+    "add-bands",
+    "add-roughness",
+    "all-acoustic",
+    "all-acoustic-mil",
+    "physical-old",
+    "physical-new",
+    "physical-expanded",
+    "synthetic-acoustic"
+  ],
+  "drop_duration": [
+    "event_0_6s_db",
+    "event_1_0s_db",
+    "persistence_1s",
+    "loudness_area_db"
+  ],
+  "synthetic_weight": 0.2,
+  "regularization_C": 0.05,
+  "selection": "Preserve EVERY inner-validation positive caught by event-hybrid at .8; require at least 20% fewer inner false alerts; minimize FP, maximize TP, prefer declaration order then threshold nearest .8. Otherwise baseline .8. Separate baseline-only threshold control. No outer labels used for selection.",
+  "limitations": "Development corpus already informed feature design. Nested selection is not a new prospective test. Known families only; new related audio can remain. Final fits are not validation. Scores are uncalibrated.",
+  "status": "research, no production promotion",
+  "complete_plan_sha256": "6673465c9e25b8804d3a5adc02e6d2cc558d187f5c68490f313d85f8e2e1e77d"
+}

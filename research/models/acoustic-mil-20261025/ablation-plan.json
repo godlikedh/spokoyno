@@ -1,0 +1,14 @@
+{
+  "created_at": "2026-10-25T20:56:35.735259+00:00",
+  "source_sha256": "81ac66ce9b5e5f1e327d3e2b8df5bcbb45bd33dcc4bd5f801ce81669273d3869",
+  "parent_plan_sha256": "c48df7a7ceac400076c96b742b81c0fb805c6187c18b8a811985c8ced159174d",
+  "ablations": [
+    "without-burst",
+    "without-rhythm",
+    "without-bands",
+    "without-roughness",
+    "old-features-only"
+  ],
+  "purpose": "Explanatory feature removal after candidate discovery. No new threshold or candidate selection from this experiment.",
+  "complete_plan_sha256": "42f4b6b7e8a7723448c94a59ebd2384876c28d22e0cda2d36ac8a7719a7887b0"
+}
