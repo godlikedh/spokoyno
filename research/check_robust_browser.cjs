@@ -18,7 +18,8 @@ async function evaluateFixture(index) {
   const { transform, models } = await (await fetch(`/models/${index}`)).json();
   const start = performance.now();
   const data = SpokoynoFeatures.extract(new Float32Array(bytes), fixture.channels, encoderManifest.dsp_sos);
-  if (JSON.stringify(data.names) !== JSON.stringify(transform.names)) throw new Error('schema mismatch');
+  if (JSON.stringify(data.names) !== JSON.stringify(transform.context_features?.base_names || transform.names))
+    throw new Error('schema mismatch');
   const physicalMs = performance.now() - start;
   const audio = new Float32Array(data.patches.length * 1024);
   const baseline = tf.memory().numTensors;
@@ -27,7 +28,7 @@ async function evaluateFixture(index) {
   if (tf.memory().numTensors !== baseline) throw new Error('encoder leaked tensors');
   const predictions = {};
   for (const [name, model] of Object.entries(models)) {
-    const result = SpokoynoModel.predict(transform, model, data.physical, audio);
+    const result = SpokoynoModel.predict(transform, model, data.physical, audio, data.contentPositions);
     let best = 0;
     for (let i = 1; i < result.events.length; i++) if (result.events[i] > result.events[best]) best = i;
     predictions[name] = { score: result.score, event_at_s: data.windows[best].start_s };
@@ -54,7 +55,7 @@ async function main() {
     '/encoder.json': path.join(encoderDir, 'model.json'),
     '/weights.bin': path.join(encoderDir, 'weights.bin'),
     ...Object.fromEntries(
-      ['robust_encoder.cjs', 'robust_features.cjs', 'robust_model.cjs'].map((name) => [
+      ['robust_encoder.cjs', 'robust_features.cjs', 'robust_context.cjs', 'robust_model.cjs'].map((name) => [
         '/' + name,
         path.join(__dirname, name)
       ])
@@ -67,7 +68,14 @@ async function main() {
       response.setHeader('Content-Type', 'text/html');
       response.end(
         '<!doctype html><title>Local ML parity</title>' +
-          ['/tf.js', '/wasm.js', '/robust_encoder.cjs', '/robust_features.cjs', '/robust_model.cjs']
+          [
+            '/tf.js',
+            '/wasm.js',
+            '/robust_encoder.cjs',
+            '/robust_features.cjs',
+            '/robust_context.cjs',
+            '/robust_model.cjs'
+          ]
             .map((src) => `<script src="${src}"></script>`)
             .join('')
       );

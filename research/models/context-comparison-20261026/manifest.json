@@ -1,0 +1,52 @@
+{
+  "status": "No candidate improves the overall recall/false-alert tradeoff versus the previous synthetic-mil-20pct baseline. Research only; no production promotion.",
+  "new_configurations": 9,
+  "distinct_training_partitions": 67,
+  "new_model_fits": 603,
+  "source_sha256": {
+    "train_hard_negative_mil.py": "09ee025a46741b161a4f20cb7233978d5548c311f0dd1388e13bc0eceebf4ae1",
+    "train_context_models.py": "8c791bfa68abbab906cd2d0bf64b1d0875966dfb39c507e740b837ca6747b3ca",
+    "train_context_trees.py": "98f0f8347ca9ef1c85c05b78cc583cf4a95ab362158e858e2ed3d641e0069661",
+    "context_features.py": "54f40bff2f17cb6fa74d96b635c067f61e66a2cf98888c456448d48b7514b7d5",
+    "context_runtime.py": "aa2773a2de3c94b7c8aa958996568d04c9320831f2fd3884981b0dbdd2d350a6",
+    "export_context_head.py": "3dff74acbf79858155c7d54b222e8f4e2d1315653335b99d55cbec60b8f3a7ca",
+    "assemble_context_data.py": "5ebd9a2c19812223f1045749b442be130615fd7e93c62fdcbd2ec952d2fa0a8b",
+    "robust_context.cjs": "82abe1eec1eb5e7bc2bac64423e4e83d028050ae72da29ff586a7f7beb85633f",
+    "robust_model.cjs": "907e7d3c6d1ef59db2669c246df8404a700850a7a35c287b38c59fa033e8fb11",
+    "robust_features.cjs": "87ab268dc18189870f36ad9eabf00019fd1857749619185d47b18cee0cfabbda",
+    "check_robust_browser.cjs": "0110172d9e438cfb6d76bcad9fcc7f8714efc8910dd4d46dab04caa459f45e43",
+    "audit_robust_models.py": "3a3e85db9501ecd31ac6bd07eb2b0b5441d6d025e9df671ec95cf08732e58b4d",
+    "export_robust_models.py": "2e16763663de66e2e7687272eefc665fc96f933e5418990a0541910457eeb2f8",
+    "robust_detector.py": "654470a6cda5d654f6369d3fafa232778c0164c0f7c7beeb618f1282ec80f3df",
+    "summarize_robust.py": "c7fefc5ff4de7fffd6d028f9515470d4f9de4f8ac040afe5426a0b221422a1bc",
+    "audit_tree_preprocessing.py": "e54fa88f340ce705e90b58b702f214e0aefe16a92072a445e8de443e346a96c3"
+  },
+  "human_labels_sha256": "2024f8dec02d86307081626275614a23d9e3923be4efd79723bafe48ceef4247",
+  "human_intervals_sha256": "ece77d2bceb330becd6e8c49ce16b2a84d0089381b76687f3ef81c2195caa911",
+  "files": {
+    "comparison.json": "a921c1004635f9be440af63415b4eb5814616165eac96323e08c5ed51b70dcc9",
+    "context-browser-runtime.json": "901c556e561c9ab07b7536b004f043543df7de5865076afc8ee94bdb195aa6d9",
+    "context-tree-browser-runtime.json": "6afac87d665f84fcab108a85cd815fb533a2aa99d1a905f4a2e13fadef9141b8",
+    "environment.json": "2ac4f86ea3f7454c8e94580d586731139f40d8daf175cb4b1d9fa32ba07ab805",
+    "hard-negative-javascript-runtime.json": "ea79be9edc295c01bb74470b66ba9e7567f2503dff6cc1560041f5803c7a75e7",
+    "semantic-head-export.json": "2e18c3746075a00f748a20a52e882b84ade95745371ad90a107c3503f81f3afc",
+    "context-tree-serialization-failure.json": "e95fc591f05a8065fd8e7406d88d167cd6d14d2c06dd7588d5c322c0ca5cf89b"
+  },
+  "validation": {
+    "python_tests": 82,
+    "javascript_tests": 19,
+    "delay_checks_per_study": 195,
+    "context_browser_score_error_max": 2.544839052598391e-06,
+    "context_tree_browser_score_error_max": 0,
+    "hard_negative_node_score_error_max": 1.1102230246251565e-16,
+    "browser_tier_changes": 0
+  },
+  "limitations": "Adaptive development on an existing corpus with thirty positive audio groups. Derivatives are paired measurements, not independent samples. Published final-fit models have seen current labels; only source-excluded predictions describe development accuracy.",
+  "rejected_export": {
+    "models": [
+      "context-boost",
+      "context-boost-control"
+    ],
+    "reason": "PCA roundoff crossed tree thresholds; full-matrix reproduction failed. Published tree artifacts contain evaluation evidence only."
+  }
+}

@@ -14,6 +14,7 @@ import tempfile
 from pathlib import Path
 
 import numpy as np
+from context_runtime import physical_features
 from extract_audio_context import Encoder, ensure_encoder, sha256
 from extract_features import RATE, read_audio
 from risk_score import risk_tier
@@ -61,8 +62,6 @@ class Detector:
                 "model": self.name,
             }
         extracted = extract(samples, include_patches=self.encoder is not None)
-        if extracted["names"] != self.transform["names"]:
-            raise ValueError("feature names differ from trained model")
         audio = None
         if self.encoder is not None:
             patches = extracted["patches"]
@@ -72,7 +71,10 @@ class Detector:
                     for lo in range(0, len(patches), 96)
                 ]
             ).reshape(-1, 3072)
-        x = prepare(self.transform, extracted["physical"], audio)
+        physical, names = physical_features(extracted, audio, self.transform)
+        if names != self.transform["names"]:
+            raise ValueError("feature names differ from trained model")
+        x = prepare(self.transform, physical, audio)
         p = window_probabilities(self.model, x)
         value = float(
             pool(p, np.zeros(len(p), dtype=int), 1, self.model["power"])[0][0]

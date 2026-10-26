@@ -1,0 +1,20 @@
+{
+  "status": "Rejected; evaluation evidence only. Strict full-matrix export failed due to PCA rounding at tree thresholds. No deployable model weights or transform are published here.",
+  "loadable_snapshot": false,
+  "full_results_sha256": "c7b16fa439724abcf2977b6815fcd052ca8d91d246e7d4c3cbdc75610338a102",
+  "dataset_sha256": "1ce733aed3a571be3ecc1a433d3ff9fb9f747f81ecf4ca2a2de3c915d1f6996b",
+  "human_labels_sha256": "2024f8dec02d86307081626275614a23d9e3923be4efd79723bafe48ceef4247",
+  "human_intervals_sha256": "ece77d2bceb330becd6e8c49ce16b2a84d0089381b76687f3ef81c2195caa911",
+  "files": {
+    "audit.json": "a61ccee645d6d4e272a223767a7cbc626969e87f8ec4e8588d9dd2f4ca183ee8",
+    "browser.json": "54dddb5aa31769e36d8d3682ffd1020a126ebfe78e825f5ade7c5b2ecdb240eb",
+    "delay-invariance.json": "6888f6f8eba4cf34e09358db1b32e496a750a68dc3954a1d78ddc589c8e2e428",
+    "evaluation.json": "80f77e6abd5608477fdd9164a772fa2db05a4106e362d4eb3dc9ecdd484ae554",
+    "experiment-plan.json": "c201426f543ec54e72286815609141f80693679bb6a229e3fa3c5788f9c6b27a",
+    "followup-declaration.json": "f1f5ed8628d8670e068dadaf1302c92bee675af9633abd2e464caad6cd92d031",
+    "heldout-errors.json": "c3f1ba6f631903f547ebde86f2fffda22c396a639df4b258980e05d276bb5b14",
+    "serialization-failure.json": "e95fc591f05a8065fd8e7406d88d167cd6d14d2c06dd7588d5c322c0ca5cf89b",
+    "stress.json": "95666004de35386710b7479dbffcb0599e327556f41a5f4fcc8112358e241842"
+  },
+  "limitations": "Scores in evaluation.json use the frozen training implementation. Browser parity on 27 fixtures passed, but is insufficient to establish full runtime equivalence. These models also failed the quality comparison."
+}

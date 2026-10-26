@@ -1,0 +1,7412 @@
+[
+  {
+    "path": "/b/src/336185346/17883557324650588814.webm",
+    "label": "positive",
+    "variant": "original",
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.992770170040808,
+        "event_at_s": 15.75
+      },
+      "hard-negative-max": {
+        "score": 0.9914497518721513,
+        "event_at_s": 15.75
+      },
+      "all-window-control": {
+        "score": 0.9967448048629748,
+        "event_at_s": 15.75
+      },
+      "nested-selection": {
+        "score": 0.992770170040808,
+        "event_at_s": 15.75
+      }
+    }
+  },
+  {
+    "path": "/b/src/336185346/17883557324650588814.webm",
+    "label": "positive",
+    "variant": "aac-aligned",
+    "transform": {
+      "codec": "aac80",
+      "codec_delay_samples": 341,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.9483400204282533,
+      "aligned": true,
+      "encoded_bytes": 184546,
+      "recipe": {
+        "codec": "aac80",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9797327882385471,
+        "event_at_s": 15.700000000000003
+      },
+      "hard-negative-max": {
+        "score": 0.9730441699235445,
+        "event_at_s": 15.700000000000003
+      },
+      "all-window-control": {
+        "score": 0.990695405748948,
+        "event_at_s": 15.700000000000003
+      },
+      "nested-selection": {
+        "score": 0.9797327882385471,
+        "event_at_s": 15.700000000000003
+      }
+    }
+  },
+  {
+    "path": "/b/src/336185346/17883557324650588814.webm",
+    "label": "positive",
+    "variant": "aac16k-aligned",
+    "transform": {
+      "codec": "aac16k96",
+      "codec_delay_samples": 1024,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.9929618550383617,
+      "aligned": true,
+      "encoded_bytes": 218279,
+      "recipe": {
+        "codec": "aac16k96",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9909248352037052,
+        "event_at_s": 15.75
+      },
+      "hard-negative-max": {
+        "score": 0.9880229993205464,
+        "event_at_s": 15.75
+      },
+      "all-window-control": {
+        "score": 0.9960767782545213,
+        "event_at_s": 15.75
+      },
+      "nested-selection": {
+        "score": 0.9909248352037052,
+        "event_at_s": 15.75
+      }
+    }
+  },
+  {
+    "path": "/b/src/336185346/17883557324650588814.webm",
+    "label": "positive",
+    "variant": "gain-minus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": -3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9914264271141479,
+        "event_at_s": 15.75
+      },
+      "hard-negative-max": {
+        "score": 0.9918928430151939,
+        "event_at_s": 15.75
+      },
+      "all-window-control": {
+        "score": 0.9962298003342329,
+        "event_at_s": 15.75
+      },
+      "nested-selection": {
+        "score": 0.9914264271141479,
+        "event_at_s": 15.75
+      }
+    }
+  },
+  {
+    "path": "/b/src/336185346/17883557324650588814.webm",
+    "label": "positive",
+    "variant": "gain-plus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": 3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9922959292293058,
+        "event_at_s": 15.75
+      },
+      "hard-negative-max": {
+        "score": 0.9901601031061805,
+        "event_at_s": 15.75
+      },
+      "all-window-control": {
+        "score": 0.9960812904037414,
+        "event_at_s": 15.75
+      },
+      "nested-selection": {
+        "score": 0.9922959292293058,
+        "event_at_s": 15.75
+      }
+    }
+  },
+  {
+    "path": "/b/src/336185346/17883557324650588814.webm",
+    "label": "positive",
+    "variant": "codec-plus-11s",
+    "transform": {
+      "codec": "opus48",
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 176000,
+      "alignment_correlation": 0.97357967769942,
+      "aligned": false,
+      "encoded_bytes": 150190,
+      "recipe": {
+        "codec": "opus48",
+        "delay_s": 11
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9842971061372491,
+        "event_at_s": 26.746187499999998
+      },
+      "hard-negative-max": {
+        "score": 0.9809439515385696,
+        "event_at_s": 26.746187499999998
+      },
+      "all-window-control": {
+        "score": 0.9890719080347741,
+        "event_at_s": 26.746187499999998
+      },
+      "nested-selection": {
+        "score": 0.9842971061372491,
+        "event_at_s": 26.746187499999998
+      }
+    }
+  },
+  {
+    "path": "/b/src/336185346/17883557325462786367.mp4",
+    "label": "positive",
+    "variant": "original",
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9931675154911981,
+        "event_at_s": 8.307562500000001
+      },
+      "hard-negative-max": {
+        "score": 0.992708440408605,
+        "event_at_s": 8.307562500000001
+      },
+      "all-window-control": {
+        "score": 0.9965867958142269,
+        "event_at_s": 8.907562500000001
+      },
+      "nested-selection": {
+        "score": 0.9931675154911981,
+        "event_at_s": 8.307562500000001
+      }
+    }
+  },
+  {
+    "path": "/b/src/336185346/17883557325462786367.mp4",
+    "label": "positive",
+    "variant": "aac-aligned",
+    "transform": {
+      "codec": "aac80",
+      "codec_delay_samples": 341,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.9679227597916285,
+      "aligned": true,
+      "encoded_bytes": 134442,
+      "recipe": {
+        "codec": "aac80",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.991110010022513,
+        "event_at_s": 7.8059375000000015
+      },
+      "hard-negative-max": {
+        "score": 0.9916107645031876,
+        "event_at_s": 7.8059375000000015
+      },
+      "all-window-control": {
+        "score": 0.9963245657932954,
+        "event_at_s": 7.8059375000000015
+      },
+      "nested-selection": {
+        "score": 0.991110010022513,
+        "event_at_s": 7.8059375000000015
+      }
+    }
+  },
+  {
+    "path": "/b/src/336185346/17883557325462786367.mp4",
+    "label": "positive",
+    "variant": "aac16k-aligned",
+    "transform": {
+      "codec": "aac16k96",
+      "codec_delay_samples": 1024,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.9995355957252149,
+      "aligned": true,
+      "encoded_bytes": 140660,
+      "recipe": {
+        "codec": "aac16k96",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9921773782630696,
+        "event_at_s": 7.796687500000002
+      },
+      "hard-negative-max": {
+        "score": 0.9927436164408129,
+        "event_at_s": 7.796687500000002
+      },
+      "all-window-control": {
+        "score": 0.9965966624994331,
+        "event_at_s": 7.796687500000002
+      },
+      "nested-selection": {
+        "score": 0.9921773782630696,
+        "event_at_s": 7.796687500000002
+      }
+    }
+  },
+  {
+    "path": "/b/src/336185346/17883557325462786367.mp4",
+    "label": "positive",
+    "variant": "gain-minus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": -3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9936352212960055,
+        "event_at_s": 7.807625000000002
+      },
+      "hard-negative-max": {
+        "score": 0.9922795825095252,
+        "event_at_s": 7.807625000000002
+      },
+      "all-window-control": {
+        "score": 0.9970956741978333,
+        "event_at_s": 8.907625000000001
+      },
+      "nested-selection": {
+        "score": 0.9936352212960055,
+        "event_at_s": 7.807625000000002
+      }
+    }
+  },
+  {
+    "path": "/b/src/336185346/17883557325462786367.mp4",
+    "label": "positive",
+    "variant": "gain-plus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": 3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9904892991323727,
+        "event_at_s": 7.8059375000000015
+      },
+      "hard-negative-max": {
+        "score": 0.9890361915246647,
+        "event_at_s": 7.8059375000000015
+      },
+      "all-window-control": {
+        "score": 0.9952202808911745,
+        "event_at_s": 7.8059375000000015
+      },
+      "nested-selection": {
+        "score": 0.9904892991323727,
+        "event_at_s": 7.8059375000000015
+      }
+    }
+  },
+  {
+    "path": "/b/src/336185346/17883557325462786367.mp4",
+    "label": "positive",
+    "variant": "codec-plus-11s",
+    "transform": {
+      "codec": "opus48",
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 176000,
+      "alignment_correlation": 0.99462419288115,
+      "aligned": false,
+      "encoded_bytes": 128302,
+      "recipe": {
+        "codec": "opus48",
+        "delay_s": 11
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9925463304280786,
+        "event_at_s": 19.856250000000003
+      },
+      "hard-negative-max": {
+        "score": 0.9930704495015303,
+        "event_at_s": 18.806250000000002
+      },
+      "all-window-control": {
+        "score": 0.9963674489926119,
+        "event_at_s": 19.856250000000003
+      },
+      "nested-selection": {
+        "score": 0.9925463304280786,
+        "event_at_s": 19.856250000000003
+      }
+    }
+  },
+  {
+    "path": "/b/src/336243339/17883629069140053716.mp4",
+    "label": "positive",
+    "variant": "original",
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9817165831396507,
+        "event_at_s": 5.387875000000001
+      },
+      "hard-negative-max": {
+        "score": 0.9766140654525209,
+        "event_at_s": 5.387875000000001
+      },
+      "all-window-control": {
+        "score": 0.9894974464508697,
+        "event_at_s": 5.387875000000001
+      },
+      "nested-selection": {
+        "score": 0.9817165831396507,
+        "event_at_s": 5.387875000000001
+      }
+    }
+  },
+  {
+    "path": "/b/src/336243339/17883629069140053716.mp4",
+    "label": "positive",
+    "variant": "aac-aligned",
+    "transform": {
+      "codec": "aac80",
+      "codec_delay_samples": 341,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.9657937772731728,
+      "aligned": true,
+      "encoded_bytes": 159238,
+      "recipe": {
+        "codec": "aac80",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9794826693768263,
+        "event_at_s": 5.387875000000001
+      },
+      "hard-negative-max": {
+        "score": 0.9767592935174363,
+        "event_at_s": 5.387875000000001
+      },
+      "all-window-control": {
+        "score": 0.9882019784964441,
+        "event_at_s": 5.387875000000001
+      },
+      "nested-selection": {
+        "score": 0.9794826693768263,
+        "event_at_s": 5.387875000000001
+      }
+    }
+  },
+  {
+    "path": "/b/src/336243339/17883629069140053716.mp4",
+    "label": "positive",
+    "variant": "aac16k-aligned",
+    "transform": {
+      "codec": "aac16k96",
+      "codec_delay_samples": 1024,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.9996110041362102,
+      "aligned": true,
+      "encoded_bytes": 168883,
+      "recipe": {
+        "codec": "aac16k96",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9812428667660477,
+        "event_at_s": 5.387812500000001
+      },
+      "hard-negative-max": {
+        "score": 0.9782035047453013,
+        "event_at_s": 5.387812500000001
+      },
+      "all-window-control": {
+        "score": 0.9886663141504676,
+        "event_at_s": 5.387812500000001
+      },
+      "nested-selection": {
+        "score": 0.9812428667660477,
+        "event_at_s": 5.387812500000001
+      }
+    }
+  },
+  {
+    "path": "/b/src/336243339/17883629069140053716.mp4",
+    "label": "positive",
+    "variant": "gain-minus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": -3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.945765889509418,
+        "event_at_s": 5.387875000000001
+      },
+      "hard-negative-max": {
+        "score": 0.9411032034058346,
+        "event_at_s": 7.487875000000001
+      },
+      "all-window-control": {
+        "score": 0.9461741764943903,
+        "event_at_s": 5.387875000000001
+      },
+      "nested-selection": {
+        "score": 0.945765889509418,
+        "event_at_s": 5.387875000000001
+      }
+    }
+  },
+  {
+    "path": "/b/src/336243339/17883629069140053716.mp4",
+    "label": "positive",
+    "variant": "gain-plus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": 3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9853371225269003,
+        "event_at_s": 5.387875000000001
+      },
+      "hard-negative-max": {
+        "score": 0.9827332315664875,
+        "event_at_s": 5.387875000000001
+      },
+      "all-window-control": {
+        "score": 0.9909867050314916,
+        "event_at_s": 5.387875000000001
+      },
+      "nested-selection": {
+        "score": 0.9853371225269003,
+        "event_at_s": 5.387875000000001
+      }
+    }
+  },
+  {
+    "path": "/b/src/336243339/17883629069140053716.mp4",
+    "label": "positive",
+    "variant": "codec-plus-11s",
+    "transform": {
+      "codec": "opus48",
+      "codec_delay_samples": -1,
+      "annotation_delay_samples": 175999,
+      "alignment_correlation": 0.8853291727935423,
+      "aligned": false,
+      "encoded_bytes": 111209,
+      "recipe": {
+        "codec": "opus48",
+        "delay_s": 11
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9801817868958409,
+        "event_at_s": 16.387875
+      },
+      "hard-negative-max": {
+        "score": 0.9757178744553305,
+        "event_at_s": 16.387875
+      },
+      "all-window-control": {
+        "score": 0.9887307636610443,
+        "event_at_s": 16.387875
+      },
+      "nested-selection": {
+        "score": 0.9801817868958409,
+        "event_at_s": 16.387875
+      }
+    }
+  },
+  {
+    "path": "/b/src/336243339/17883659327260384359.webm",
+    "label": "positive",
+    "variant": "original",
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9559657545585676,
+        "event_at_s": 3.4078749999999998
+      },
+      "hard-negative-max": {
+        "score": 0.9467343045375324,
+        "event_at_s": 3.4078749999999998
+      },
+      "all-window-control": {
+        "score": 0.9629131852467309,
+        "event_at_s": 3.4078749999999998
+      },
+      "nested-selection": {
+        "score": 0.9559657545585676,
+        "event_at_s": 3.4078749999999998
+      }
+    }
+  },
+  {
+    "path": "/b/src/336243339/17883659327260384359.webm",
+    "label": "positive",
+    "variant": "aac-aligned",
+    "transform": {
+      "codec": "aac80",
+      "codec_delay_samples": 341,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.9537404759620273,
+      "aligned": true,
+      "encoded_bytes": 109479,
+      "recipe": {
+        "codec": "aac80",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.955856816411715,
+        "event_at_s": 3.4126249999999994
+      },
+      "hard-negative-max": {
+        "score": 0.9457361753440063,
+        "event_at_s": 3.4126249999999994
+      },
+      "all-window-control": {
+        "score": 0.9619478562222236,
+        "event_at_s": 3.4126249999999994
+      },
+      "nested-selection": {
+        "score": 0.955856816411715,
+        "event_at_s": 3.4126249999999994
+      }
+    }
+  },
+  {
+    "path": "/b/src/336243339/17883659327260384359.webm",
+    "label": "positive",
+    "variant": "aac16k-aligned",
+    "transform": {
+      "codec": "aac16k96",
+      "codec_delay_samples": 1024,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.998185030542093,
+      "aligned": true,
+      "encoded_bytes": 112050,
+      "recipe": {
+        "codec": "aac16k96",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9511145544921167,
+        "event_at_s": 3.4078749999999998
+      },
+      "hard-negative-max": {
+        "score": 0.9487204539006474,
+        "event_at_s": 3.4078749999999998
+      },
+      "all-window-control": {
+        "score": 0.9616042769969211,
+        "event_at_s": 3.4078749999999998
+      },
+      "nested-selection": {
+        "score": 0.9511145544921167,
+        "event_at_s": 3.4078749999999998
+      }
+    }
+  },
+  {
+    "path": "/b/src/336243339/17883659327260384359.webm",
+    "label": "positive",
+    "variant": "gain-minus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": -3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9588879998023788,
+        "event_at_s": 3.4182499999999996
+      },
+      "hard-negative-max": {
+        "score": 0.9463483835617014,
+        "event_at_s": 3.4182499999999996
+      },
+      "all-window-control": {
+        "score": 0.9604862082011595,
+        "event_at_s": 3.4182499999999996
+      },
+      "nested-selection": {
+        "score": 0.9588879998023788,
+        "event_at_s": 3.4182499999999996
+      }
+    }
+  },
+  {
+    "path": "/b/src/336243339/17883659327260384359.webm",
+    "label": "positive",
+    "variant": "gain-plus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": 3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9567083144456728,
+        "event_at_s": 3.4078749999999998
+      },
+      "hard-negative-max": {
+        "score": 0.9448432637646774,
+        "event_at_s": 3.4078749999999998
+      },
+      "all-window-control": {
+        "score": 0.9634396557809964,
+        "event_at_s": 3.4078749999999998
+      },
+      "nested-selection": {
+        "score": 0.9567083144456728,
+        "event_at_s": 3.4078749999999998
+      }
+    }
+  },
+  {
+    "path": "/b/src/336243339/17883659327260384359.webm",
+    "label": "positive",
+    "variant": "codec-plus-11s",
+    "transform": {
+      "codec": "opus48",
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 176000,
+      "alignment_correlation": 0.9836049850687802,
+      "aligned": false,
+      "encoded_bytes": 75265,
+      "recipe": {
+        "codec": "opus48",
+        "delay_s": 11
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9494794581560991,
+        "event_at_s": 14.406937500000002
+      },
+      "hard-negative-max": {
+        "score": 0.9414011678920794,
+        "event_at_s": 14.406937500000002
+      },
+      "all-window-control": {
+        "score": 0.9578981762168923,
+        "event_at_s": 14.406937500000002
+      },
+      "nested-selection": {
+        "score": 0.9494794581560991,
+        "event_at_s": 14.406937500000002
+      }
+    }
+  },
+  {
+    "path": "/b/src/336272252/17884174673280229863.mp4",
+    "label": "positive",
+    "variant": "original",
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9950484254291566,
+        "event_at_s": 3.4931875000000003
+      },
+      "hard-negative-max": {
+        "score": 0.9936993814358509,
+        "event_at_s": 3.4931875000000003
+      },
+      "all-window-control": {
+        "score": 0.996610339549262,
+        "event_at_s": 3.4931875000000003
+      },
+      "nested-selection": {
+        "score": 0.9950484254291566,
+        "event_at_s": 3.4931875000000003
+      }
+    }
+  },
+  {
+    "path": "/b/src/336272252/17884174673280229863.mp4",
+    "label": "positive",
+    "variant": "aac-aligned",
+    "transform": {
+      "codec": "aac80",
+      "codec_delay_samples": 341,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.927541958685059,
+      "aligned": true,
+      "encoded_bytes": 40889,
+      "recipe": {
+        "codec": "aac80",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9932528719974001,
+        "event_at_s": 3.0431250000000007
+      },
+      "hard-negative-max": {
+        "score": 0.9927760753757484,
+        "event_at_s": 3.0431250000000007
+      },
+      "all-window-control": {
+        "score": 0.9957744991172792,
+        "event_at_s": 3.0431250000000007
+      },
+      "nested-selection": {
+        "score": 0.9932528719974001,
+        "event_at_s": 3.0431250000000007
+      }
+    }
+  },
+  {
+    "path": "/b/src/336272252/17884174673280229863.mp4",
+    "label": "positive",
+    "variant": "aac16k-aligned",
+    "transform": {
+      "codec": "aac16k96",
+      "codec_delay_samples": 1024,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.997560684029472,
+      "aligned": true,
+      "encoded_bytes": 44132,
+      "recipe": {
+        "codec": "aac16k96",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9946191810914323,
+        "event_at_s": 3.4798125000000004
+      },
+      "hard-negative-max": {
+        "score": 0.9923736982379872,
+        "event_at_s": 3.4798125000000004
+      },
+      "all-window-control": {
+        "score": 0.9964002933307681,
+        "event_at_s": 3.4798125000000004
+      },
+      "nested-selection": {
+        "score": 0.9946191810914323,
+        "event_at_s": 3.4798125000000004
+      }
+    }
+  },
+  {
+    "path": "/b/src/336272252/17884174673280229863.mp4",
+    "label": "positive",
+    "variant": "gain-minus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": -3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9673210309591026,
+        "event_at_s": 3.4932500000000006
+      },
+      "hard-negative-max": {
+        "score": 0.9484090875929237,
+        "event_at_s": 3.4932500000000006
+      },
+      "all-window-control": {
+        "score": 0.9830388654759878,
+        "event_at_s": 2.9932500000000006
+      },
+      "nested-selection": {
+        "score": 0.9673210309591026,
+        "event_at_s": 3.4932500000000006
+      }
+    }
+  },
+  {
+    "path": "/b/src/336272252/17884174673280229863.mp4",
+    "label": "positive",
+    "variant": "gain-plus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": 3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9948597246850919,
+        "event_at_s": 3.493125
+      },
+      "hard-negative-max": {
+        "score": 0.9934318599595742,
+        "event_at_s": 3.493125
+      },
+      "all-window-control": {
+        "score": 0.9964628664479793,
+        "event_at_s": 3.493125
+      },
+      "nested-selection": {
+        "score": 0.9948597246850919,
+        "event_at_s": 3.493125
+      }
+    }
+  },
+  {
+    "path": "/b/src/336272252/17884174673280229863.mp4",
+    "label": "positive",
+    "variant": "codec-plus-11s",
+    "transform": {
+      "codec": "opus48",
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 176000,
+      "alignment_correlation": 0.9708476873537941,
+      "aligned": false,
+      "encoded_bytes": 44807,
+      "recipe": {
+        "codec": "opus48",
+        "delay_s": 11
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.994945546381264,
+        "event_at_s": 14.493187500000001
+      },
+      "hard-negative-max": {
+        "score": 0.9929928745890055,
+        "event_at_s": 14.493187500000001
+      },
+      "all-window-control": {
+        "score": 0.996610339549262,
+        "event_at_s": 14.493187500000001
+      },
+      "nested-selection": {
+        "score": 0.994945546381264,
+        "event_at_s": 14.493187500000001
+      }
+    }
+  },
+  {
+    "path": "/b/src/336272252/17884274747240014140.mp4",
+    "label": "positive",
+    "variant": "original",
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.8614987709561218,
+        "event_at_s": 8.9
+      },
+      "hard-negative-max": {
+        "score": 0.6944431212002802,
+        "event_at_s": 8.9
+      },
+      "all-window-control": {
+        "score": 0.8636061941397438,
+        "event_at_s": 8.9
+      },
+      "nested-selection": {
+        "score": 0.8614987709561218,
+        "event_at_s": 8.9
+      }
+    }
+  },
+  {
+    "path": "/b/src/336272252/17884274747240014140.mp4",
+    "label": "positive",
+    "variant": "aac-aligned",
+    "transform": {
+      "codec": "aac80",
+      "codec_delay_samples": 341,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.9859141353784417,
+      "aligned": true,
+      "encoded_bytes": 134143,
+      "recipe": {
+        "codec": "aac80",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.8611957795104717,
+        "event_at_s": 9.600000000000001
+      },
+      "hard-negative-max": {
+        "score": 0.7646075806375208,
+        "event_at_s": 9.600000000000001
+      },
+      "all-window-control": {
+        "score": 0.8205357467214995,
+        "event_at_s": 9.600000000000001
+      },
+      "nested-selection": {
+        "score": 0.8611957795104717,
+        "event_at_s": 9.600000000000001
+      }
+    }
+  },
+  {
+    "path": "/b/src/336272252/17884274747240014140.mp4",
+    "label": "positive",
+    "variant": "aac16k-aligned",
+    "transform": {
+      "codec": "aac16k96",
+      "codec_delay_samples": 1024,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.9972765243754457,
+      "aligned": true,
+      "encoded_bytes": 157346,
+      "recipe": {
+        "codec": "aac16k96",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.8717318547622873,
+        "event_at_s": 8.9
+      },
+      "hard-negative-max": {
+        "score": 0.7035995387274006,
+        "event_at_s": 8.9
+      },
+      "all-window-control": {
+        "score": 0.8556729638149364,
+        "event_at_s": 8.9
+      },
+      "nested-selection": {
+        "score": 0.8717318547622873,
+        "event_at_s": 8.9
+      }
+    }
+  },
+  {
+    "path": "/b/src/336272252/17884274747240014140.mp4",
+    "label": "positive",
+    "variant": "gain-minus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": -3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.8581732502343835,
+        "event_at_s": 8.9
+      },
+      "hard-negative-max": {
+        "score": 0.7218244525210287,
+        "event_at_s": 8.9
+      },
+      "all-window-control": {
+        "score": 0.9046643430039379,
+        "event_at_s": 8.9
+      },
+      "nested-selection": {
+        "score": 0.8581732502343835,
+        "event_at_s": 8.9
+      }
+    }
+  },
+  {
+    "path": "/b/src/336272252/17884274747240014140.mp4",
+    "label": "positive",
+    "variant": "gain-plus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": 3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.8621757412163582,
+        "event_at_s": 9.700000000000001
+      },
+      "hard-negative-max": {
+        "score": 0.7611698588414377,
+        "event_at_s": 9.700000000000001
+      },
+      "all-window-control": {
+        "score": 0.8694151932169741,
+        "event_at_s": 8.9
+      },
+      "nested-selection": {
+        "score": 0.8621757412163582,
+        "event_at_s": 9.700000000000001
+      }
+    }
+  },
+  {
+    "path": "/b/src/336272252/17884274747240014140.mp4",
+    "label": "positive",
+    "variant": "codec-plus-11s",
+    "transform": {
+      "codec": "opus48",
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 176000,
+      "alignment_correlation": 0.9734090306920553,
+      "aligned": false,
+      "encoded_bytes": 121644,
+      "recipe": {
+        "codec": "opus48",
+        "delay_s": 11
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.8170432806012736,
+        "event_at_s": 19.898625000000003
+      },
+      "hard-negative-max": {
+        "score": 0.6975594443678603,
+        "event_at_s": 19.898625000000003
+      },
+      "all-window-control": {
+        "score": 0.8512055563769074,
+        "event_at_s": 19.898625000000003
+      },
+      "nested-selection": {
+        "score": 0.8170432806012736,
+        "event_at_s": 19.898625000000003
+      }
+    }
+  },
+  {
+    "path": "/b/src/336291305/17885024222391568056.mp4",
+    "label": "positive",
+    "variant": "original",
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.96859632647817,
+        "event_at_s": 9.090062500000002
+      },
+      "hard-negative-max": {
+        "score": 0.9571129844189542,
+        "event_at_s": 9.090062500000002
+      },
+      "all-window-control": {
+        "score": 0.9855302349489116,
+        "event_at_s": 9.590062500000002
+      },
+      "nested-selection": {
+        "score": 0.96859632647817,
+        "event_at_s": 9.090062500000002
+      }
+    }
+  },
+  {
+    "path": "/b/src/336291305/17885024222391568056.mp4",
+    "label": "positive",
+    "variant": "aac-aligned",
+    "transform": {
+      "codec": "aac80",
+      "codec_delay_samples": 341,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.971804765966778,
+      "aligned": true,
+      "encoded_bytes": 157601,
+      "recipe": {
+        "codec": "aac80",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9715874881425368,
+        "event_at_s": 9.090125
+      },
+      "hard-negative-max": {
+        "score": 0.9534376564307886,
+        "event_at_s": 9.090125
+      },
+      "all-window-control": {
+        "score": 0.9856685085117278,
+        "event_at_s": 9.090125
+      },
+      "nested-selection": {
+        "score": 0.9715874881425368,
+        "event_at_s": 9.090125
+      }
+    }
+  },
+  {
+    "path": "/b/src/336291305/17885024222391568056.mp4",
+    "label": "positive",
+    "variant": "aac16k-aligned",
+    "transform": {
+      "codec": "aac16k96",
+      "codec_delay_samples": 1024,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.9995005757103542,
+      "aligned": true,
+      "encoded_bytes": 167413,
+      "recipe": {
+        "codec": "aac16k96",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9678575691806803,
+        "event_at_s": 9.085250000000002
+      },
+      "hard-negative-max": {
+        "score": 0.9521512263034488,
+        "event_at_s": 9.085250000000002
+      },
+      "all-window-control": {
+        "score": 0.9829554931480099,
+        "event_at_s": 9.085250000000002
+      },
+      "nested-selection": {
+        "score": 0.9678575691806803,
+        "event_at_s": 9.085250000000002
+      }
+    }
+  },
+  {
+    "path": "/b/src/336291305/17885024222391568056.mp4",
+    "label": "positive",
+    "variant": "gain-minus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": -3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.8689037941975135,
+        "event_at_s": 9.591250000000002
+      },
+      "hard-negative-max": {
+        "score": 0.8179793216449497,
+        "event_at_s": 9.091250000000002
+      },
+      "all-window-control": {
+        "score": 0.9286798702202892,
+        "event_at_s": 9.591250000000002
+      },
+      "nested-selection": {
+        "score": 0.8689037941975135,
+        "event_at_s": 9.591250000000002
+      }
+    }
+  },
+  {
+    "path": "/b/src/336291305/17885024222391568056.mp4",
+    "label": "positive",
+    "variant": "gain-plus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": 3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9784091161888014,
+        "event_at_s": 9.087687500000001
+      },
+      "hard-negative-max": {
+        "score": 0.9656051642405742,
+        "event_at_s": 9.587687500000001
+      },
+      "all-window-control": {
+        "score": 0.9842894601862864,
+        "event_at_s": 9.587687500000001
+      },
+      "nested-selection": {
+        "score": 0.9784091161888014,
+        "event_at_s": 9.087687500000001
+      }
+    }
+  },
+  {
+    "path": "/b/src/336291305/17885024222391568056.mp4",
+    "label": "positive",
+    "variant": "codec-plus-11s",
+    "transform": {
+      "codec": "opus48",
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 176000,
+      "alignment_correlation": 0.9957651829867002,
+      "aligned": false,
+      "encoded_bytes": 138893,
+      "recipe": {
+        "codec": "opus48",
+        "delay_s": 11
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9677909858696216,
+        "event_at_s": 20.091125
+      },
+      "hard-negative-max": {
+        "score": 0.9516601235101454,
+        "event_at_s": 20.091125
+      },
+      "all-window-control": {
+        "score": 0.9808695105670948,
+        "event_at_s": 20.591125
+      },
+      "nested-selection": {
+        "score": 0.9677909858696216,
+        "event_at_s": 20.091125
+      }
+    }
+  },
+  {
+    "path": "/b/src/336291305/17885426225650373621.mp4",
+    "label": "negative",
+    "variant": "original",
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.17509923311231684,
+        "event_at_s": 15.25
+      },
+      "hard-negative-max": {
+        "score": 0.2072094903953694,
+        "event_at_s": 15.25
+      },
+      "all-window-control": {
+        "score": 0.32288930999973775,
+        "event_at_s": 15.25
+      },
+      "nested-selection": {
+        "score": 0.17509923311231684,
+        "event_at_s": 15.25
+      }
+    }
+  },
+  {
+    "path": "/b/src/336291305/17885426225650373621.mp4",
+    "label": "negative",
+    "variant": "aac-aligned",
+    "transform": {
+      "codec": "aac80",
+      "codec_delay_samples": 341,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.9974424645166431,
+      "aligned": true,
+      "encoded_bytes": 367957,
+      "recipe": {
+        "codec": "aac80",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.15041643870850718,
+        "event_at_s": 13.600000000000001
+      },
+      "hard-negative-max": {
+        "score": 0.07483646065256315,
+        "event_at_s": 26.9
+      },
+      "all-window-control": {
+        "score": 0.31530677498553417,
+        "event_at_s": 13.600000000000001
+      },
+      "nested-selection": {
+        "score": 0.15041643870850718,
+        "event_at_s": 13.600000000000001
+      }
+    }
+  },
+  {
+    "path": "/b/src/336291305/17885426225650373621.mp4",
+    "label": "negative",
+    "variant": "aac16k-aligned",
+    "transform": {
+      "codec": "aac16k96",
+      "codec_delay_samples": 1024,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.9996818857411258,
+      "aligned": true,
+      "encoded_bytes": 381616,
+      "recipe": {
+        "codec": "aac16k96",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.08156637209826377,
+        "event_at_s": 15.25
+      },
+      "hard-negative-max": {
+        "score": 0.1303840303457887,
+        "event_at_s": 15.25
+      },
+      "all-window-control": {
+        "score": 0.2843813360802429,
+        "event_at_s": 15.25
+      },
+      "nested-selection": {
+        "score": 0.08156637209826377,
+        "event_at_s": 15.25
+      }
+    }
+  },
+  {
+    "path": "/b/src/336291305/17885426225650373621.mp4",
+    "label": "negative",
+    "variant": "gain-minus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": -3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.09162148933890756,
+        "event_at_s": 26.9
+      },
+      "hard-negative-max": {
+        "score": 0.0397440743422602,
+        "event_at_s": 15.25
+      },
+      "all-window-control": {
+        "score": 0.29483124001727395,
+        "event_at_s": 14.200000000000003
+      },
+      "nested-selection": {
+        "score": 0.09162148933890756,
+        "event_at_s": 26.9
+      }
+    }
+  },
+  {
+    "path": "/b/src/336291305/17885426225650373621.mp4",
+    "label": "negative",
+    "variant": "gain-plus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": 3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.5425836308176512,
+        "event_at_s": 28.800000000000004
+      },
+      "hard-negative-max": {
+        "score": 0.3626416798483793,
+        "event_at_s": 13.55
+      },
+      "all-window-control": {
+        "score": 0.6833606611101742,
+        "event_at_s": 13.55
+      },
+      "nested-selection": {
+        "score": 0.5425836308176512,
+        "event_at_s": 28.800000000000004
+      }
+    }
+  },
+  {
+    "path": "/b/src/336291305/17885426225650373621.mp4",
+    "label": "negative",
+    "variant": "codec-plus-11s",
+    "transform": {
+      "codec": "opus48",
+      "codec_delay_samples": -1,
+      "annotation_delay_samples": 175999,
+      "alignment_correlation": 0.9993528660958019,
+      "aligned": false,
+      "encoded_bytes": 225689,
+      "recipe": {
+        "codec": "opus48",
+        "delay_s": 11
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.13070823945206714,
+        "event_at_s": 24.597562500000002
+      },
+      "hard-negative-max": {
+        "score": 0.12423270495558308,
+        "event_at_s": 26.2475625
+      },
+      "all-window-control": {
+        "score": 0.2984677605671022,
+        "event_at_s": 26.2475625
+      },
+      "nested-selection": {
+        "score": 0.13070823945206714,
+        "event_at_s": 24.597562500000002
+      }
+    }
+  },
+  {
+    "path": "/b/src/336291305/17885460222141837902.mp4",
+    "label": "positive",
+    "variant": "original",
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9571903468302049,
+        "event_at_s": 3.9990000000000014
+      },
+      "hard-negative-max": {
+        "score": 0.9496614198513584,
+        "event_at_s": 3.9990000000000014
+      },
+      "all-window-control": {
+        "score": 0.9773870190889472,
+        "event_at_s": 3.9990000000000014
+      },
+      "nested-selection": {
+        "score": 0.9571903468302049,
+        "event_at_s": 3.9990000000000014
+      }
+    }
+  },
+  {
+    "path": "/b/src/336291305/17885460222141837902.mp4",
+    "label": "positive",
+    "variant": "aac-aligned",
+    "transform": {
+      "codec": "aac80",
+      "codec_delay_samples": 341,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.9738984317616213,
+      "aligned": true,
+      "encoded_bytes": 429465,
+      "recipe": {
+        "codec": "aac80",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.95417285679709,
+        "event_at_s": 3.9990000000000014
+      },
+      "hard-negative-max": {
+        "score": 0.9417770875375903,
+        "event_at_s": 3.9990000000000014
+      },
+      "all-window-control": {
+        "score": 0.9711422768990433,
+        "event_at_s": 3.9990000000000014
+      },
+      "nested-selection": {
+        "score": 0.95417285679709,
+        "event_at_s": 3.9990000000000014
+      }
+    }
+  },
+  {
+    "path": "/b/src/336291305/17885460222141837902.mp4",
+    "label": "positive",
+    "variant": "aac16k-aligned",
+    "transform": {
+      "codec": "aac16k96",
+      "codec_delay_samples": 1024,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.9982836072776882,
+      "aligned": true,
+      "encoded_bytes": 501516,
+      "recipe": {
+        "codec": "aac16k96",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9500135339233837,
+        "event_at_s": 19.6224375
+      },
+      "hard-negative-max": {
+        "score": 0.9434618805674039,
+        "event_at_s": 3.3224375000000004
+      },
+      "all-window-control": {
+        "score": 0.972150054680864,
+        "event_at_s": 3.3224375000000004
+      },
+      "nested-selection": {
+        "score": 0.9500135339233837,
+        "event_at_s": 19.6224375
+      }
+    }
+  },
+  {
+    "path": "/b/src/336291305/17885460222141837902.mp4",
+    "label": "positive",
+    "variant": "gain-minus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": -3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.8044184013854305,
+        "event_at_s": 3.9595625000000005
+      },
+      "hard-negative-max": {
+        "score": 0.7995097632196982,
+        "event_at_s": 31.5595625
+      },
+      "all-window-control": {
+        "score": 0.8939491618063475,
+        "event_at_s": 2.8095625
+      },
+      "nested-selection": {
+        "score": 0.8044184013854305,
+        "event_at_s": 3.9595625000000005
+      }
+    }
+  },
+  {
+    "path": "/b/src/336291305/17885460222141837902.mp4",
+    "label": "positive",
+    "variant": "gain-plus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": 3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9598081997817198,
+        "event_at_s": 3.996875000000001
+      },
+      "hard-negative-max": {
+        "score": 0.9558033088229249,
+        "event_at_s": 3.996875000000001
+      },
+      "all-window-control": {
+        "score": 0.974358172202139,
+        "event_at_s": 3.996875000000001
+      },
+      "nested-selection": {
+        "score": 0.9598081997817198,
+        "event_at_s": 3.996875000000001
+      }
+    }
+  },
+  {
+    "path": "/b/src/336291305/17885460222141837902.mp4",
+    "label": "positive",
+    "variant": "codec-plus-11s",
+    "transform": {
+      "codec": "opus48",
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 176000,
+      "alignment_correlation": 0.8478747751104894,
+      "aligned": false,
+      "encoded_bytes": 319534,
+      "recipe": {
+        "codec": "opus48",
+        "delay_s": 11
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9610105053042374,
+        "event_at_s": 14.999
+      },
+      "hard-negative-max": {
+        "score": 0.9525720613829018,
+        "event_at_s": 14.999
+      },
+      "all-window-control": {
+        "score": 0.9766856983112826,
+        "event_at_s": 14.999
+      },
+      "nested-selection": {
+        "score": 0.9610105053042374,
+        "event_at_s": 14.999
+      }
+    }
+  },
+  {
+    "path": "/b/src/336291305/17885474189950590427.webm",
+    "label": "positive",
+    "variant": "original",
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9432531298880893,
+        "event_at_s": 2.5646250000000004
+      },
+      "hard-negative-max": {
+        "score": 0.9375208574286653,
+        "event_at_s": 2.5646250000000004
+      },
+      "all-window-control": {
+        "score": 0.9723170814655621,
+        "event_at_s": 2.5646250000000004
+      },
+      "nested-selection": {
+        "score": 0.9432531298880893,
+        "event_at_s": 2.5646250000000004
+      }
+    }
+  },
+  {
+    "path": "/b/src/336291305/17885474189950590427.webm",
+    "label": "positive",
+    "variant": "aac-aligned",
+    "transform": {
+      "codec": "aac80",
+      "codec_delay_samples": 341,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.9835990088435508,
+      "aligned": true,
+      "encoded_bytes": 50160,
+      "recipe": {
+        "codec": "aac80",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.861574641566287,
+        "event_at_s": 2.6005624999999997
+      },
+      "hard-negative-max": {
+        "score": 0.8405783395391315,
+        "event_at_s": 2.6005624999999997
+      },
+      "all-window-control": {
+        "score": 0.9313496730300619,
+        "event_at_s": 2.6005624999999997
+      },
+      "nested-selection": {
+        "score": 0.861574641566287,
+        "event_at_s": 2.6005624999999997
+      }
+    }
+  },
+  {
+    "path": "/b/src/336291305/17885474189950590427.webm",
+    "label": "positive",
+    "variant": "aac16k-aligned",
+    "transform": {
+      "codec": "aac16k96",
+      "codec_delay_samples": 1024,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.9992833439435646,
+      "aligned": true,
+      "encoded_bytes": 51289,
+      "recipe": {
+        "codec": "aac16k96",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9411285205211318,
+        "event_at_s": 2.5999999999999996
+      },
+      "hard-negative-max": {
+        "score": 0.9034058953049792,
+        "event_at_s": 2.5999999999999996
+      },
+      "all-window-control": {
+        "score": 0.9782061104593678,
+        "event_at_s": 2.5999999999999996
+      },
+      "nested-selection": {
+        "score": 0.9411285205211318,
+        "event_at_s": 2.5999999999999996
+      }
+    }
+  },
+  {
+    "path": "/b/src/336291305/17885474189950590427.webm",
+    "label": "positive",
+    "variant": "gain-minus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": -3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.8202631410974481,
+        "event_at_s": 2.5651875000000004
+      },
+      "hard-negative-max": {
+        "score": 0.5669311733268827,
+        "event_at_s": 2.5651875000000004
+      },
+      "all-window-control": {
+        "score": 0.8907179154295739,
+        "event_at_s": 2.5651875000000004
+      },
+      "nested-selection": {
+        "score": 0.8202631410974481,
+        "event_at_s": 2.5651875000000004
+      }
+    }
+  },
+  {
+    "path": "/b/src/336291305/17885474189950590427.webm",
+    "label": "positive",
+    "variant": "gain-plus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": 3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.982112514877247,
+        "event_at_s": 2.5645000000000007
+      },
+      "hard-negative-max": {
+        "score": 0.9604653598125615,
+        "event_at_s": 2.5645000000000007
+      },
+      "all-window-control": {
+        "score": 0.9724111657987791,
+        "event_at_s": 3.8145000000000007
+      },
+      "nested-selection": {
+        "score": 0.982112514877247,
+        "event_at_s": 2.5645000000000007
+      }
+    }
+  },
+  {
+    "path": "/b/src/336291305/17885474189950590427.webm",
+    "label": "positive",
+    "variant": "codec-plus-11s",
+    "transform": {
+      "codec": "opus48",
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 176000,
+      "alignment_correlation": 0.9973706198158975,
+      "aligned": false,
+      "encoded_bytes": 41392,
+      "recipe": {
+        "codec": "opus48",
+        "delay_s": 11
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9331883971602974,
+        "event_at_s": 13.5648125
+      },
+      "hard-negative-max": {
+        "score": 0.8862457832293965,
+        "event_at_s": 13.5648125
+      },
+      "all-window-control": {
+        "score": 0.9675275358018627,
+        "event_at_s": 13.5648125
+      },
+      "nested-selection": {
+        "score": 0.9331883971602974,
+        "event_at_s": 13.5648125
+      }
+    }
+  },
+  {
+    "path": "/b/src/336291305/17885487431220276835.mp4",
+    "label": "positive",
+    "variant": "original",
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9921798332578616,
+        "event_at_s": 2.979187500000001
+      },
+      "hard-negative-max": {
+        "score": 0.9863073831479636,
+        "event_at_s": 2.979187500000001
+      },
+      "all-window-control": {
+        "score": 0.9962006961043834,
+        "event_at_s": 2.979187500000001
+      },
+      "nested-selection": {
+        "score": 0.9921798332578616,
+        "event_at_s": 2.979187500000001
+      }
+    }
+  },
+  {
+    "path": "/b/src/336291305/17885487431220276835.mp4",
+    "label": "positive",
+    "variant": "aac-aligned",
+    "transform": {
+      "codec": "aac80",
+      "codec_delay_samples": 341,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.9693433959240915,
+      "aligned": true,
+      "encoded_bytes": 50390,
+      "recipe": {
+        "codec": "aac80",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9912572778493943,
+        "event_at_s": 2.979187500000001
+      },
+      "hard-negative-max": {
+        "score": 0.987179391855883,
+        "event_at_s": 2.979187500000001
+      },
+      "all-window-control": {
+        "score": 0.995716504025521,
+        "event_at_s": 2.979187500000001
+      },
+      "nested-selection": {
+        "score": 0.9912572778493943,
+        "event_at_s": 2.979187500000001
+      }
+    }
+  },
+  {
+    "path": "/b/src/336291305/17885487431220276835.mp4",
+    "label": "positive",
+    "variant": "aac16k-aligned",
+    "transform": {
+      "codec": "aac16k96",
+      "codec_delay_samples": 1024,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.9995888859309979,
+      "aligned": true,
+      "encoded_bytes": 51578,
+      "recipe": {
+        "codec": "aac16k96",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9918811951080728,
+        "event_at_s": 2.9791250000000007
+      },
+      "hard-negative-max": {
+        "score": 0.9856053207516072,
+        "event_at_s": 2.9791250000000007
+      },
+      "all-window-control": {
+        "score": 0.995946342511582,
+        "event_at_s": 2.9791250000000007
+      },
+      "nested-selection": {
+        "score": 0.9918811951080728,
+        "event_at_s": 2.9791250000000007
+      }
+    }
+  },
+  {
+    "path": "/b/src/336291305/17885487431220276835.mp4",
+    "label": "positive",
+    "variant": "gain-minus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": -3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9892549482077475,
+        "event_at_s": 2.980125000000001
+      },
+      "hard-negative-max": {
+        "score": 0.9889594610113442,
+        "event_at_s": 2.980125000000001
+      },
+      "all-window-control": {
+        "score": 0.9940471228487361,
+        "event_at_s": 2.980125000000001
+      },
+      "nested-selection": {
+        "score": 0.9892549482077475,
+        "event_at_s": 2.980125000000001
+      }
+    }
+  },
+  {
+    "path": "/b/src/336291305/17885487431220276835.mp4",
+    "label": "positive",
+    "variant": "gain-plus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": 3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9920842545656713,
+        "event_at_s": 2.9786875000000013
+      },
+      "hard-negative-max": {
+        "score": 0.9859379456419434,
+        "event_at_s": 2.9786875000000013
+      },
+      "all-window-control": {
+        "score": 0.9963393881464255,
+        "event_at_s": 2.9786875000000013
+      },
+      "nested-selection": {
+        "score": 0.9920842545656713,
+        "event_at_s": 2.9786875000000013
+      }
+    }
+  },
+  {
+    "path": "/b/src/336291305/17885487431220276835.mp4",
+    "label": "positive",
+    "variant": "codec-plus-11s",
+    "transform": {
+      "codec": "opus48",
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 176000,
+      "alignment_correlation": 0.9939644584246993,
+      "aligned": false,
+      "encoded_bytes": 41187,
+      "recipe": {
+        "codec": "opus48",
+        "delay_s": 11
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9917044380665667,
+        "event_at_s": 13.979187500000002
+      },
+      "hard-negative-max": {
+        "score": 0.9856053207516074,
+        "event_at_s": 13.979187500000002
+      },
+      "all-window-control": {
+        "score": 0.9959081614490692,
+        "event_at_s": 13.979187500000002
+      },
+      "nested-selection": {
+        "score": 0.9917044380665667,
+        "event_at_s": 13.979187500000002
+      }
+    }
+  },
+  {
+    "path": "/b/src/336466927/17890640049030714798.webm",
+    "label": "positive",
+    "variant": "original",
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9067438733599017,
+        "event_at_s": 59.86862500000001
+      },
+      "hard-negative-max": {
+        "score": 0.8915182243099836,
+        "event_at_s": 59.86862500000001
+      },
+      "all-window-control": {
+        "score": 0.9435456768250667,
+        "event_at_s": 10.118625000000002
+      },
+      "nested-selection": {
+        "score": 0.9067438733599017,
+        "event_at_s": 59.86862500000001
+      }
+    }
+  },
+  {
+    "path": "/b/src/336466927/17890640049030714798.webm",
+    "label": "positive",
+    "variant": "aac-aligned",
+    "transform": {
+      "codec": "aac80",
+      "codec_delay_samples": 341,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.9937719975776779,
+      "aligned": true,
+      "encoded_bytes": 598039,
+      "recipe": {
+        "codec": "aac80",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.809597359489816,
+        "event_at_s": 59.86862500000001
+      },
+      "hard-negative-max": {
+        "score": 0.7825260096217969,
+        "event_at_s": 10.118625000000002
+      },
+      "all-window-control": {
+        "score": 0.8991678866264465,
+        "event_at_s": 10.118625000000002
+      },
+      "nested-selection": {
+        "score": 0.809597359489816,
+        "event_at_s": 59.86862500000001
+      }
+    }
+  },
+  {
+    "path": "/b/src/336466927/17890640049030714798.webm",
+    "label": "positive",
+    "variant": "aac16k-aligned",
+    "transform": {
+      "codec": "aac16k96",
+      "codec_delay_samples": 1024,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.9987197306064742,
+      "aligned": true,
+      "encoded_bytes": 700704,
+      "recipe": {
+        "codec": "aac16k96",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9220004094942994,
+        "event_at_s": 59.900000000000006
+      },
+      "hard-negative-max": {
+        "score": 0.9019449440822898,
+        "event_at_s": 59.900000000000006
+      },
+      "all-window-control": {
+        "score": 0.9351471408721519,
+        "event_at_s": 10.100000000000001
+      },
+      "nested-selection": {
+        "score": 0.9220004094942994,
+        "event_at_s": 59.900000000000006
+      }
+    }
+  },
+  {
+    "path": "/b/src/336466927/17890640049030714798.webm",
+    "label": "positive",
+    "variant": "gain-minus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": -3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.8546916165402918,
+        "event_at_s": 59.86862500000001
+      },
+      "hard-negative-max": {
+        "score": 0.8590837424479235,
+        "event_at_s": 59.86862500000001
+      },
+      "all-window-control": {
+        "score": 0.918002260669768,
+        "event_at_s": 10.118625000000002
+      },
+      "nested-selection": {
+        "score": 0.8546916165402918,
+        "event_at_s": 59.86862500000001
+      }
+    }
+  },
+  {
+    "path": "/b/src/336466927/17890640049030714798.webm",
+    "label": "positive",
+    "variant": "gain-plus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": 3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.929508755157285,
+        "event_at_s": 59.868437500000006
+      },
+      "hard-negative-max": {
+        "score": 0.9055926842363663,
+        "event_at_s": 59.868437500000006
+      },
+      "all-window-control": {
+        "score": 0.9528546173431035,
+        "event_at_s": 59.868437500000006
+      },
+      "nested-selection": {
+        "score": 0.929508755157285,
+        "event_at_s": 59.868437500000006
+      }
+    }
+  },
+  {
+    "path": "/b/src/336466927/17890640049030714798.webm",
+    "label": "positive",
+    "variant": "codec-plus-11s",
+    "transform": {
+      "codec": "opus48",
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 176000,
+      "alignment_correlation": 0.9875287896641283,
+      "aligned": false,
+      "encoded_bytes": 529988,
+      "recipe": {
+        "codec": "opus48",
+        "delay_s": 11
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9096469949500506,
+        "event_at_s": 70.86875
+      },
+      "hard-negative-max": {
+        "score": 0.8941888884673768,
+        "event_at_s": 70.86875
+      },
+      "all-window-control": {
+        "score": 0.9352901190240757,
+        "event_at_s": 21.118750000000002
+      },
+      "nested-selection": {
+        "score": 0.9096469949500506,
+        "event_at_s": 70.86875
+      }
+    }
+  },
+  {
+    "path": "/b/src/336723954/17898262773380676776.webm",
+    "label": "positive",
+    "variant": "original",
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9829255162102105,
+        "event_at_s": 26.4
+      },
+      "hard-negative-max": {
+        "score": 0.9732158429166267,
+        "event_at_s": 26.4
+      },
+      "all-window-control": {
+        "score": 0.9916421456391975,
+        "event_at_s": 27.4
+      },
+      "nested-selection": {
+        "score": 0.9829255162102105,
+        "event_at_s": 26.4
+      }
+    }
+  },
+  {
+    "path": "/b/src/336723954/17898262773380676776.webm",
+    "label": "positive",
+    "variant": "aac-aligned",
+    "transform": {
+      "codec": "aac80",
+      "codec_delay_samples": 341,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.9312524989346513,
+      "aligned": true,
+      "encoded_bytes": 319604,
+      "recipe": {
+        "codec": "aac80",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9860242684903028,
+        "event_at_s": 26.85
+      },
+      "hard-negative-max": {
+        "score": 0.971197402189518,
+        "event_at_s": 26.85
+      },
+      "all-window-control": {
+        "score": 0.9931954182286461,
+        "event_at_s": 27.35
+      },
+      "nested-selection": {
+        "score": 0.9860242684903028,
+        "event_at_s": 26.85
+      }
+    }
+  },
+  {
+    "path": "/b/src/336723954/17898262773380676776.webm",
+    "label": "positive",
+    "variant": "aac16k-aligned",
+    "transform": {
+      "codec": "aac16k96",
+      "codec_delay_samples": 1024,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.9968162587028657,
+      "aligned": true,
+      "encoded_bytes": 335708,
+      "recipe": {
+        "codec": "aac16k96",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9811399723800401,
+        "event_at_s": 26.4
+      },
+      "hard-negative-max": {
+        "score": 0.9687048817134797,
+        "event_at_s": 26.4
+      },
+      "all-window-control": {
+        "score": 0.9902958930936486,
+        "event_at_s": 27.4
+      },
+      "nested-selection": {
+        "score": 0.9811399723800401,
+        "event_at_s": 26.4
+      }
+    }
+  },
+  {
+    "path": "/b/src/336723954/17898262773380676776.webm",
+    "label": "positive",
+    "variant": "gain-minus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": -3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9881457996195312,
+        "event_at_s": 26.4
+      },
+      "hard-negative-max": {
+        "score": 0.9801302383664467,
+        "event_at_s": 27.4
+      },
+      "all-window-control": {
+        "score": 0.9939996534968367,
+        "event_at_s": 26.4
+      },
+      "nested-selection": {
+        "score": 0.9881457996195312,
+        "event_at_s": 26.4
+      }
+    }
+  },
+  {
+    "path": "/b/src/336723954/17898262773380676776.webm",
+    "label": "positive",
+    "variant": "gain-plus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": 3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.979937577489034,
+        "event_at_s": 26.4
+      },
+      "hard-negative-max": {
+        "score": 0.9703776586485463,
+        "event_at_s": 26.4
+      },
+      "all-window-control": {
+        "score": 0.9906497680732421,
+        "event_at_s": 26.4
+      },
+      "nested-selection": {
+        "score": 0.979937577489034,
+        "event_at_s": 26.4
+      }
+    }
+  },
+  {
+    "path": "/b/src/336723954/17898262773380676776.webm",
+    "label": "positive",
+    "variant": "codec-plus-11s",
+    "transform": {
+      "codec": "opus48",
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 176000,
+      "alignment_correlation": 0.9651846539623165,
+      "aligned": false,
+      "encoded_bytes": 223635,
+      "recipe": {
+        "codec": "opus48",
+        "delay_s": 11
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9904961120663531,
+        "event_at_s": 37.399812499999996
+      },
+      "hard-negative-max": {
+        "score": 0.9851958614291391,
+        "event_at_s": 37.399812499999996
+      },
+      "all-window-control": {
+        "score": 0.9953807341885742,
+        "event_at_s": 38.399812499999996
+      },
+      "nested-selection": {
+        "score": 0.9904961120663531,
+        "event_at_s": 37.399812499999996
+      }
+    }
+  },
+  {
+    "path": "/b/src/336991612/17907067660803027078.mp4",
+    "label": "positive",
+    "variant": "original",
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.984660176467061,
+        "event_at_s": 2.9225000000000003
+      },
+      "hard-negative-max": {
+        "score": 0.9810476278537807,
+        "event_at_s": 1.6725000000000003
+      },
+      "all-window-control": {
+        "score": 0.986592170859574,
+        "event_at_s": 2.9225000000000003
+      },
+      "nested-selection": {
+        "score": 0.984660176467061,
+        "event_at_s": 2.9225000000000003
+      }
+    }
+  },
+  {
+    "path": "/b/src/336991612/17907067660803027078.mp4",
+    "label": "positive",
+    "variant": "aac-aligned",
+    "transform": {
+      "codec": "aac80",
+      "codec_delay_samples": 341,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.9442900058057114,
+      "aligned": true,
+      "encoded_bytes": 155270,
+      "recipe": {
+        "codec": "aac80",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9783977905140431,
+        "event_at_s": 2.922062500000001
+      },
+      "hard-negative-max": {
+        "score": 0.9762219833323801,
+        "event_at_s": 2.3220625000000013
+      },
+      "all-window-control": {
+        "score": 0.9810612583326719,
+        "event_at_s": 2.922062500000001
+      },
+      "nested-selection": {
+        "score": 0.9783977905140431,
+        "event_at_s": 2.922062500000001
+      }
+    }
+  },
+  {
+    "path": "/b/src/336991612/17907067660803027078.mp4",
+    "label": "positive",
+    "variant": "aac16k-aligned",
+    "transform": {
+      "codec": "aac16k96",
+      "codec_delay_samples": 1024,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.9979167711305404,
+      "aligned": true,
+      "encoded_bytes": 153417,
+      "recipe": {
+        "codec": "aac16k96",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9839893067659032,
+        "event_at_s": 2.916125000000001
+      },
+      "hard-negative-max": {
+        "score": 0.9807266918651956,
+        "event_at_s": 1.7161250000000008
+      },
+      "all-window-control": {
+        "score": 0.9866801839892657,
+        "event_at_s": 2.916125000000001
+      },
+      "nested-selection": {
+        "score": 0.9839893067659032,
+        "event_at_s": 2.916125000000001
+      }
+    }
+  },
+  {
+    "path": "/b/src/336991612/17907067660803027078.mp4",
+    "label": "positive",
+    "variant": "gain-minus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": -3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9667420459107711,
+        "event_at_s": 2.9227500000000006
+      },
+      "hard-negative-max": {
+        "score": 0.9609433670380803,
+        "event_at_s": 2.9227500000000006
+      },
+      "all-window-control": {
+        "score": 0.9792561796397127,
+        "event_at_s": 2.9227500000000006
+      },
+      "nested-selection": {
+        "score": 0.9667420459107711,
+        "event_at_s": 2.9227500000000006
+      }
+    }
+  },
+  {
+    "path": "/b/src/336991612/17907067660803027078.mp4",
+    "label": "positive",
+    "variant": "gain-plus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": 3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9850238454899697,
+        "event_at_s": 2.8724999999999996
+      },
+      "hard-negative-max": {
+        "score": 0.9818127968635051,
+        "event_at_s": 2.8724999999999996
+      },
+      "all-window-control": {
+        "score": 0.9865191750102744,
+        "event_at_s": 2.8724999999999996
+      },
+      "nested-selection": {
+        "score": 0.9850238454899697,
+        "event_at_s": 2.8724999999999996
+      }
+    }
+  },
+  {
+    "path": "/b/src/336991612/17907067660803027078.mp4",
+    "label": "positive",
+    "variant": "codec-plus-11s",
+    "transform": {
+      "codec": "opus48",
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 176000,
+      "alignment_correlation": 0.9815933597583539,
+      "aligned": false,
+      "encoded_bytes": 107769,
+      "recipe": {
+        "codec": "opus48",
+        "delay_s": 11
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9856886642061028,
+        "event_at_s": 13.923562500000001
+      },
+      "hard-negative-max": {
+        "score": 0.9824255537150516,
+        "event_at_s": 12.673562500000001
+      },
+      "all-window-control": {
+        "score": 0.9864257964377624,
+        "event_at_s": 13.923562500000001
+      },
+      "nested-selection": {
+        "score": 0.9856886642061028,
+        "event_at_s": 13.923562500000001
+      }
+    }
+  },
+  {
+    "path": "/b/src/336991612/17907090692410007259.webm",
+    "label": "positive",
+    "variant": "original",
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9585730613157876,
+        "event_at_s": 2.4000000000000004
+      },
+      "hard-negative-max": {
+        "score": 0.9494064269526146,
+        "event_at_s": 1.7000000000000002
+      },
+      "all-window-control": {
+        "score": 0.966795624153889,
+        "event_at_s": 2.4000000000000004
+      },
+      "nested-selection": {
+        "score": 0.9585730613157876,
+        "event_at_s": 2.4000000000000004
+      }
+    }
+  },
+  {
+    "path": "/b/src/336991612/17907090692410007259.webm",
+    "label": "positive",
+    "variant": "aac-aligned",
+    "transform": {
+      "codec": "aac80",
+      "codec_delay_samples": 341,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.980556270834115,
+      "aligned": true,
+      "encoded_bytes": 179218,
+      "recipe": {
+        "codec": "aac80",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9155241129494658,
+        "event_at_s": 1.7000000000000002
+      },
+      "hard-negative-max": {
+        "score": 0.9083543955337878,
+        "event_at_s": 1.7000000000000002
+      },
+      "all-window-control": {
+        "score": 0.9237067857104128,
+        "event_at_s": 1.7000000000000002
+      },
+      "nested-selection": {
+        "score": 0.9155241129494658,
+        "event_at_s": 1.7000000000000002
+      }
+    }
+  },
+  {
+    "path": "/b/src/336991612/17907090692410007259.webm",
+    "label": "positive",
+    "variant": "aac16k-aligned",
+    "transform": {
+      "codec": "aac16k96",
+      "codec_delay_samples": 1024,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.9999050710201917,
+      "aligned": true,
+      "encoded_bytes": 187118,
+      "recipe": {
+        "codec": "aac16k96",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9413996958281156,
+        "event_at_s": 1.7000000000000002
+      },
+      "hard-negative-max": {
+        "score": 0.9352152943851697,
+        "event_at_s": 1.7000000000000002
+      },
+      "all-window-control": {
+        "score": 0.9599954255387368,
+        "event_at_s": 2.4000000000000004
+      },
+      "nested-selection": {
+        "score": 0.9413996958281156,
+        "event_at_s": 1.7000000000000002
+      }
+    }
+  },
+  {
+    "path": "/b/src/336991612/17907090692410007259.webm",
+    "label": "positive",
+    "variant": "gain-minus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": -3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.870255336668957,
+        "event_at_s": 1.7000000000000002
+      },
+      "hard-negative-max": {
+        "score": 0.8237280739897495,
+        "event_at_s": 1.7000000000000002
+      },
+      "all-window-control": {
+        "score": 0.8778995562831442,
+        "event_at_s": 1.7000000000000002
+      },
+      "nested-selection": {
+        "score": 0.870255336668957,
+        "event_at_s": 1.7000000000000002
+      }
+    }
+  },
+  {
+    "path": "/b/src/336991612/17907090692410007259.webm",
+    "label": "positive",
+    "variant": "gain-plus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": 3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9716743405900169,
+        "event_at_s": 1.7000000000000002
+      },
+      "hard-negative-max": {
+        "score": 0.9688129281568251,
+        "event_at_s": 1.7000000000000002
+      },
+      "all-window-control": {
+        "score": 0.9785775285179996,
+        "event_at_s": 2.4000000000000004
+      },
+      "nested-selection": {
+        "score": 0.9716743405900169,
+        "event_at_s": 1.7000000000000002
+      }
+    }
+  },
+  {
+    "path": "/b/src/336991612/17907090692410007259.webm",
+    "label": "positive",
+    "variant": "codec-plus-11s",
+    "transform": {
+      "codec": "opus48",
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 176000,
+      "alignment_correlation": 0.9988612147362431,
+      "aligned": false,
+      "encoded_bytes": 132993,
+      "recipe": {
+        "codec": "opus48",
+        "delay_s": 11
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.953270617125225,
+        "event_at_s": 13.3945
+      },
+      "hard-negative-max": {
+        "score": 0.9498046645419893,
+        "event_at_s": 13.3945
+      },
+      "all-window-control": {
+        "score": 0.9703320595599836,
+        "event_at_s": 13.3945
+      },
+      "nested-selection": {
+        "score": 0.953270617125225,
+        "event_at_s": 13.3945
+      }
+    }
+  },
+  {
+    "path": "/b/src/337355133/17918104369341732532.mp4",
+    "label": "positive",
+    "variant": "original",
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9896501745978357,
+        "event_at_s": 2.3232500000000007
+      },
+      "hard-negative-max": {
+        "score": 0.9889318430935252,
+        "event_at_s": 2.3232500000000007
+      },
+      "all-window-control": {
+        "score": 0.9922714235178095,
+        "event_at_s": 2.3232500000000007
+      },
+      "nested-selection": {
+        "score": 0.9896501745978357,
+        "event_at_s": 2.3232500000000007
+      }
+    }
+  },
+  {
+    "path": "/b/src/337355133/17918104369341732532.mp4",
+    "label": "positive",
+    "variant": "aac-aligned",
+    "transform": {
+      "codec": "aac80",
+      "codec_delay_samples": 341,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.9360567617656013,
+      "aligned": true,
+      "encoded_bytes": 284661,
+      "recipe": {
+        "codec": "aac80",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9862349989187339,
+        "event_at_s": 2.223250000000001
+      },
+      "hard-negative-max": {
+        "score": 0.9892545503098158,
+        "event_at_s": 2.223250000000001
+      },
+      "all-window-control": {
+        "score": 0.9868959203005939,
+        "event_at_s": 2.223250000000001
+      },
+      "nested-selection": {
+        "score": 0.9862349989187339,
+        "event_at_s": 2.223250000000001
+      }
+    }
+  },
+  {
+    "path": "/b/src/337355133/17918104369341732532.mp4",
+    "label": "positive",
+    "variant": "aac16k-aligned",
+    "transform": {
+      "codec": "aac16k96",
+      "codec_delay_samples": 1024,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.9982227753738738,
+      "aligned": true,
+      "encoded_bytes": 285352,
+      "recipe": {
+        "codec": "aac16k96",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9868771872252721,
+        "event_at_s": 3.4464375
+      },
+      "hard-negative-max": {
+        "score": 0.9893568593050338,
+        "event_at_s": 2.4464375
+      },
+      "all-window-control": {
+        "score": 0.9889670469089384,
+        "event_at_s": 1.2964374999999997
+      },
+      "nested-selection": {
+        "score": 0.9868771872252721,
+        "event_at_s": 3.4464375
+      }
+    }
+  },
+  {
+    "path": "/b/src/337355133/17918104369341732532.mp4",
+    "label": "positive",
+    "variant": "gain-minus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": -3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9831871523814945,
+        "event_at_s": 2.333
+      },
+      "hard-negative-max": {
+        "score": 0.9883033872403174,
+        "event_at_s": 2.333
+      },
+      "all-window-control": {
+        "score": 0.9879510402538584,
+        "event_at_s": 2.333
+      },
+      "nested-selection": {
+        "score": 0.9831871523814945,
+        "event_at_s": 2.333
+      }
+    }
+  },
+  {
+    "path": "/b/src/337355133/17918104369341732532.mp4",
+    "label": "positive",
+    "variant": "gain-plus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": 3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9913241849211781,
+        "event_at_s": 2.223250000000001
+      },
+      "hard-negative-max": {
+        "score": 0.9891060858250181,
+        "event_at_s": 2.223250000000001
+      },
+      "all-window-control": {
+        "score": 0.9935279734235376,
+        "event_at_s": 2.223250000000001
+      },
+      "nested-selection": {
+        "score": 0.9913241849211781,
+        "event_at_s": 2.223250000000001
+      }
+    }
+  },
+  {
+    "path": "/b/src/337355133/17918104369341732532.mp4",
+    "label": "positive",
+    "variant": "codec-plus-11s",
+    "transform": {
+      "codec": "opus48",
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 176000,
+      "alignment_correlation": 0.9744565420104639,
+      "aligned": false,
+      "encoded_bytes": 182318,
+      "recipe": {
+        "codec": "opus48",
+        "delay_s": 11
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9890677779783966,
+        "event_at_s": 13.223250000000002
+      },
+      "hard-negative-max": {
+        "score": 0.9883140467142011,
+        "event_at_s": 13.223250000000002
+      },
+      "all-window-control": {
+        "score": 0.9910992662331856,
+        "event_at_s": 13.223250000000002
+      },
+      "nested-selection": {
+        "score": 0.9890677779783966,
+        "event_at_s": 13.223250000000002
+      }
+    }
+  },
+  {
+    "path": "/b/src/337355133/17918133645200787146.mp4",
+    "label": "positive",
+    "variant": "original",
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.984575906829576,
+        "event_at_s": 9.977375000000002
+      },
+      "hard-negative-max": {
+        "score": 0.9901231268565482,
+        "event_at_s": 11.027375
+      },
+      "all-window-control": {
+        "score": 0.9883138531630828,
+        "event_at_s": 9.977375000000002
+      },
+      "nested-selection": {
+        "score": 0.984575906829576,
+        "event_at_s": 9.977375000000002
+      }
+    }
+  },
+  {
+    "path": "/b/src/337355133/17918133645200787146.mp4",
+    "label": "positive",
+    "variant": "aac-aligned",
+    "transform": {
+      "codec": "aac80",
+      "codec_delay_samples": 341,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.9446158888773069,
+      "aligned": true,
+      "encoded_bytes": 250510,
+      "recipe": {
+        "codec": "aac80",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9846058941961245,
+        "event_at_s": 9.959312500000001
+      },
+      "hard-negative-max": {
+        "score": 0.9897471383038103,
+        "event_at_s": 11.0593125
+      },
+      "all-window-control": {
+        "score": 0.9854432425460103,
+        "event_at_s": 9.959312500000001
+      },
+      "nested-selection": {
+        "score": 0.9846058941961245,
+        "event_at_s": 9.959312500000001
+      }
+    }
+  },
+  {
+    "path": "/b/src/337355133/17918133645200787146.mp4",
+    "label": "positive",
+    "variant": "aac16k-aligned",
+    "transform": {
+      "codec": "aac16k96",
+      "codec_delay_samples": 1024,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.9984382649123413,
+      "aligned": true,
+      "encoded_bytes": 277464,
+      "recipe": {
+        "codec": "aac16k96",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9858350552551153,
+        "event_at_s": 9.950000000000001
+      },
+      "hard-negative-max": {
+        "score": 0.9877669274507123,
+        "event_at_s": 11.05
+      },
+      "all-window-control": {
+        "score": 0.98672503621509,
+        "event_at_s": 9.950000000000001
+      },
+      "nested-selection": {
+        "score": 0.9858350552551153,
+        "event_at_s": 9.950000000000001
+      }
+    }
+  },
+  {
+    "path": "/b/src/337355133/17918133645200787146.mp4",
+    "label": "positive",
+    "variant": "gain-minus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": -3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9517824508372998,
+        "event_at_s": 10.4794375
+      },
+      "hard-negative-max": {
+        "score": 0.9607432598234202,
+        "event_at_s": 10.4794375
+      },
+      "all-window-control": {
+        "score": 0.9710955263987577,
+        "event_at_s": 11.0294375
+      },
+      "nested-selection": {
+        "score": 0.9517824508372998,
+        "event_at_s": 10.4794375
+      }
+    }
+  },
+  {
+    "path": "/b/src/337355133/17918133645200787146.mp4",
+    "label": "positive",
+    "variant": "gain-plus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": 3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9918135219675815,
+        "event_at_s": 11.02675
+      },
+      "hard-negative-max": {
+        "score": 0.9901916713786985,
+        "event_at_s": 11.02675
+      },
+      "all-window-control": {
+        "score": 0.9933784339902622,
+        "event_at_s": 10.47675
+      },
+      "nested-selection": {
+        "score": 0.9918135219675815,
+        "event_at_s": 11.02675
+      }
+    }
+  },
+  {
+    "path": "/b/src/337355133/17918133645200787146.mp4",
+    "label": "positive",
+    "variant": "codec-plus-11s",
+    "transform": {
+      "codec": "opus48",
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 176000,
+      "alignment_correlation": 0.9780567140480284,
+      "aligned": false,
+      "encoded_bytes": 222838,
+      "recipe": {
+        "codec": "opus48",
+        "delay_s": 11
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9836426844912333,
+        "event_at_s": 20.9793125
+      },
+      "hard-negative-max": {
+        "score": 0.9877437349557994,
+        "event_at_s": 21.4793125
+      },
+      "all-window-control": {
+        "score": 0.985194307030805,
+        "event_at_s": 20.9793125
+      },
+      "nested-selection": {
+        "score": 0.9836426844912333,
+        "event_at_s": 20.9793125
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929233629432480892.mp4",
+    "label": "positive",
+    "variant": "original",
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9542309833435694,
+        "event_at_s": 92.042125
+      },
+      "hard-negative-max": {
+        "score": 0.9418253664891223,
+        "event_at_s": 92.042125
+      },
+      "all-window-control": {
+        "score": 0.9828909957251851,
+        "event_at_s": 92.042125
+      },
+      "nested-selection": {
+        "score": 0.9542309833435694,
+        "event_at_s": 92.042125
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929233629432480892.mp4",
+    "label": "positive",
+    "variant": "aac-aligned",
+    "transform": {
+      "codec": "aac80",
+      "codec_delay_samples": 341,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.9486516018467639,
+      "aligned": true,
+      "encoded_bytes": 1226632,
+      "recipe": {
+        "codec": "aac80",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9117324450540263,
+        "event_at_s": 92.042125
+      },
+      "hard-negative-max": {
+        "score": 0.94112226382505,
+        "event_at_s": 92.042125
+      },
+      "all-window-control": {
+        "score": 0.9820328918561415,
+        "event_at_s": 92.042125
+      },
+      "nested-selection": {
+        "score": 0.9117324450540263,
+        "event_at_s": 92.042125
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929233629432480892.mp4",
+    "label": "positive",
+    "variant": "aac16k-aligned",
+    "transform": {
+      "codec": "aac16k96",
+      "codec_delay_samples": 1024,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.9918847915684051,
+      "aligned": true,
+      "encoded_bytes": 1302734,
+      "recipe": {
+        "codec": "aac16k96",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9546158697735649,
+        "event_at_s": 92.0378125
+      },
+      "hard-negative-max": {
+        "score": 0.94241173261944,
+        "event_at_s": 92.0378125
+      },
+      "all-window-control": {
+        "score": 0.9852112251326847,
+        "event_at_s": 92.0378125
+      },
+      "nested-selection": {
+        "score": 0.9546158697735649,
+        "event_at_s": 92.0378125
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929233629432480892.mp4",
+    "label": "positive",
+    "variant": "gain-minus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": -3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9680763100725052,
+        "event_at_s": 92.5448125
+      },
+      "hard-negative-max": {
+        "score": 0.9687189073976303,
+        "event_at_s": 92.5448125
+      },
+      "all-window-control": {
+        "score": 0.9876112938053572,
+        "event_at_s": 92.5448125
+      },
+      "nested-selection": {
+        "score": 0.9680763100725052,
+        "event_at_s": 92.5448125
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929233629432480892.mp4",
+    "label": "positive",
+    "variant": "gain-plus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": 3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9471748459557355,
+        "event_at_s": 92.08275
+      },
+      "hard-negative-max": {
+        "score": 0.9006196060719214,
+        "event_at_s": 92.08275
+      },
+      "all-window-control": {
+        "score": 0.9710090957844681,
+        "event_at_s": 92.08275
+      },
+      "nested-selection": {
+        "score": 0.9471748459557355,
+        "event_at_s": 92.08275
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929233629432480892.mp4",
+    "label": "positive",
+    "variant": "codec-plus-11s",
+    "transform": {
+      "codec": "opus48",
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 176000,
+      "alignment_correlation": 0.9656351944875387,
+      "aligned": false,
+      "encoded_bytes": 806495,
+      "recipe": {
+        "codec": "opus48",
+        "delay_s": 11
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.962529804382342,
+        "event_at_s": 103.044
+      },
+      "hard-negative-max": {
+        "score": 0.9445612422246445,
+        "event_at_s": 103.044
+      },
+      "all-window-control": {
+        "score": 0.9866712058010031,
+        "event_at_s": 103.044
+      },
+      "nested-selection": {
+        "score": 0.962529804382342,
+        "event_at_s": 103.044
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929235424520630151.webm",
+    "label": "positive",
+    "variant": "original",
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.6965071578997336,
+        "event_at_s": 204.55
+      },
+      "hard-negative-max": {
+        "score": 0.8081712429772488,
+        "event_at_s": 204.55
+      },
+      "all-window-control": {
+        "score": 0.9161538260196048,
+        "event_at_s": 204.55
+      },
+      "nested-selection": {
+        "score": 0.6965071578997336,
+        "event_at_s": 204.55
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929235424520630151.webm",
+    "label": "positive",
+    "variant": "aac-aligned",
+    "transform": {
+      "codec": "aac80",
+      "codec_delay_samples": 341,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.9373540868989955,
+      "aligned": true,
+      "encoded_bytes": 2329808,
+      "recipe": {
+        "codec": "aac80",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.7207666669646056,
+        "event_at_s": 205.05
+      },
+      "hard-negative-max": {
+        "score": 0.7273463719208529,
+        "event_at_s": 205.05
+      },
+      "all-window-control": {
+        "score": 0.8343888316361624,
+        "event_at_s": 204.55
+      },
+      "nested-selection": {
+        "score": 0.7207666669646056,
+        "event_at_s": 205.05
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929235424520630151.webm",
+    "label": "positive",
+    "variant": "aac16k-aligned",
+    "transform": {
+      "codec": "aac16k96",
+      "codec_delay_samples": 1024,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.9983903090228555,
+      "aligned": true,
+      "encoded_bytes": 2700592,
+      "recipe": {
+        "codec": "aac16k96",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.7132958473686765,
+        "event_at_s": 205.05
+      },
+      "hard-negative-max": {
+        "score": 0.8309783955467377,
+        "event_at_s": 205.05
+      },
+      "all-window-control": {
+        "score": 0.8894754057313047,
+        "event_at_s": 204.55
+      },
+      "nested-selection": {
+        "score": 0.7132958473686765,
+        "event_at_s": 205.05
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929235424520630151.webm",
+    "label": "positive",
+    "variant": "gain-minus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": -3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.767348390549384,
+        "event_at_s": 205.05
+      },
+      "hard-negative-max": {
+        "score": 0.8628425151395875,
+        "event_at_s": 205.05
+      },
+      "all-window-control": {
+        "score": 0.9068662402214445,
+        "event_at_s": 204.55
+      },
+      "nested-selection": {
+        "score": 0.767348390549384,
+        "event_at_s": 205.05
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929235424520630151.webm",
+    "label": "positive",
+    "variant": "gain-plus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": 3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.7570995182145205,
+        "event_at_s": 204.55
+      },
+      "hard-negative-max": {
+        "score": 0.8110513894066291,
+        "event_at_s": 204.55
+      },
+      "all-window-control": {
+        "score": 0.9268888754972888,
+        "event_at_s": 204.55
+      },
+      "nested-selection": {
+        "score": 0.7570995182145205,
+        "event_at_s": 204.55
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929235424520630151.webm",
+    "label": "positive",
+    "variant": "codec-plus-11s",
+    "transform": {
+      "codec": "opus48",
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 176000,
+      "alignment_correlation": 0.9792119128922951,
+      "aligned": false,
+      "encoded_bytes": 1869074,
+      "recipe": {
+        "codec": "opus48",
+        "delay_s": 11
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.7303055457235129,
+        "event_at_s": 215.54643750000002
+      },
+      "hard-negative-max": {
+        "score": 0.8455350487204195,
+        "event_at_s": 215.54643750000002
+      },
+      "all-window-control": {
+        "score": 0.8903996868004275,
+        "event_at_s": 215.54643750000002
+      },
+      "nested-selection": {
+        "score": 0.7303055457235129,
+        "event_at_s": 215.54643750000002
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929246374352604972.mp4",
+    "label": "negative",
+    "variant": "original",
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.1758227608504673,
+        "event_at_s": 7.495812500000001
+      },
+      "hard-negative-max": {
+        "score": 0.16268746489047053,
+        "event_at_s": 7.495812500000001
+      },
+      "all-window-control": {
+        "score": 0.31625290057752287,
+        "event_at_s": 7.495812500000001
+      },
+      "nested-selection": {
+        "score": 0.1758227608504673,
+        "event_at_s": 7.495812500000001
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929246374352604972.mp4",
+    "label": "negative",
+    "variant": "aac-aligned",
+    "transform": {
+      "codec": "aac80",
+      "codec_delay_samples": 341,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.9907943729507928,
+      "aligned": true,
+      "encoded_bytes": 207881,
+      "recipe": {
+        "codec": "aac80",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.1958370090767721,
+        "event_at_s": 7.495562500000001
+      },
+      "hard-negative-max": {
+        "score": 0.23326369622695803,
+        "event_at_s": 7.495562500000001
+      },
+      "all-window-control": {
+        "score": 0.33920121478174464,
+        "event_at_s": 7.495562500000001
+      },
+      "nested-selection": {
+        "score": 0.1958370090767721,
+        "event_at_s": 7.495562500000001
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929246374352604972.mp4",
+    "label": "negative",
+    "variant": "aac16k-aligned",
+    "transform": {
+      "codec": "aac16k96",
+      "codec_delay_samples": 1024,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.9996341711027701,
+      "aligned": true,
+      "encoded_bytes": 213055,
+      "recipe": {
+        "codec": "aac16k96",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.19583481979167372,
+        "event_at_s": 7.50275
+      },
+      "hard-negative-max": {
+        "score": 0.2310608975329065,
+        "event_at_s": 7.50275
+      },
+      "all-window-control": {
+        "score": 0.32565026471331376,
+        "event_at_s": 7.50275
+      },
+      "nested-selection": {
+        "score": 0.19583481979167372,
+        "event_at_s": 7.50275
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929246374352604972.mp4",
+    "label": "negative",
+    "variant": "gain-minus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": -3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.24071714786152953,
+        "event_at_s": 7.495875000000001
+      },
+      "hard-negative-max": {
+        "score": 0.11274695710324584,
+        "event_at_s": 7.495875000000001
+      },
+      "all-window-control": {
+        "score": 0.22030861917414457,
+        "event_at_s": 7.495875000000001
+      },
+      "nested-selection": {
+        "score": 0.24071714786152953,
+        "event_at_s": 7.495875000000001
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929246374352604972.mp4",
+    "label": "negative",
+    "variant": "gain-plus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": 3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.2919192426828482,
+        "event_at_s": 7.495062500000001
+      },
+      "hard-negative-max": {
+        "score": 0.3946984850606875,
+        "event_at_s": 7.495062500000001
+      },
+      "all-window-control": {
+        "score": 0.47706971303026036,
+        "event_at_s": 7.495062500000001
+      },
+      "nested-selection": {
+        "score": 0.2919192426828482,
+        "event_at_s": 7.495062500000001
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929246374352604972.mp4",
+    "label": "negative",
+    "variant": "codec-plus-11s",
+    "transform": {
+      "codec": "opus48",
+      "codec_delay_samples": -1,
+      "annotation_delay_samples": 175999,
+      "alignment_correlation": 0.9978530420048284,
+      "aligned": false,
+      "encoded_bytes": 142499,
+      "recipe": {
+        "codec": "opus48",
+        "delay_s": 11
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.19582541429775685,
+        "event_at_s": 18.495062500000003
+      },
+      "hard-negative-max": {
+        "score": 0.27048111706742567,
+        "event_at_s": 18.495062500000003
+      },
+      "all-window-control": {
+        "score": 0.32504856057840864,
+        "event_at_s": 18.495062500000003
+      },
+      "nested-selection": {
+        "score": 0.19582541429775685,
+        "event_at_s": 18.495062500000003
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929253560550736111.mp4",
+    "label": "negative",
+    "variant": "original",
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.652245140285567,
+        "event_at_s": 119.759625
+      },
+      "hard-negative-max": {
+        "score": 0.686761264176105,
+        "event_at_s": 137.759625
+      },
+      "all-window-control": {
+        "score": 0.8651392152147985,
+        "event_at_s": 119.759625
+      },
+      "nested-selection": {
+        "score": 0.652245140285567,
+        "event_at_s": 119.759625
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929253560550736111.mp4",
+    "label": "negative",
+    "variant": "aac-aligned",
+    "transform": {
+      "codec": "aac80",
+      "codec_delay_samples": 341,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.9711819515920459,
+      "aligned": true,
+      "encoded_bytes": 1793691,
+      "recipe": {
+        "codec": "aac80",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.810093626030077,
+        "event_at_s": 119.80000000000001
+      },
+      "hard-negative-max": {
+        "score": 0.6680382962216445,
+        "event_at_s": 137.75
+      },
+      "all-window-control": {
+        "score": 0.8621946880891761,
+        "event_at_s": 119.80000000000001
+      },
+      "nested-selection": {
+        "score": 0.810093626030077,
+        "event_at_s": 119.80000000000001
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929253560550736111.mp4",
+    "label": "negative",
+    "variant": "aac16k-aligned",
+    "transform": {
+      "codec": "aac16k96",
+      "codec_delay_samples": 1024,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.9993336557341115,
+      "aligned": true,
+      "encoded_bytes": 1979120,
+      "recipe": {
+        "codec": "aac16k96",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.6640457204180665,
+        "event_at_s": 119.80000000000001
+      },
+      "hard-negative-max": {
+        "score": 0.6853483878339793,
+        "event_at_s": 137.75
+      },
+      "all-window-control": {
+        "score": 0.8784679295960656,
+        "event_at_s": 119.80000000000001
+      },
+      "nested-selection": {
+        "score": 0.6640457204180665,
+        "event_at_s": 119.80000000000001
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929253560550736111.mp4",
+    "label": "negative",
+    "variant": "gain-minus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": -3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.6915939651271301,
+        "event_at_s": 120.009625
+      },
+      "hard-negative-max": {
+        "score": 0.4453713593349619,
+        "event_at_s": 119.759625
+      },
+      "all-window-control": {
+        "score": 0.8555798163401823,
+        "event_at_s": 119.759625
+      },
+      "nested-selection": {
+        "score": 0.6915939651271301,
+        "event_at_s": 120.009625
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929253560550736111.mp4",
+    "label": "negative",
+    "variant": "gain-plus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": 3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.7119742212076247,
+        "event_at_s": 119.7595625
+      },
+      "hard-negative-max": {
+        "score": 0.7113508958911593,
+        "event_at_s": 137.7595625
+      },
+      "all-window-control": {
+        "score": 0.8768954241968907,
+        "event_at_s": 119.7595625
+      },
+      "nested-selection": {
+        "score": 0.7119742212076247,
+        "event_at_s": 119.7595625
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929253560550736111.mp4",
+    "label": "negative",
+    "variant": "codec-plus-11s",
+    "transform": {
+      "codec": "opus48",
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 176000,
+      "alignment_correlation": 0.9927384848314196,
+      "aligned": false,
+      "encoded_bytes": 1197290,
+      "recipe": {
+        "codec": "opus48",
+        "delay_s": 11
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.5958873302619638,
+        "event_at_s": 130.7561875
+      },
+      "hard-negative-max": {
+        "score": 0.5419205400386842,
+        "event_at_s": 55.256187499999996
+      },
+      "all-window-control": {
+        "score": 0.828212916678438,
+        "event_at_s": 130.7561875
+      },
+      "nested-selection": {
+        "score": 0.5958873302619638,
+        "event_at_s": 130.7561875
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929258136773388913.webm",
+    "label": "positive",
+    "variant": "original",
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9443718368950371,
+        "event_at_s": 97.60000000000001
+      },
+      "hard-negative-max": {
+        "score": 0.9505648381810899,
+        "event_at_s": 97.60000000000001
+      },
+      "all-window-control": {
+        "score": 0.9807843575543868,
+        "event_at_s": 97.60000000000001
+      },
+      "nested-selection": {
+        "score": 0.9443718368950371,
+        "event_at_s": 97.60000000000001
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929258136773388913.webm",
+    "label": "positive",
+    "variant": "aac-aligned",
+    "transform": {
+      "codec": "aac80",
+      "codec_delay_samples": 341,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.9231665531655503,
+      "aligned": true,
+      "encoded_bytes": 3310579,
+      "recipe": {
+        "codec": "aac80",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.8863150775142506,
+        "event_at_s": 97.65
+      },
+      "hard-negative-max": {
+        "score": 0.7701040334727568,
+        "event_at_s": 97.65
+      },
+      "all-window-control": {
+        "score": 0.9489883611629709,
+        "event_at_s": 97.65
+      },
+      "nested-selection": {
+        "score": 0.8863150775142506,
+        "event_at_s": 97.65
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929258136773388913.webm",
+    "label": "positive",
+    "variant": "aac16k-aligned",
+    "transform": {
+      "codec": "aac16k96",
+      "codec_delay_samples": 1024,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.9988991604109071,
+      "aligned": true,
+      "encoded_bytes": 3939572,
+      "recipe": {
+        "codec": "aac16k96",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9443718368950414,
+        "event_at_s": 97.60000000000001
+      },
+      "hard-negative-max": {
+        "score": 0.9475470311375704,
+        "event_at_s": 97.60000000000001
+      },
+      "all-window-control": {
+        "score": 0.9807843575957218,
+        "event_at_s": 97.60000000000001
+      },
+      "nested-selection": {
+        "score": 0.9443718368950414,
+        "event_at_s": 97.60000000000001
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929258136773388913.webm",
+    "label": "positive",
+    "variant": "gain-minus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": -3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9924183285636348,
+        "event_at_s": 98.10000000000001
+      },
+      "hard-negative-max": {
+        "score": 0.9894090926192357,
+        "event_at_s": 98.10000000000001
+      },
+      "all-window-control": {
+        "score": 0.9951021679250641,
+        "event_at_s": 98.10000000000001
+      },
+      "nested-selection": {
+        "score": 0.9924183285636348,
+        "event_at_s": 98.10000000000001
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929258136773388913.webm",
+    "label": "positive",
+    "variant": "gain-plus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": 3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9337547060639921,
+        "event_at_s": 97.60000000000001
+      },
+      "hard-negative-max": {
+        "score": 0.9397266711913066,
+        "event_at_s": 97.60000000000001
+      },
+      "all-window-control": {
+        "score": 0.9774104286824113,
+        "event_at_s": 97.60000000000001
+      },
+      "nested-selection": {
+        "score": 0.9337547060639921,
+        "event_at_s": 97.60000000000001
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929258136773388913.webm",
+    "label": "positive",
+    "variant": "codec-plus-11s",
+    "transform": {
+      "codec": "opus48",
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 176000,
+      "alignment_correlation": 0.9817132476193846,
+      "aligned": false,
+      "encoded_bytes": 2377858,
+      "recipe": {
+        "codec": "opus48",
+        "delay_s": 11
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9775927912917902,
+        "event_at_s": 109.09631250000001
+      },
+      "hard-negative-max": {
+        "score": 0.980939833407728,
+        "event_at_s": 109.09631250000001
+      },
+      "all-window-control": {
+        "score": 0.9905244067255167,
+        "event_at_s": 108.59631250000001
+      },
+      "nested-selection": {
+        "score": 0.9775927912917902,
+        "event_at_s": 109.09631250000001
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929289055560894598.webm",
+    "label": "positive",
+    "variant": "original",
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.8083948304745565,
+        "event_at_s": 298.24962500000004
+      },
+      "hard-negative-max": {
+        "score": 0.8472993313026914,
+        "event_at_s": 298.24962500000004
+      },
+      "all-window-control": {
+        "score": 0.912925730571828,
+        "event_at_s": 298.24962500000004
+      },
+      "nested-selection": {
+        "score": 0.8083948304745565,
+        "event_at_s": 298.24962500000004
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929289055560894598.webm",
+    "label": "positive",
+    "variant": "aac-aligned",
+    "transform": {
+      "codec": "aac80",
+      "codec_delay_samples": 341,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.9640731404619219,
+      "aligned": true,
+      "encoded_bytes": 3626520,
+      "recipe": {
+        "codec": "aac80",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.7969477731690535,
+        "event_at_s": 298.24925
+      },
+      "hard-negative-max": {
+        "score": 0.8338395479022978,
+        "event_at_s": 298.24925
+      },
+      "all-window-control": {
+        "score": 0.9119559308145354,
+        "event_at_s": 298.24925
+      },
+      "nested-selection": {
+        "score": 0.7969477731690535,
+        "event_at_s": 298.24925
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929289055560894598.webm",
+    "label": "positive",
+    "variant": "aac16k-aligned",
+    "transform": {
+      "codec": "aac16k96",
+      "codec_delay_samples": 1024,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.999324137485033,
+      "aligned": true,
+      "encoded_bytes": 3925141,
+      "recipe": {
+        "codec": "aac16k96",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.8026281000624889,
+        "event_at_s": 298.24218750000006
+      },
+      "hard-negative-max": {
+        "score": 0.8467464694342567,
+        "event_at_s": 298.24218750000006
+      },
+      "all-window-control": {
+        "score": 0.9092204846326655,
+        "event_at_s": 298.24218750000006
+      },
+      "nested-selection": {
+        "score": 0.8026281000624889,
+        "event_at_s": 298.24218750000006
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929289055560894598.webm",
+    "label": "positive",
+    "variant": "gain-minus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": -3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.82383420144875,
+        "event_at_s": 298.25100000000003
+      },
+      "hard-negative-max": {
+        "score": 0.8900549107620461,
+        "event_at_s": 298.25100000000003
+      },
+      "all-window-control": {
+        "score": 0.9236483666882461,
+        "event_at_s": 298.25100000000003
+      },
+      "nested-selection": {
+        "score": 0.82383420144875,
+        "event_at_s": 298.25100000000003
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929289055560894598.webm",
+    "label": "positive",
+    "variant": "gain-plus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": 3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.8072870931780619,
+        "event_at_s": 298.2495
+      },
+      "hard-negative-max": {
+        "score": 0.8440433535146051,
+        "event_at_s": 298.2495
+      },
+      "all-window-control": {
+        "score": 0.9418011267870107,
+        "event_at_s": 298.2495
+      },
+      "nested-selection": {
+        "score": 0.8072870931780619,
+        "event_at_s": 298.2495
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929289055560894598.webm",
+    "label": "positive",
+    "variant": "codec-plus-11s",
+    "transform": {
+      "codec": "opus48",
+      "codec_delay_samples": -1,
+      "annotation_delay_samples": 175999,
+      "alignment_correlation": 0.9599310110155008,
+      "aligned": false,
+      "encoded_bytes": 2192925,
+      "recipe": {
+        "codec": "opus48",
+        "delay_s": 11
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.7919699633455632,
+        "event_at_s": 309.24906250000004
+      },
+      "hard-negative-max": {
+        "score": 0.839938018587412,
+        "event_at_s": 309.24906250000004
+      },
+      "all-window-control": {
+        "score": 0.9039024665863746,
+        "event_at_s": 309.24906250000004
+      },
+      "nested-selection": {
+        "score": 0.7919699633455632,
+        "event_at_s": 309.24906250000004
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929291025992177046.webm",
+    "label": "positive",
+    "variant": "original",
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.2993994743116333,
+        "event_at_s": 16.950000000000003
+      },
+      "hard-negative-max": {
+        "score": 0.3675469449311139,
+        "event_at_s": 16.950000000000003
+      },
+      "all-window-control": {
+        "score": 0.5280935141839247,
+        "event_at_s": 16.950000000000003
+      },
+      "nested-selection": {
+        "score": 0.2993994743116333,
+        "event_at_s": 16.950000000000003
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929291025992177046.webm",
+    "label": "positive",
+    "variant": "aac-aligned",
+    "transform": {
+      "codec": "aac80",
+      "codec_delay_samples": 341,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.9911593480352402,
+      "aligned": true,
+      "encoded_bytes": 624620,
+      "recipe": {
+        "codec": "aac80",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.2861029067284788,
+        "event_at_s": 18.55
+      },
+      "hard-negative-max": {
+        "score": 0.32729089284327145,
+        "event_at_s": 18.55
+      },
+      "all-window-control": {
+        "score": 0.5067492312937747,
+        "event_at_s": 18.55
+      },
+      "nested-selection": {
+        "score": 0.2861029067284788,
+        "event_at_s": 18.55
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929291025992177046.webm",
+    "label": "positive",
+    "variant": "aac16k-aligned",
+    "transform": {
+      "codec": "aac16k96",
+      "codec_delay_samples": 1024,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.999310351959868,
+      "aligned": true,
+      "encoded_bytes": 722369,
+      "recipe": {
+        "codec": "aac16k96",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.2861673914389925,
+        "event_at_s": 16.950000000000003
+      },
+      "hard-negative-max": {
+        "score": 0.24315419073519062,
+        "event_at_s": 16.950000000000003
+      },
+      "all-window-control": {
+        "score": 0.44520133160199793,
+        "event_at_s": 16.950000000000003
+      },
+      "nested-selection": {
+        "score": 0.2861673914389925,
+        "event_at_s": 16.950000000000003
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929291025992177046.webm",
+    "label": "positive",
+    "variant": "gain-minus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": -3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.2716784466948753,
+        "event_at_s": 18.6
+      },
+      "hard-negative-max": {
+        "score": 0.2531818802500683,
+        "event_at_s": 16.950000000000003
+      },
+      "all-window-control": {
+        "score": 0.48432880768634173,
+        "event_at_s": 16.950000000000003
+      },
+      "nested-selection": {
+        "score": 0.2716784466948753,
+        "event_at_s": 18.6
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929291025992177046.webm",
+    "label": "positive",
+    "variant": "gain-plus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": 3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.5081266723360961,
+        "event_at_s": 16.950000000000003
+      },
+      "hard-negative-max": {
+        "score": 0.6330157996963968,
+        "event_at_s": 16.950000000000003
+      },
+      "all-window-control": {
+        "score": 0.7879258758737115,
+        "event_at_s": 18.650000000000002
+      },
+      "nested-selection": {
+        "score": 0.5081266723360961,
+        "event_at_s": 16.950000000000003
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929291025992177046.webm",
+    "label": "positive",
+    "variant": "codec-plus-11s",
+    "transform": {
+      "codec": "opus48",
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 176000,
+      "alignment_correlation": 0.9954238569351134,
+      "aligned": false,
+      "encoded_bytes": 647259,
+      "recipe": {
+        "codec": "opus48",
+        "delay_s": 11
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.2880312063885581,
+        "event_at_s": 27.949687500000003
+      },
+      "hard-negative-max": {
+        "score": 0.3357399374307346,
+        "event_at_s": 29.649687500000002
+      },
+      "all-window-control": {
+        "score": 0.4987484633470699,
+        "event_at_s": 29.649687500000002
+      },
+      "nested-selection": {
+        "score": 0.2880312063885581,
+        "event_at_s": 27.949687500000003
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929309020131362624.webm",
+    "label": "positive",
+    "variant": "original",
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9744073717596559,
+        "event_at_s": 1.25
+      },
+      "hard-negative-max": {
+        "score": 0.9521275814891421,
+        "event_at_s": 1.25
+      },
+      "all-window-control": {
+        "score": 0.9803440144679034,
+        "event_at_s": 1.25
+      },
+      "nested-selection": {
+        "score": 0.9744073717596559,
+        "event_at_s": 1.25
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929309020131362624.webm",
+    "label": "positive",
+    "variant": "aac-aligned",
+    "transform": {
+      "codec": "aac80",
+      "codec_delay_samples": 341,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.9433795167585197,
+      "aligned": true,
+      "encoded_bytes": 4809591,
+      "recipe": {
+        "codec": "aac80",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9480095624171354,
+        "event_at_s": 0.7000000000000002
+      },
+      "hard-negative-max": {
+        "score": 0.8761217614362052,
+        "event_at_s": 0.7000000000000002
+      },
+      "all-window-control": {
+        "score": 0.969659921795954,
+        "event_at_s": 0.7000000000000002
+      },
+      "nested-selection": {
+        "score": 0.9480095624171354,
+        "event_at_s": 0.7000000000000002
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929309020131362624.webm",
+    "label": "positive",
+    "variant": "aac16k-aligned",
+    "transform": {
+      "codec": "aac16k96",
+      "codec_delay_samples": 1024,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.9986387767977671,
+      "aligned": true,
+      "encoded_bytes": 5181939,
+      "recipe": {
+        "codec": "aac16k96",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9633822373342034,
+        "event_at_s": 1.25
+      },
+      "hard-negative-max": {
+        "score": 0.9403845917922545,
+        "event_at_s": 1.25
+      },
+      "all-window-control": {
+        "score": 0.9717810766833963,
+        "event_at_s": 1.25
+      },
+      "nested-selection": {
+        "score": 0.9633822373342034,
+        "event_at_s": 1.25
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929309020131362624.webm",
+    "label": "positive",
+    "variant": "gain-minus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": -3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9617039866184417,
+        "event_at_s": 0.7000000000000002
+      },
+      "hard-negative-max": {
+        "score": 0.9363315486370407,
+        "event_at_s": 1.25
+      },
+      "all-window-control": {
+        "score": 0.9733111101839079,
+        "event_at_s": 0.7000000000000002
+      },
+      "nested-selection": {
+        "score": 0.9617039866184417,
+        "event_at_s": 0.7000000000000002
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929309020131362624.webm",
+    "label": "positive",
+    "variant": "gain-plus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": 3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9761748457137116,
+        "event_at_s": 0.7000000000000002
+      },
+      "hard-negative-max": {
+        "score": 0.9596064806876629,
+        "event_at_s": 0.7000000000000002
+      },
+      "all-window-control": {
+        "score": 0.9683007392972549,
+        "event_at_s": 0.7000000000000002
+      },
+      "nested-selection": {
+        "score": 0.9761748457137116,
+        "event_at_s": 0.7000000000000002
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929309020131362624.webm",
+    "label": "positive",
+    "variant": "codec-plus-11s",
+    "transform": {
+      "codec": "opus48",
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 176000,
+      "alignment_correlation": 0.9818333488682218,
+      "aligned": false,
+      "encoded_bytes": 3096120,
+      "recipe": {
+        "codec": "opus48",
+        "delay_s": 11
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9674192558736779,
+        "event_at_s": 12.2460625
+      },
+      "hard-negative-max": {
+        "score": 0.9443088979935159,
+        "event_at_s": 12.2460625
+      },
+      "all-window-control": {
+        "score": 0.9767075994701583,
+        "event_at_s": 12.2460625
+      },
+      "nested-selection": {
+        "score": 0.9674192558736779,
+        "event_at_s": 12.2460625
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929312599970679631.webm",
+    "label": "positive",
+    "variant": "original",
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.7342520077020962,
+        "event_at_s": 686.85
+      },
+      "hard-negative-max": {
+        "score": 0.631585864482206,
+        "event_at_s": 686.85
+      },
+      "all-window-control": {
+        "score": 0.9143250612271093,
+        "event_at_s": 686.85
+      },
+      "nested-selection": {
+        "score": 0.7342520077020962,
+        "event_at_s": 686.85
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929312599970679631.webm",
+    "label": "positive",
+    "variant": "aac-aligned",
+    "transform": {
+      "codec": "aac80",
+      "codec_delay_samples": 341,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.9737012412846789,
+      "aligned": true,
+      "encoded_bytes": 7826227,
+      "recipe": {
+        "codec": "aac80",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.6572715476998968,
+        "event_at_s": 686.85
+      },
+      "hard-negative-max": {
+        "score": 0.5088371202313711,
+        "event_at_s": 686.85
+      },
+      "all-window-control": {
+        "score": 0.9110770574655354,
+        "event_at_s": 686.85
+      },
+      "nested-selection": {
+        "score": 0.6572715476998968,
+        "event_at_s": 686.85
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929312599970679631.webm",
+    "label": "positive",
+    "variant": "aac16k-aligned",
+    "transform": {
+      "codec": "aac16k96",
+      "codec_delay_samples": 1024,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.9992359764560055,
+      "aligned": true,
+      "encoded_bytes": 7696806,
+      "recipe": {
+        "codec": "aac16k96",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.7342520077021074,
+        "event_at_s": 686.85
+      },
+      "hard-negative-max": {
+        "score": 0.7001992172203045,
+        "event_at_s": 686.85
+      },
+      "all-window-control": {
+        "score": 0.9143250612272524,
+        "event_at_s": 686.85
+      },
+      "nested-selection": {
+        "score": 0.7342520077021074,
+        "event_at_s": 686.85
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929312599970679631.webm",
+    "label": "positive",
+    "variant": "gain-minus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": -3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.6643604468176786,
+        "event_at_s": 686.9000000000001
+      },
+      "hard-negative-max": {
+        "score": 0.5033228906601255,
+        "event_at_s": 686.9000000000001
+      },
+      "all-window-control": {
+        "score": 0.9256430057755002,
+        "event_at_s": 686.9000000000001
+      },
+      "nested-selection": {
+        "score": 0.6643604468176786,
+        "event_at_s": 686.9000000000001
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929312599970679631.webm",
+    "label": "positive",
+    "variant": "gain-plus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": 3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.5351639086490916,
+        "event_at_s": 686.85
+      },
+      "hard-negative-max": {
+        "score": 0.6188399357501511,
+        "event_at_s": 686.85
+      },
+      "all-window-control": {
+        "score": 0.8096290613421046,
+        "event_at_s": 686.85
+      },
+      "nested-selection": {
+        "score": 0.5351639086490916,
+        "event_at_s": 686.85
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929312599970679631.webm",
+    "label": "positive",
+    "variant": "codec-plus-11s",
+    "transform": {
+      "codec": "opus48",
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 176000,
+      "alignment_correlation": 0.9905315836080785,
+      "aligned": false,
+      "encoded_bytes": 4847822,
+      "recipe": {
+        "codec": "opus48",
+        "delay_s": 11
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.6962624559717326,
+        "event_at_s": 697.8941875
+      },
+      "hard-negative-max": {
+        "score": 0.6393801537182175,
+        "event_at_s": 697.8941875
+      },
+      "all-window-control": {
+        "score": 0.9097721898163268,
+        "event_at_s": 697.8941875
+      },
+      "nested-selection": {
+        "score": 0.6962624559717326,
+        "event_at_s": 697.8941875
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929312601933009367.webm",
+    "label": "positive",
+    "variant": "original",
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9807983700762037,
+        "event_at_s": 24.36375
+      },
+      "hard-negative-max": {
+        "score": 0.9508487822235893,
+        "event_at_s": 24.36375
+      },
+      "all-window-control": {
+        "score": 0.9876874091113027,
+        "event_at_s": 21.41375
+      },
+      "nested-selection": {
+        "score": 0.9807983700762037,
+        "event_at_s": 24.36375
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929312601933009367.webm",
+    "label": "positive",
+    "variant": "aac-aligned",
+    "transform": {
+      "codec": "aac80",
+      "codec_delay_samples": 341,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.9781833006004331,
+      "aligned": true,
+      "encoded_bytes": 301686,
+      "recipe": {
+        "codec": "aac80",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.965906839431056,
+        "event_at_s": 25.164562500000002
+      },
+      "hard-negative-max": {
+        "score": 0.9491347284851234,
+        "event_at_s": 20.914562500000002
+      },
+      "all-window-control": {
+        "score": 0.9712348208566527,
+        "event_at_s": 21.414562500000002
+      },
+      "nested-selection": {
+        "score": 0.965906839431056,
+        "event_at_s": 25.164562500000002
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929312601933009367.webm",
+    "label": "positive",
+    "variant": "aac16k-aligned",
+    "transform": {
+      "codec": "aac16k96",
+      "codec_delay_samples": 1024,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.9992161582973582,
+      "aligned": true,
+      "encoded_bytes": 315521,
+      "recipe": {
+        "codec": "aac16k96",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9794266341464486,
+        "event_at_s": 25.160625000000003
+      },
+      "hard-negative-max": {
+        "score": 0.9498350004580062,
+        "event_at_s": 24.360625
+      },
+      "all-window-control": {
+        "score": 0.9851548319955481,
+        "event_at_s": 21.460625
+      },
+      "nested-selection": {
+        "score": 0.9794266341464486,
+        "event_at_s": 25.160625000000003
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929312601933009367.webm",
+    "label": "positive",
+    "variant": "gain-minus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": -3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9763543991020432,
+        "event_at_s": 20.915875
+      },
+      "hard-negative-max": {
+        "score": 0.9574473184919841,
+        "event_at_s": 20.915875
+      },
+      "all-window-control": {
+        "score": 0.9857130352523112,
+        "event_at_s": 20.915875
+      },
+      "nested-selection": {
+        "score": 0.9763543991020432,
+        "event_at_s": 20.915875
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929312601933009367.webm",
+    "label": "positive",
+    "variant": "gain-plus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": 3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9680376208511405,
+        "event_at_s": 25.159437500000003
+      },
+      "hard-negative-max": {
+        "score": 0.9251151313540275,
+        "event_at_s": 25.159437500000003
+      },
+      "all-window-control": {
+        "score": 0.9752197239658723,
+        "event_at_s": 21.409437500000003
+      },
+      "nested-selection": {
+        "score": 0.9680376208511405,
+        "event_at_s": 25.159437500000003
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929312601933009367.webm",
+    "label": "positive",
+    "variant": "codec-plus-11s",
+    "transform": {
+      "codec": "opus48",
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 176000,
+      "alignment_correlation": 0.9933366545326022,
+      "aligned": false,
+      "encoded_bytes": 240620,
+      "recipe": {
+        "codec": "opus48",
+        "delay_s": 11
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9843425009884481,
+        "event_at_s": 36.16375
+      },
+      "hard-negative-max": {
+        "score": 0.9630203000608331,
+        "event_at_s": 34.41375
+      },
+      "all-window-control": {
+        "score": 0.9886967756194005,
+        "event_at_s": 32.41375
+      },
+      "nested-selection": {
+        "score": 0.9843425009884481,
+        "event_at_s": 36.16375
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929314749450126327.webm",
+    "label": "positive",
+    "variant": "original",
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.975181625131636,
+        "event_at_s": 60.937749999999994
+      },
+      "hard-negative-max": {
+        "score": 0.939609293353758,
+        "event_at_s": 60.937749999999994
+      },
+      "all-window-control": {
+        "score": 0.9781426206966799,
+        "event_at_s": 60.937749999999994
+      },
+      "nested-selection": {
+        "score": 0.975181625131636,
+        "event_at_s": 60.937749999999994
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929314749450126327.webm",
+    "label": "positive",
+    "variant": "aac-aligned",
+    "transform": {
+      "codec": "aac80",
+      "codec_delay_samples": 341,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.970614842234328,
+      "aligned": true,
+      "encoded_bytes": 680815,
+      "recipe": {
+        "codec": "aac80",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9788263955884325,
+        "event_at_s": 60.98762500000001
+      },
+      "hard-negative-max": {
+        "score": 0.9310470230847989,
+        "event_at_s": 61.73762500000001
+      },
+      "all-window-control": {
+        "score": 0.9844120492222335,
+        "event_at_s": 60.98762500000001
+      },
+      "nested-selection": {
+        "score": 0.9788263955884325,
+        "event_at_s": 60.98762500000001
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929314749450126327.webm",
+    "label": "positive",
+    "variant": "aac16k-aligned",
+    "transform": {
+      "codec": "aac16k96",
+      "codec_delay_samples": 1024,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.9992056753615923,
+      "aligned": true,
+      "encoded_bytes": 689031,
+      "recipe": {
+        "codec": "aac16k96",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9768774191260813,
+        "event_at_s": 60.937687499999996
+      },
+      "hard-negative-max": {
+        "score": 0.9360713814598816,
+        "event_at_s": 60.937687499999996
+      },
+      "all-window-control": {
+        "score": 0.9784615894411268,
+        "event_at_s": 60.937687499999996
+      },
+      "nested-selection": {
+        "score": 0.9768774191260813,
+        "event_at_s": 60.937687499999996
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929314749450126327.webm",
+    "label": "positive",
+    "variant": "gain-minus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": -3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9739637267672347,
+        "event_at_s": 60.9379375
+      },
+      "hard-negative-max": {
+        "score": 0.9317753818229465,
+        "event_at_s": 60.9379375
+      },
+      "all-window-control": {
+        "score": 0.9876637953581168,
+        "event_at_s": 60.9379375
+      },
+      "nested-selection": {
+        "score": 0.9739637267672347,
+        "event_at_s": 60.9379375
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929314749450126327.webm",
+    "label": "positive",
+    "variant": "gain-plus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": 3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9732637830485986,
+        "event_at_s": 60.937687499999996
+      },
+      "hard-negative-max": {
+        "score": 0.9434671243393795,
+        "event_at_s": 61.73768750000001
+      },
+      "all-window-control": {
+        "score": 0.9689984089917967,
+        "event_at_s": 60.937687499999996
+      },
+      "nested-selection": {
+        "score": 0.9732637830485986,
+        "event_at_s": 60.937687499999996
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929314749450126327.webm",
+    "label": "positive",
+    "variant": "codec-plus-11s",
+    "transform": {
+      "codec": "opus48",
+      "codec_delay_samples": -1,
+      "annotation_delay_samples": 175999,
+      "alignment_correlation": 0.9899263679640193,
+      "aligned": false,
+      "encoded_bytes": 412739,
+      "recipe": {
+        "codec": "opus48",
+        "delay_s": 11
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9820987555422593,
+        "event_at_s": 71.93906249999999
+      },
+      "hard-negative-max": {
+        "score": 0.9557550751770442,
+        "event_at_s": 71.93906249999999
+      },
+      "all-window-control": {
+        "score": 0.9866513735856068,
+        "event_at_s": 71.93906249999999
+      },
+      "nested-selection": {
+        "score": 0.9820987555422593,
+        "event_at_s": 71.93906249999999
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929314751662663260.webm",
+    "label": "positive",
+    "variant": "original",
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9231801772333156,
+        "event_at_s": 156.5
+      },
+      "hard-negative-max": {
+        "score": 0.7596077824372459,
+        "event_at_s": 156.5
+      },
+      "all-window-control": {
+        "score": 0.9871503115865006,
+        "event_at_s": 156.5
+      },
+      "nested-selection": {
+        "score": 0.9231801772333156,
+        "event_at_s": 156.5
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929314751662663260.webm",
+    "label": "positive",
+    "variant": "aac-aligned",
+    "transform": {
+      "codec": "aac80",
+      "codec_delay_samples": 341,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.9973848891376121,
+      "aligned": true,
+      "encoded_bytes": 2913006,
+      "recipe": {
+        "codec": "aac80",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9134206435458136,
+        "event_at_s": 156.5
+      },
+      "hard-negative-max": {
+        "score": 0.7596088959052272,
+        "event_at_s": 156.5
+      },
+      "all-window-control": {
+        "score": 0.9871547383247594,
+        "event_at_s": 156.5
+      },
+      "nested-selection": {
+        "score": 0.9134206435458136,
+        "event_at_s": 156.5
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929314751662663260.webm",
+    "label": "positive",
+    "variant": "aac16k-aligned",
+    "transform": {
+      "codec": "aac16k96",
+      "codec_delay_samples": 1024,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.9996559848634455,
+      "aligned": true,
+      "encoded_bytes": 3410562,
+      "recipe": {
+        "codec": "aac16k96",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9105290393716465,
+        "event_at_s": 156.5
+      },
+      "hard-negative-max": {
+        "score": 0.759608667203872,
+        "event_at_s": 156.5
+      },
+      "all-window-control": {
+        "score": 0.9875610267972964,
+        "event_at_s": 156.5
+      },
+      "nested-selection": {
+        "score": 0.9105290393716465,
+        "event_at_s": 156.5
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929314751662663260.webm",
+    "label": "positive",
+    "variant": "gain-minus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": -3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.8605541654500233,
+        "event_at_s": 156.5
+      },
+      "hard-negative-max": {
+        "score": 0.5352158355165297,
+        "event_at_s": 156.5
+      },
+      "all-window-control": {
+        "score": 0.9725063361540364,
+        "event_at_s": 156.5
+      },
+      "nested-selection": {
+        "score": 0.8605541654500233,
+        "event_at_s": 156.5
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929314751662663260.webm",
+    "label": "positive",
+    "variant": "gain-plus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": 3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9714585756782709,
+        "event_at_s": 156.5
+      },
+      "hard-negative-max": {
+        "score": 0.8640851347697177,
+        "event_at_s": 156.5
+      },
+      "all-window-control": {
+        "score": 0.9873585716132387,
+        "event_at_s": 156.5
+      },
+      "nested-selection": {
+        "score": 0.9714585756782709,
+        "event_at_s": 156.5
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929314751662663260.webm",
+    "label": "positive",
+    "variant": "codec-plus-11s",
+    "transform": {
+      "codec": "opus48",
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 176000,
+      "alignment_correlation": 0.9896080467034525,
+      "aligned": false,
+      "encoded_bytes": 2467240,
+      "recipe": {
+        "codec": "opus48",
+        "delay_s": 11
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.8687326393140082,
+        "event_at_s": 167.497
+      },
+      "hard-negative-max": {
+        "score": 0.749152648142256,
+        "event_at_s": 167.497
+      },
+      "all-window-control": {
+        "score": 0.9829282041920043,
+        "event_at_s": 167.497
+      },
+      "nested-selection": {
+        "score": 0.8687326393140082,
+        "event_at_s": 167.497
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929323417171926603.webm",
+    "label": "positive",
+    "variant": "original",
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9880452842058547,
+        "event_at_s": 28.9
+      },
+      "hard-negative-max": {
+        "score": 0.9826590915062914,
+        "event_at_s": 28.9
+      },
+      "all-window-control": {
+        "score": 0.9953585563324647,
+        "event_at_s": 28.9
+      },
+      "nested-selection": {
+        "score": 0.9880452842058547,
+        "event_at_s": 28.9
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929323417171926603.webm",
+    "label": "positive",
+    "variant": "aac-aligned",
+    "transform": {
+      "codec": "aac80",
+      "codec_delay_samples": 341,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.9541093123066532,
+      "aligned": true,
+      "encoded_bytes": 324514,
+      "recipe": {
+        "codec": "aac80",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9873878379815791,
+        "event_at_s": 28.9
+      },
+      "hard-negative-max": {
+        "score": 0.980918177580707,
+        "event_at_s": 28.9
+      },
+      "all-window-control": {
+        "score": 0.994212294646203,
+        "event_at_s": 28.9
+      },
+      "nested-selection": {
+        "score": 0.9873878379815791,
+        "event_at_s": 28.9
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929323417171926603.webm",
+    "label": "positive",
+    "variant": "aac16k-aligned",
+    "transform": {
+      "codec": "aac16k96",
+      "codec_delay_samples": 1024,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.9990292213057301,
+      "aligned": true,
+      "encoded_bytes": 326768,
+      "recipe": {
+        "codec": "aac16k96",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9881342723029816,
+        "event_at_s": 28.9
+      },
+      "hard-negative-max": {
+        "score": 0.9820598634786231,
+        "event_at_s": 28.9
+      },
+      "all-window-control": {
+        "score": 0.9956429225716069,
+        "event_at_s": 28.9
+      },
+      "nested-selection": {
+        "score": 0.9881342723029816,
+        "event_at_s": 28.9
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929323417171926603.webm",
+    "label": "positive",
+    "variant": "gain-minus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": -3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9896322462645489,
+        "event_at_s": 28.9
+      },
+      "hard-negative-max": {
+        "score": 0.9774512160812414,
+        "event_at_s": 28.9
+      },
+      "all-window-control": {
+        "score": 0.9950466048991553,
+        "event_at_s": 28.9
+      },
+      "nested-selection": {
+        "score": 0.9896322462645489,
+        "event_at_s": 28.9
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929323417171926603.webm",
+    "label": "positive",
+    "variant": "gain-plus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": 3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9898119554405111,
+        "event_at_s": 30.75
+      },
+      "hard-negative-max": {
+        "score": 0.9845058368472818,
+        "event_at_s": 30.25
+      },
+      "all-window-control": {
+        "score": 0.9938932111683165,
+        "event_at_s": 28.9
+      },
+      "nested-selection": {
+        "score": 0.9898119554405111,
+        "event_at_s": 30.75
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929323417171926603.webm",
+    "label": "positive",
+    "variant": "codec-plus-11s",
+    "transform": {
+      "codec": "opus48",
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 176000,
+      "alignment_correlation": 0.9838509006388081,
+      "aligned": false,
+      "encoded_bytes": 183828,
+      "recipe": {
+        "codec": "opus48",
+        "delay_s": 11
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9887805532538771,
+        "event_at_s": 39.9
+      },
+      "hard-negative-max": {
+        "score": 0.9821077589719569,
+        "event_at_s": 39.9
+      },
+      "all-window-control": {
+        "score": 0.9955779865747387,
+        "event_at_s": 39.9
+      },
+      "nested-selection": {
+        "score": 0.9887805532538771,
+        "event_at_s": 39.9
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929369520563549638.mp4",
+    "label": "negative",
+    "variant": "original",
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.2514993420997045,
+        "event_at_s": 11.8048125
+      },
+      "hard-negative-max": {
+        "score": 0.1810645981930065,
+        "event_at_s": 22.3048125
+      },
+      "all-window-control": {
+        "score": 0.4947026391691967,
+        "event_at_s": 27.2048125
+      },
+      "nested-selection": {
+        "score": 0.2514993420997045,
+        "event_at_s": 11.8048125
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929369520563549638.mp4",
+    "label": "negative",
+    "variant": "aac-aligned",
+    "transform": {
+      "codec": "aac80",
+      "codec_delay_samples": 341,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.9840569985522519,
+      "aligned": true,
+      "encoded_bytes": 306245,
+      "recipe": {
+        "codec": "aac80",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.22341741091395925,
+        "event_at_s": 11.2548125
+      },
+      "hard-negative-max": {
+        "score": 0.17982094731211204,
+        "event_at_s": 22.3048125
+      },
+      "all-window-control": {
+        "score": 0.40531491797250735,
+        "event_at_s": 27.2048125
+      },
+      "nested-selection": {
+        "score": 0.22341741091395925,
+        "event_at_s": 11.2548125
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929369520563549638.mp4",
+    "label": "negative",
+    "variant": "aac16k-aligned",
+    "transform": {
+      "codec": "aac16k96",
+      "codec_delay_samples": 1024,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.9998551267336796,
+      "aligned": true,
+      "encoded_bytes": 305354,
+      "recipe": {
+        "codec": "aac16k96",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.26778816014798346,
+        "event_at_s": 11.806937500000002
+      },
+      "hard-negative-max": {
+        "score": 0.13916477223453658,
+        "event_at_s": 22.306937500000004
+      },
+      "all-window-control": {
+        "score": 0.3144153245082822,
+        "event_at_s": 11.806937500000002
+      },
+      "nested-selection": {
+        "score": 0.26778816014798346,
+        "event_at_s": 11.806937500000002
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929369520563549638.mp4",
+    "label": "negative",
+    "variant": "gain-minus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": -3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.15650797341949618,
+        "event_at_s": 22.3049375
+      },
+      "hard-negative-max": {
+        "score": 0.11811525591246565,
+        "event_at_s": 11.2549375
+      },
+      "all-window-control": {
+        "score": 0.19339911977877178,
+        "event_at_s": 29.504937500000004
+      },
+      "nested-selection": {
+        "score": 0.15650797341949618,
+        "event_at_s": 22.3049375
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929369520563549638.mp4",
+    "label": "negative",
+    "variant": "gain-plus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": 3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.5006757396717364,
+        "event_at_s": 11.273187499999999
+      },
+      "hard-negative-max": {
+        "score": 0.44314038603591394,
+        "event_at_s": 15.3731875
+      },
+      "all-window-control": {
+        "score": 0.7994596788559983,
+        "event_at_s": 15.3731875
+      },
+      "nested-selection": {
+        "score": 0.5006757396717364,
+        "event_at_s": 11.273187499999999
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929369520563549638.mp4",
+    "label": "negative",
+    "variant": "codec-plus-11s",
+    "transform": {
+      "codec": "opus48",
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 176000,
+      "alignment_correlation": 0.9892378554211241,
+      "aligned": false,
+      "encoded_bytes": 235778,
+      "recipe": {
+        "codec": "opus48",
+        "delay_s": 11
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.3209198757706773,
+        "event_at_s": 22.7869375
+      },
+      "hard-negative-max": {
+        "score": 0.18701018459628493,
+        "event_at_s": 33.2869375
+      },
+      "all-window-control": {
+        "score": 0.34073761859458845,
+        "event_at_s": 22.7869375
+      },
+      "nested-selection": {
+        "score": 0.3209198757706773,
+        "event_at_s": 22.7869375
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929377550172852142.mp4",
+    "label": "negative",
+    "variant": "original",
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.7686388555496252,
+        "event_at_s": 28.1686875
+      },
+      "hard-negative-max": {
+        "score": 0.6040004223000821,
+        "event_at_s": 28.1686875
+      },
+      "all-window-control": {
+        "score": 0.7920685805496801,
+        "event_at_s": 28.1686875
+      },
+      "nested-selection": {
+        "score": 0.7686388555496252,
+        "event_at_s": 28.1686875
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929377550172852142.mp4",
+    "label": "negative",
+    "variant": "aac-aligned",
+    "transform": {
+      "codec": "aac80",
+      "codec_delay_samples": 341,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.9931898031525171,
+      "aligned": true,
+      "encoded_bytes": 976377,
+      "recipe": {
+        "codec": "aac80",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.7636319362289818,
+        "event_at_s": 28.1686875
+      },
+      "hard-negative-max": {
+        "score": 0.6151803755890438,
+        "event_at_s": 28.1686875
+      },
+      "all-window-control": {
+        "score": 0.8097311998157021,
+        "event_at_s": 28.1686875
+      },
+      "nested-selection": {
+        "score": 0.7636319362289818,
+        "event_at_s": 28.1686875
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929377550172852142.mp4",
+    "label": "negative",
+    "variant": "aac16k-aligned",
+    "transform": {
+      "codec": "aac16k96",
+      "codec_delay_samples": 1024,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.9997951229622953,
+      "aligned": true,
+      "encoded_bytes": 995135,
+      "recipe": {
+        "codec": "aac16k96",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.7122399896822402,
+        "event_at_s": 28.1686875
+      },
+      "hard-negative-max": {
+        "score": 0.6131865952986857,
+        "event_at_s": 28.1686875
+      },
+      "all-window-control": {
+        "score": 0.7973215658638656,
+        "event_at_s": 28.1686875
+      },
+      "nested-selection": {
+        "score": 0.7122399896822402,
+        "event_at_s": 28.1686875
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929377550172852142.mp4",
+    "label": "negative",
+    "variant": "gain-minus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": -3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.6931839684830072,
+        "event_at_s": 28.1686875
+      },
+      "hard-negative-max": {
+        "score": 0.6771530310111665,
+        "event_at_s": 28.1686875
+      },
+      "all-window-control": {
+        "score": 0.8060328905830819,
+        "event_at_s": 28.1686875
+      },
+      "nested-selection": {
+        "score": 0.6931839684830072,
+        "event_at_s": 28.1686875
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929377550172852142.mp4",
+    "label": "negative",
+    "variant": "gain-plus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": 3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.923269288027216,
+        "event_at_s": 28.1686875
+      },
+      "hard-negative-max": {
+        "score": 0.9074860946311488,
+        "event_at_s": 28.1686875
+      },
+      "all-window-control": {
+        "score": 0.9406492686873039,
+        "event_at_s": 28.1686875
+      },
+      "nested-selection": {
+        "score": 0.923269288027216,
+        "event_at_s": 28.1686875
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929377550172852142.mp4",
+    "label": "negative",
+    "variant": "codec-plus-11s",
+    "transform": {
+      "codec": "opus48",
+      "codec_delay_samples": -1,
+      "annotation_delay_samples": 175999,
+      "alignment_correlation": 0.9794048417588902,
+      "aligned": false,
+      "encoded_bytes": 672209,
+      "recipe": {
+        "codec": "opus48",
+        "delay_s": 11
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.8981375694194016,
+        "event_at_s": 39.168687500000004
+      },
+      "hard-negative-max": {
+        "score": 0.8059900137716403,
+        "event_at_s": 39.168687500000004
+      },
+      "all-window-control": {
+        "score": 0.9173635067239277,
+        "event_at_s": 39.168687500000004
+      },
+      "nested-selection": {
+        "score": 0.8981375694194016,
+        "event_at_s": 39.168687500000004
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929388634960411428.mp4",
+    "label": "negative",
+    "variant": "original",
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.757050148944609,
+        "event_at_s": 165.27468750000003
+      },
+      "hard-negative-max": {
+        "score": 0.7903923118296629,
+        "event_at_s": 165.27468750000003
+      },
+      "all-window-control": {
+        "score": 0.9244742443333384,
+        "event_at_s": 165.27468750000003
+      },
+      "nested-selection": {
+        "score": 0.757050148944609,
+        "event_at_s": 165.27468750000003
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929388634960411428.mp4",
+    "label": "negative",
+    "variant": "aac-aligned",
+    "transform": {
+      "codec": "aac80",
+      "codec_delay_samples": 341,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.9903230216110664,
+      "aligned": true,
+      "encoded_bytes": 2592945,
+      "recipe": {
+        "codec": "aac80",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.6157294163102541,
+        "event_at_s": 165.3205625
+      },
+      "hard-negative-max": {
+        "score": 0.6497022981295132,
+        "event_at_s": 165.3205625
+      },
+      "all-window-control": {
+        "score": 0.8662515070549995,
+        "event_at_s": 165.3205625
+      },
+      "nested-selection": {
+        "score": 0.6157294163102541,
+        "event_at_s": 165.3205625
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929388634960411428.mp4",
+    "label": "negative",
+    "variant": "aac16k-aligned",
+    "transform": {
+      "codec": "aac16k96",
+      "codec_delay_samples": 1024,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.9997283743472485,
+      "aligned": true,
+      "encoded_bytes": 2737509,
+      "recipe": {
+        "codec": "aac16k96",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.7311568326601467,
+        "event_at_s": 165.27462500000001
+      },
+      "hard-negative-max": {
+        "score": 0.7309139606321162,
+        "event_at_s": 165.27462500000001
+      },
+      "all-window-control": {
+        "score": 0.9234211223386294,
+        "event_at_s": 165.27462500000001
+      },
+      "nested-selection": {
+        "score": 0.7311568326601467,
+        "event_at_s": 165.27462500000001
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929388634960411428.mp4",
+    "label": "negative",
+    "variant": "gain-minus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": -3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.8032554696242441,
+        "event_at_s": 165.2756875
+      },
+      "hard-negative-max": {
+        "score": 0.4982734267277121,
+        "event_at_s": 165.2756875
+      },
+      "all-window-control": {
+        "score": 0.9040993740916268,
+        "event_at_s": 165.2756875
+      },
+      "nested-selection": {
+        "score": 0.8032554696242441,
+        "event_at_s": 165.2756875
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929388634960411428.mp4",
+    "label": "negative",
+    "variant": "gain-plus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": 3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.7757659209252702,
+        "event_at_s": 165.27462500000001
+      },
+      "hard-negative-max": {
+        "score": 0.8038580816802096,
+        "event_at_s": 165.27462500000001
+      },
+      "all-window-control": {
+        "score": 0.8978260148690427,
+        "event_at_s": 165.27462500000001
+      },
+      "nested-selection": {
+        "score": 0.7757659209252702,
+        "event_at_s": 165.27462500000001
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929388634960411428.mp4",
+    "label": "negative",
+    "variant": "codec-plus-11s",
+    "transform": {
+      "codec": "opus48",
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 176000,
+      "alignment_correlation": 0.9966771666280665,
+      "aligned": false,
+      "encoded_bytes": 1822777,
+      "recipe": {
+        "codec": "opus48",
+        "delay_s": 11
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.7609140056947763,
+        "event_at_s": 176.2776875
+      },
+      "hard-negative-max": {
+        "score": 0.7837078974184555,
+        "event_at_s": 176.2776875
+      },
+      "all-window-control": {
+        "score": 0.9259988564156376,
+        "event_at_s": 176.2776875
+      },
+      "nested-selection": {
+        "score": 0.7609140056947763,
+        "event_at_s": 176.2776875
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929395998260540420.mp4",
+    "label": "negative",
+    "variant": "original",
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.1252829617798202,
+        "event_at_s": 91.7000625
+      },
+      "hard-negative-max": {
+        "score": 0.12491060766623442,
+        "event_at_s": 0.6500625000000007
+      },
+      "all-window-control": {
+        "score": 0.3340003588511221,
+        "event_at_s": 91.7000625
+      },
+      "nested-selection": {
+        "score": 0.1252829617798202,
+        "event_at_s": 91.7000625
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929395998260540420.mp4",
+    "label": "negative",
+    "variant": "aac-aligned",
+    "transform": {
+      "codec": "aac80",
+      "codec_delay_samples": 341,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.9951864381819724,
+      "aligned": true,
+      "encoded_bytes": 1625178,
+      "recipe": {
+        "codec": "aac80",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.12503732037901163,
+        "event_at_s": 91.7
+      },
+      "hard-negative-max": {
+        "score": 0.1248775929534988,
+        "event_at_s": 0.6500000000000004
+      },
+      "all-window-control": {
+        "score": 0.33399986444427193,
+        "event_at_s": 91.7
+      },
+      "nested-selection": {
+        "score": 0.12503732037901163,
+        "event_at_s": 91.7
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929395998260540420.mp4",
+    "label": "negative",
+    "variant": "aac16k-aligned",
+    "transform": {
+      "codec": "aac16k96",
+      "codec_delay_samples": 1024,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.9999917296889481,
+      "aligned": true,
+      "encoded_bytes": 1737225,
+      "recipe": {
+        "codec": "aac16k96",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.12572256045523988,
+        "event_at_s": 91.7
+      },
+      "hard-negative-max": {
+        "score": 0.1249015047808183,
+        "event_at_s": 0.6500000000000004
+      },
+      "all-window-control": {
+        "score": 0.3340019114513916,
+        "event_at_s": 91.7
+      },
+      "nested-selection": {
+        "score": 0.12572256045523988,
+        "event_at_s": 91.7
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929395998260540420.mp4",
+    "label": "negative",
+    "variant": "gain-minus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": -3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.09676886741219133,
+        "event_at_s": 91.7000625
+      },
+      "hard-negative-max": {
+        "score": 0.06218458296141215,
+        "event_at_s": 91.7000625
+      },
+      "all-window-control": {
+        "score": 0.1966318251486042,
+        "event_at_s": 91.7000625
+      },
+      "nested-selection": {
+        "score": 0.09676886741219133,
+        "event_at_s": 91.7000625
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929395998260540420.mp4",
+    "label": "negative",
+    "variant": "gain-plus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": 3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.24123467512040794,
+        "event_at_s": 15.850062500000002
+      },
+      "hard-negative-max": {
+        "score": 0.21687716329551163,
+        "event_at_s": 15.850062500000002
+      },
+      "all-window-control": {
+        "score": 0.5361837537784033,
+        "event_at_s": 15.850062500000002
+      },
+      "nested-selection": {
+        "score": 0.24123467512040794,
+        "event_at_s": 15.850062500000002
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929395998260540420.mp4",
+    "label": "negative",
+    "variant": "codec-plus-11s",
+    "transform": {
+      "codec": "opus48",
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 176000,
+      "alignment_correlation": 0.99966289300713,
+      "aligned": false,
+      "encoded_bytes": 1067807,
+      "recipe": {
+        "codec": "opus48",
+        "delay_s": 11
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.17315678981117166,
+        "event_at_s": 102.6976875
+      },
+      "hard-negative-max": {
+        "score": 0.10658669665131087,
+        "event_at_s": 102.6976875
+      },
+      "all-window-control": {
+        "score": 0.4329057238857063,
+        "event_at_s": 102.6976875
+      },
+      "nested-selection": {
+        "score": 0.17315678981117166,
+        "event_at_s": 102.6976875
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929480884480367074.webm",
+    "label": "positive",
+    "variant": "original",
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9749018657276227,
+        "event_at_s": 53.996187500000005
+      },
+      "hard-negative-max": {
+        "score": 0.9681158200602509,
+        "event_at_s": 55.5461875
+      },
+      "all-window-control": {
+        "score": 0.988343254084837,
+        "event_at_s": 53.996187500000005
+      },
+      "nested-selection": {
+        "score": 0.9749018657276227,
+        "event_at_s": 53.996187500000005
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929480884480367074.webm",
+    "label": "positive",
+    "variant": "aac-aligned",
+    "transform": {
+      "codec": "aac80",
+      "codec_delay_samples": 341,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.9671567634310705,
+      "aligned": true,
+      "encoded_bytes": 662304,
+      "recipe": {
+        "codec": "aac80",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9512210430341635,
+        "event_at_s": 53.995312500000004
+      },
+      "hard-negative-max": {
+        "score": 0.9354067853119831,
+        "event_at_s": 54.5453125
+      },
+      "all-window-control": {
+        "score": 0.9732358529434041,
+        "event_at_s": 53.995312500000004
+      },
+      "nested-selection": {
+        "score": 0.9512210430341635,
+        "event_at_s": 53.995312500000004
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929480884480367074.webm",
+    "label": "positive",
+    "variant": "aac16k-aligned",
+    "transform": {
+      "codec": "aac16k96",
+      "codec_delay_samples": 1024,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.9976170723491232,
+      "aligned": true,
+      "encoded_bytes": 758022,
+      "recipe": {
+        "codec": "aac16k96",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9728347885924393,
+        "event_at_s": 54.0276875
+      },
+      "hard-negative-max": {
+        "score": 0.9668832755035554,
+        "event_at_s": 55.577687499999996
+      },
+      "all-window-control": {
+        "score": 0.98532051294142,
+        "event_at_s": 54.0276875
+      },
+      "nested-selection": {
+        "score": 0.9728347885924393,
+        "event_at_s": 54.0276875
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929480884480367074.webm",
+    "label": "positive",
+    "variant": "gain-minus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": -3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9677716352840732,
+        "event_at_s": 53.996187500000005
+      },
+      "hard-negative-max": {
+        "score": 0.9551322666927333,
+        "event_at_s": 53.996187500000005
+      },
+      "all-window-control": {
+        "score": 0.9801754410756413,
+        "event_at_s": 53.996187500000005
+      },
+      "nested-selection": {
+        "score": 0.9677716352840732,
+        "event_at_s": 53.996187500000005
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929480884480367074.webm",
+    "label": "positive",
+    "variant": "gain-plus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": 3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.978569665372902,
+        "event_at_s": 53.99518750000001
+      },
+      "hard-negative-max": {
+        "score": 0.9750073306308094,
+        "event_at_s": 53.99518750000001
+      },
+      "all-window-control": {
+        "score": 0.9903552279312338,
+        "event_at_s": 53.99518750000001
+      },
+      "nested-selection": {
+        "score": 0.978569665372902,
+        "event_at_s": 53.99518750000001
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929480884480367074.webm",
+    "label": "positive",
+    "variant": "codec-plus-11s",
+    "transform": {
+      "codec": "opus48",
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 176000,
+      "alignment_correlation": 0.9869092153004719,
+      "aligned": false,
+      "encoded_bytes": 483865,
+      "recipe": {
+        "codec": "opus48",
+        "delay_s": 11
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9738074962582581,
+        "event_at_s": 64.9951875
+      },
+      "hard-negative-max": {
+        "score": 0.9675638216848491,
+        "event_at_s": 66.5451875
+      },
+      "all-window-control": {
+        "score": 0.9883743691429827,
+        "event_at_s": 64.9951875
+      },
+      "nested-selection": {
+        "score": 0.9738074962582581,
+        "event_at_s": 64.9951875
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929484944890327872.webm",
+    "label": "negative",
+    "variant": "original",
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.800399519415052,
+        "event_at_s": 1.2996249999999998
+      },
+      "hard-negative-max": {
+        "score": 0.6799839465803689,
+        "event_at_s": 1.2996249999999998
+      },
+      "all-window-control": {
+        "score": 0.8481560403376749,
+        "event_at_s": 1.2996249999999998
+      },
+      "nested-selection": {
+        "score": 0.800399519415052,
+        "event_at_s": 1.2996249999999998
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929484944890327872.webm",
+    "label": "negative",
+    "variant": "aac-aligned",
+    "transform": {
+      "codec": "aac80",
+      "codec_delay_samples": 341,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.9542705606356394,
+      "aligned": true,
+      "encoded_bytes": 396647,
+      "recipe": {
+        "codec": "aac80",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.5712524203075924,
+        "event_at_s": 1.2465000000000002
+      },
+      "hard-negative-max": {
+        "score": 0.2975621963629905,
+        "event_at_s": 1.2465000000000002
+      },
+      "all-window-control": {
+        "score": 0.7431017178606002,
+        "event_at_s": 1.2465000000000002
+      },
+      "nested-selection": {
+        "score": 0.5712524203075924,
+        "event_at_s": 1.2465000000000002
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929484944890327872.webm",
+    "label": "negative",
+    "variant": "aac16k-aligned",
+    "transform": {
+      "codec": "aac16k96",
+      "codec_delay_samples": 1024,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.9948338431459061,
+      "aligned": true,
+      "encoded_bytes": 459305,
+      "recipe": {
+        "codec": "aac16k96",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.6419091348949186,
+        "event_at_s": 1.2959375
+      },
+      "hard-negative-max": {
+        "score": 0.6850356461978465,
+        "event_at_s": 1.2959375
+      },
+      "all-window-control": {
+        "score": 0.7951872090930034,
+        "event_at_s": 1.2959375
+      },
+      "nested-selection": {
+        "score": 0.6419091348949186,
+        "event_at_s": 1.2959375
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929484944890327872.webm",
+    "label": "negative",
+    "variant": "gain-minus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": -3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.32421047024298155,
+        "event_at_s": 1.3032500000000002
+      },
+      "hard-negative-max": {
+        "score": 0.18204944434594003,
+        "event_at_s": 1.3032500000000002
+      },
+      "all-window-control": {
+        "score": 0.38808546482169765,
+        "event_at_s": 1.3032500000000002
+      },
+      "nested-selection": {
+        "score": 0.32421047024298155,
+        "event_at_s": 1.3032500000000002
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929484944890327872.webm",
+    "label": "negative",
+    "variant": "gain-plus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": 3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9301624287347824,
+        "event_at_s": 1.2936250000000005
+      },
+      "hard-negative-max": {
+        "score": 0.9019557719919501,
+        "event_at_s": 1.7936250000000005
+      },
+      "all-window-control": {
+        "score": 0.9381274227561504,
+        "event_at_s": 1.2936250000000005
+      },
+      "nested-selection": {
+        "score": 0.9301624287347824,
+        "event_at_s": 1.2936250000000005
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929484944890327872.webm",
+    "label": "negative",
+    "variant": "codec-plus-11s",
+    "transform": {
+      "codec": "opus48",
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 176000,
+      "alignment_correlation": 0.9780781706448639,
+      "aligned": false,
+      "encoded_bytes": 317470,
+      "recipe": {
+        "codec": "opus48",
+        "delay_s": 11
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.800295989905964,
+        "event_at_s": 12.2460625
+      },
+      "hard-negative-max": {
+        "score": 0.6975618494549523,
+        "event_at_s": 12.2460625
+      },
+      "all-window-control": {
+        "score": 0.8735134326563431,
+        "event_at_s": 12.2460625
+      },
+      "nested-selection": {
+        "score": 0.800295989905964,
+        "event_at_s": 12.2460625
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929498438732758260.mp4",
+    "label": "negative",
+    "variant": "original",
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.43047373473886585,
+        "event_at_s": 14.802
+      },
+      "hard-negative-max": {
+        "score": 0.49456252171593207,
+        "event_at_s": 14.802
+      },
+      "all-window-control": {
+        "score": 0.7074891916702035,
+        "event_at_s": 20.202
+      },
+      "nested-selection": {
+        "score": 0.43047373473886585,
+        "event_at_s": 14.802
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929498438732758260.mp4",
+    "label": "negative",
+    "variant": "aac-aligned",
+    "transform": {
+      "codec": "aac80",
+      "codec_delay_samples": 341,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.9928922103685944,
+      "aligned": true,
+      "encoded_bytes": 468098,
+      "recipe": {
+        "codec": "aac80",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.44726699243554574,
+        "event_at_s": 20.201875
+      },
+      "hard-negative-max": {
+        "score": 0.48389900854108747,
+        "event_at_s": 14.801875
+      },
+      "all-window-control": {
+        "score": 0.7502125016465958,
+        "event_at_s": 20.201875
+      },
+      "nested-selection": {
+        "score": 0.44726699243554574,
+        "event_at_s": 20.201875
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929498438732758260.mp4",
+    "label": "negative",
+    "variant": "aac16k-aligned",
+    "transform": {
+      "codec": "aac16k96",
+      "codec_delay_samples": 1024,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.999957897577324,
+      "aligned": true,
+      "encoded_bytes": 484699,
+      "recipe": {
+        "codec": "aac16k96",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.4340616675925112,
+        "event_at_s": 14.8015
+      },
+      "hard-negative-max": {
+        "score": 0.5054273824238519,
+        "event_at_s": 14.8015
+      },
+      "all-window-control": {
+        "score": 0.7084636268198917,
+        "event_at_s": 20.201500000000003
+      },
+      "nested-selection": {
+        "score": 0.4340616675925112,
+        "event_at_s": 14.8015
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929498438732758260.mp4",
+    "label": "negative",
+    "variant": "gain-minus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": -3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.3490369054108499,
+        "event_at_s": 14.804625000000001
+      },
+      "hard-negative-max": {
+        "score": 0.3000036146177779,
+        "event_at_s": 14.804625000000001
+      },
+      "all-window-control": {
+        "score": 0.6840392480707553,
+        "event_at_s": 14.804625000000001
+      },
+      "nested-selection": {
+        "score": 0.3490369054108499,
+        "event_at_s": 14.804625000000001
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929498438732758260.mp4",
+    "label": "negative",
+    "variant": "gain-plus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": 3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.6773189161411425,
+        "event_at_s": 20.201875
+      },
+      "hard-negative-max": {
+        "score": 0.7808325493971757,
+        "event_at_s": 20.201875
+      },
+      "all-window-control": {
+        "score": 0.8345079742329748,
+        "event_at_s": 20.201875
+      },
+      "nested-selection": {
+        "score": 0.6773189161411425,
+        "event_at_s": 20.201875
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929498438732758260.mp4",
+    "label": "negative",
+    "variant": "codec-plus-11s",
+    "transform": {
+      "codec": "opus48",
+      "codec_delay_samples": -1,
+      "annotation_delay_samples": 175999,
+      "alignment_correlation": 0.9775931301185621,
+      "aligned": false,
+      "encoded_bytes": 350368,
+      "recipe": {
+        "codec": "opus48",
+        "delay_s": 11
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.49970731844692423,
+        "event_at_s": 25.8019375
+      },
+      "hard-negative-max": {
+        "score": 0.46906374737480944,
+        "event_at_s": 25.8019375
+      },
+      "all-window-control": {
+        "score": 0.7265650211197247,
+        "event_at_s": 31.201937500000003
+      },
+      "nested-selection": {
+        "score": 0.49970731844692423,
+        "event_at_s": 25.8019375
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929502589060439332.mp4",
+    "label": "positive",
+    "variant": "original",
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9749508990636242,
+        "event_at_s": 21.5300625
+      },
+      "hard-negative-max": {
+        "score": 0.9739290054274184,
+        "event_at_s": 21.5300625
+      },
+      "all-window-control": {
+        "score": 0.985490332095838,
+        "event_at_s": 21.5300625
+      },
+      "nested-selection": {
+        "score": 0.9749508990636242,
+        "event_at_s": 21.5300625
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929502589060439332.mp4",
+    "label": "positive",
+    "variant": "aac-aligned",
+    "transform": {
+      "codec": "aac80",
+      "codec_delay_samples": 341,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.9661547976002641,
+      "aligned": true,
+      "encoded_bytes": 280183,
+      "recipe": {
+        "codec": "aac80",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.966109534690578,
+        "event_at_s": 21.5176875
+      },
+      "hard-negative-max": {
+        "score": 0.9567968314962271,
+        "event_at_s": 21.5176875
+      },
+      "all-window-control": {
+        "score": 0.9867477721026062,
+        "event_at_s": 21.5176875
+      },
+      "nested-selection": {
+        "score": 0.966109534690578,
+        "event_at_s": 21.5176875
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929502589060439332.mp4",
+    "label": "positive",
+    "variant": "aac16k-aligned",
+    "transform": {
+      "codec": "aac16k96",
+      "codec_delay_samples": 1024,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.9987271363470788,
+      "aligned": true,
+      "encoded_bytes": 273576,
+      "recipe": {
+        "codec": "aac16k96",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9790892773961611,
+        "event_at_s": 21.528750000000002
+      },
+      "hard-negative-max": {
+        "score": 0.9716297048269208,
+        "event_at_s": 21.528750000000002
+      },
+      "all-window-control": {
+        "score": 0.9893659065917265,
+        "event_at_s": 21.528750000000002
+      },
+      "nested-selection": {
+        "score": 0.9790892773961611,
+        "event_at_s": 21.528750000000002
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929502589060439332.mp4",
+    "label": "positive",
+    "variant": "gain-minus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": -3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9531443590480821,
+        "event_at_s": 21.5323125
+      },
+      "hard-negative-max": {
+        "score": 0.9183636682127138,
+        "event_at_s": 21.5323125
+      },
+      "all-window-control": {
+        "score": 0.9760008537396506,
+        "event_at_s": 20.982312500000003
+      },
+      "nested-selection": {
+        "score": 0.9531443590480821,
+        "event_at_s": 21.5323125
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929502589060439332.mp4",
+    "label": "positive",
+    "variant": "gain-plus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": 3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9863470597222208,
+        "event_at_s": 21.514812499999998
+      },
+      "hard-negative-max": {
+        "score": 0.9812579464129368,
+        "event_at_s": 21.514812499999998
+      },
+      "all-window-control": {
+        "score": 0.99238752322883,
+        "event_at_s": 21.514812499999998
+      },
+      "nested-selection": {
+        "score": 0.9863470597222208,
+        "event_at_s": 21.514812499999998
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929502589060439332.mp4",
+    "label": "positive",
+    "variant": "codec-plus-11s",
+    "transform": {
+      "codec": "opus48",
+      "codec_delay_samples": -1,
+      "annotation_delay_samples": 175999,
+      "alignment_correlation": 0.9832785314730482,
+      "aligned": false,
+      "encoded_bytes": 177708,
+      "recipe": {
+        "codec": "opus48",
+        "delay_s": 11
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9668654752497928,
+        "event_at_s": 31.979687500000004
+      },
+      "hard-negative-max": {
+        "score": 0.943950342978914,
+        "event_at_s": 31.979687500000004
+      },
+      "all-window-control": {
+        "score": 0.9846108819059195,
+        "event_at_s": 31.979687500000004
+      },
+      "nested-selection": {
+        "score": 0.9668654752497928,
+        "event_at_s": 31.979687500000004
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929508924060208542.webm",
+    "label": "positive",
+    "variant": "original",
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9195428043395899,
+        "event_at_s": 59.55075
+      },
+      "hard-negative-max": {
+        "score": 0.8827853541819043,
+        "event_at_s": 59.55075
+      },
+      "all-window-control": {
+        "score": 0.9615545513177747,
+        "event_at_s": 59.55075
+      },
+      "nested-selection": {
+        "score": 0.9195428043395899,
+        "event_at_s": 59.55075
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929508924060208542.webm",
+    "label": "positive",
+    "variant": "aac-aligned",
+    "transform": {
+      "codec": "aac80",
+      "codec_delay_samples": 341,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.9426949655331445,
+      "aligned": true,
+      "encoded_bytes": 2345963,
+      "recipe": {
+        "codec": "aac80",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.7968464091425628,
+        "event_at_s": 57.995562500000005
+      },
+      "hard-negative-max": {
+        "score": 0.7394823576145523,
+        "event_at_s": 57.995562500000005
+      },
+      "all-window-control": {
+        "score": 0.9098816573447018,
+        "event_at_s": 57.995562500000005
+      },
+      "nested-selection": {
+        "score": 0.7968464091425628,
+        "event_at_s": 57.995562500000005
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929508924060208542.webm",
+    "label": "positive",
+    "variant": "aac16k-aligned",
+    "transform": {
+      "codec": "aac16k96",
+      "codec_delay_samples": 1024,
+      "annotation_delay_samples": 0,
+      "alignment_correlation": 0.9984095986885599,
+      "aligned": true,
+      "encoded_bytes": 2751421,
+      "recipe": {
+        "codec": "aac16k96",
+        "align": true
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.8545303220962454,
+        "event_at_s": 61.249
+      },
+      "hard-negative-max": {
+        "score": 0.8313779162899047,
+        "event_at_s": 61.249
+      },
+      "all-window-control": {
+        "score": 0.9106277184291003,
+        "event_at_s": 61.249
+      },
+      "nested-selection": {
+        "score": 0.8545303220962454,
+        "event_at_s": 61.249
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929508924060208542.webm",
+    "label": "positive",
+    "variant": "gain-minus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": -3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9049941793160333,
+        "event_at_s": 60.450750000000006
+      },
+      "hard-negative-max": {
+        "score": 0.8409511558241397,
+        "event_at_s": 60.450750000000006
+      },
+      "all-window-control": {
+        "score": 0.9543939035092006,
+        "event_at_s": 59.55075
+      },
+      "nested-selection": {
+        "score": 0.9049941793160333,
+        "event_at_s": 60.450750000000006
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929508924060208542.webm",
+    "label": "positive",
+    "variant": "gain-plus-3db",
+    "transform": {
+      "codec": null,
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 0,
+      "recipe": {
+        "gain_db": 3
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.8861228505882012,
+        "event_at_s": 59.55075
+      },
+      "hard-negative-max": {
+        "score": 0.8699118511232549,
+        "event_at_s": 59.55075
+      },
+      "all-window-control": {
+        "score": 0.9451176402750235,
+        "event_at_s": 59.55075
+      },
+      "nested-selection": {
+        "score": 0.8861228505882012,
+        "event_at_s": 59.55075
+      }
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929508924060208542.webm",
+    "label": "positive",
+    "variant": "codec-plus-11s",
+    "transform": {
+      "codec": "opus48",
+      "codec_delay_samples": 0,
+      "annotation_delay_samples": 176000,
+      "alignment_correlation": 0.9819705196237966,
+      "aligned": false,
+      "encoded_bytes": 1978220,
+      "recipe": {
+        "codec": "opus48",
+        "delay_s": 11
+      }
+    },
+    "predictions": {
+      "hard-negative-mixed": {
+        "score": 0.9094108393558212,
+        "event_at_s": 72.25075000000001
+      },
+      "hard-negative-max": {
+        "score": 0.8840004341022772,
+        "event_at_s": 71.45075
+      },
+      "all-window-control": {
+        "score": 0.9512412115606115,
+        "event_at_s": 70.55075
+      },
+      "nested-selection": {
+        "score": 0.9094108393558212,
+        "event_at_s": 72.25075000000001
+      }
+    }
+  }
+]

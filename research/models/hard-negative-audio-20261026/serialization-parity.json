@@ -1,0 +1,8 @@
+{
+  "records": 25794,
+  "maximum_absolute_error": {
+    "hard-negative-mixed": 0.0,
+    "hard-negative-max": 0.0,
+    "all-window-control": 0.0
+  }
+}

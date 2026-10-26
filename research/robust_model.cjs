@@ -17,7 +17,14 @@
     }
     return result.map((v) => Math.max(-8, Math.min(8, v)));
   }
-  function predict(transform, model, physical, audio) {
+  function predict(transform, model, physical, audio, contentPositions) {
+    if (transform.context_features && physical[0].length !== transform.physical.mean.length) {
+      const context = typeof require === 'function' ? require('./robust_context.cjs') : globalThis.SpokoynoContext;
+      const extra = context.extract(audio, contentPositions, transform.context_features.head);
+      if (JSON.stringify(extra.names) !== JSON.stringify(transform.context_features.names))
+        throw new Error('context schema differs');
+      physical = physical.map((row, i) => [...row, ...extra.rows[i]]);
+    }
     const events = physical.map((row, i) => {
       const x = prepare(transform, row, model.audio ? audio.subarray(i * 3072, (i + 1) * 3072) : null);
       let value = model.intercept;
@@ -55,7 +62,10 @@
     async score(samples, channels) {
       const extracted = features.extract(samples, channels, this.sos, !!this.encoder);
       if (extracted.silent) return { score: 0, risk_tier: 'low', events: [], silent: true, model: this.name };
-      if (JSON.stringify(extracted.names) !== JSON.stringify(this.transform.names))
+      if (
+        JSON.stringify(extracted.names) !==
+        JSON.stringify(this.transform.context_features?.base_names || this.transform.names)
+      )
         throw new Error('feature names differ');
       let audio = null;
       if (this.encoder) {
@@ -64,7 +74,7 @@
           audio.set(await this.encoder.encode(extracted.patches.slice(i, i + 12)), i * 1024);
         }
       }
-      const result = predict(this.transform, this.model, extracted.physical, audio);
+      const result = predict(this.transform, this.model, extracted.physical, audio, extracted.contentPositions);
       const events = result.events
         .map((score, i) => ({ ...extracted.windows[i], score }))
         .sort((a, b) => b.score - a.score)

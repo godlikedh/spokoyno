@@ -116,6 +116,18 @@ def main():
     for name in ("followup-declaration.json", "resume-provenance.json"):
         if (args.run / name).exists():
             shutil.copyfile(args.run / name, args.output_dir / name)
+    extra_sources = ()
+    if "context_features" in data:
+        extra_sources = ("context_features.py", "context_runtime.py")
+        context = data["context_features"]
+        if (
+            sha256(Path(__file__).with_name("context_features.py"))
+            != context["feature_source_sha256"]
+        ):
+            raise ValueError("context extractor changed after matrix generation")
+        shutil.copyfile(
+            Path(context["head_directory"]) / "LICENSE", args.output_dir / "LICENSE"
+        )
     manifest = {
         "schema": 1,
         "status": "research-only; within-experiment model selection is not production promotion",
@@ -139,6 +151,7 @@ def main():
                 "train_robust_models.py",
                 "robust_tree.py",
             )
+            + extra_sources
         },
         "files": {
             p.name: sha256(p) for p in sorted(args.output_dir.iterdir()) if p.is_file()
