@@ -4,9 +4,11 @@ Spokoyno is a Tampermonkey companion for 2ch video threads. It preloads video at
 
 ## Install
 
-Open the [userscript installation link](https://raw.githubusercontent.com/godlikedh/spokoyno/main/spokoyno.user.js) and choose **Install** or **Update** in Tampermonkey, then reload the thread. Version **6.0.0** uses the frozen **synthetic-mil-20pct** ML model. It supports `2ch.org`, `2ch.su`, and `2ch.life`.
+Open the [userscript installation link](https://raw.githubusercontent.com/godlikedh/spokoyno/main/spokoyno.user.js) ([CDN alternative](https://cdn.jsdelivr.net/gh/godlikedh/spokoyno@main/spokoyno.user.js)) and choose **Install** or **Update** in Tampermonkey, then reload the thread. Version **6.0.1** uses the frozen **synthetic-mil-20pct** ML model. It supports `2ch.org`, `2ch.su`, and `2ch.life`.
 
-Tampermonkey downloads approximately 20 MB of pinned model/runtime resources during installation and caches them. No Python, local server, or separate model setup is needed. A score badge's tooltip identifies the model. Existing downloaded videos are retained; old heuristic scores are automatically recomputed with ML.
+The executable ML runtime is bundled into the userscript. On first analysis, it downloads approximately 19 MB of model data from jsDelivr, with GitHub as a fallback, verifies SHA-256 hashes, and stores it in a persistent browser cache. Later page loads can reuse this cache without contacting either model host. No Python, local server, or separate model setup is needed. A score badge's tooltip identifies the model. Existing downloaded videos are retained; the update recomputes analysis results, including failed 6.0.0 attempts.
+
+If both model hosts fail on first use, videos stay marked **unknown** and the tooltip identifies the failed downloads. After restoring access, use Tampermonkey's screamer-results reset menu to retry. Clearing site data removes that site's model cache. See the [6.0.1 delivery fix](research/BROWSER_MODEL_DELIVERY_20261027.md) for details.
 
 All analysis stays in the browser. Decode, cache, and download failures are displayed as unknown rather than safe. CacheStorage is origin-specific, so caches are not physically shared between mirror hostnames.
 
@@ -29,6 +31,7 @@ All analysis stays in the browser. Decode, cache, and download failures are disp
 - [Codec/delay augmentation, synthetic recordings, and production-runtime research](research/ROBUST_AUDIO_RESEARCH_20261026.md)
 - [Hard-negative training, 32 new sound-context features, and controlled comparisons](research/CONTEXT_RESEARCH_20261026.md)
 - [Browser ML release, numerical parity, and installation verification](research/BROWSER_ML_RELEASE_20261026.md)
+- [Model download recovery and bundled-runtime fix (6.0.1)](research/BROWSER_MODEL_DELIVERY_20261027.md)
 - [Versioned label policy](corpus/labels.json)
 
 The audio corpus and generated research artifacts are intentionally local. `corpus/audio/` contains 16 kHz WAV files, while `corpus/index.json` maps them to canonical media paths and hashes. Back up the entire ignored `corpus/` directory: expired imageboard media cannot necessarily be reconstructed from a fresh clone.
@@ -47,4 +50,4 @@ Only `synthetic-mil-20pct` is shipped in the browser. Other research models and 
 
 Run `npm ci` and `npm test` with Node 22 or newer. The optional retained-corpus regression skips when local audio is unavailable; synthetic-signal ML, worker scheduling, score tiers, and error behavior still run. Python research checks use `research/requirements-dev.txt` and `python -m unittest discover -s research -p 'test_*.py'`. Run `npm run format:check` and `ruff check research` for formatting/lint checks.
 
-Production sources are in `ml/*.cjs`; `ml/assets/` contains generated, pinned release resources and the TensorFlow.js/YAMNet Apache licenses. The [release report](research/BROWSER_ML_RELEASE_20261026.md) describes building, immutable resource pinning, and full-corpus/browser verification.
+Production sources are in `ml/*.cjs`; `ml/assets/` contains generated, pinned release resources and the TensorFlow.js/YAMNet Apache licenses. `research/pin_browser_ml.py FULL_ASSET_COMMIT_SHA` embeds the verified runtime into the marked generated section of `spokoyno.user.js` and pins its model-data URLs. Edit the sources and rebuild instead of editing that generated section. The release reports describe building and verification.

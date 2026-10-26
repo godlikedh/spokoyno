@@ -23,8 +23,11 @@ function detector(source = SOURCE, environment = {}) {
     const tf = environment.tf || {};
     const SpokoynoML = environment.ML;
     const GM_getResourceText = environment.getResource;
+    const GM_xmlhttpRequest = environment.request;
+    const caches = environment.caches;
+    const spokoynoMLRuntime = () => ({ tf, ML: SpokoynoML });
     const analysisWorkers = new Map(); let analysisWorkerUrl = null, analysisWorkersUnavailable = false;
-    let mlResourcesPromise=null,mlRuntimeSource='',mainMLPromise=null,mainMLChain=Promise.resolve();
+    let mlResourcesPromise=null,mlRuntimeSource='',mainMLRuntime=null,mainMLPromise=null,mainMLChain=Promise.resolve();
     let decoderContext = { decodeAudioData: async value => value };
     ${core}
     return {analyzeScreamer,
@@ -37,7 +40,14 @@ function detector(source = SOURCE, environment = {}) {
       stopWorker: typeof stopAnalysisWorker === 'function' ? stopAnalysisWorker : null,
       loadResources: typeof loadMLResources === 'function' ? loadMLResources : null,
       workers: analysisWorkers};`
-  )({ ML: nodeML, getResource: resource, ...environment });
+  )({ ML: nodeML, getResource: resource, request: resourceRequest, ...environment });
+}
+
+function resourceRequest(details) {
+  const file = new URL(details.url).pathname.split('/').pop();
+  const name = Object.keys(resourceNames).find((name) => resourceNames[name] === file);
+  queueMicrotask(() => details.onload({ status: 200, responseText: resource(name) }));
+  return { abort() {} };
 }
 
 const resourceNames = {
@@ -120,7 +130,7 @@ async function analyze(engine, arrays) {
   return engine.analyzeScreamer({ arrayBuffer: async () => buffer });
 }
 
-module.exports = { ROOT, SOURCE, detector, readWav, analyze };
+module.exports = { ROOT, SOURCE, detector, readWav, analyze, resourceRequest };
 
 if (require.main === module)
   (async () => {

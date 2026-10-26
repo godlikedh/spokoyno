@@ -194,7 +194,7 @@ test(
         this.thread = new NodeWorker(
           `const {parentPort}=require('node:worker_threads');
         const self={postMessage: data=>parentPort.postMessage(data)};
-        const tf={};const SpokoynoML={initialize:async()=>({score:async()=>({status:"ok",score:.73,riskTier:"maybe"})})};
+        const tf={};const ML={initialize:async()=>({score:async()=>({status:"ok",score:.73,riskTier:"maybe"})})};
         ${runtime.workerSource().slice(runtime.workerSource().lastIndexOf(';let modelPromise;'))}
         parentPort.on('message',data=>self.onmessage({data}));`,
           { eval: true }

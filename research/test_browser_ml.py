@@ -54,6 +54,13 @@ class BrowserMLTests(unittest.TestCase):
             (assets / "runtime.js").read_text(),
             "\n;\n".join(p.read_text() for p in sources),
         )
+        script = (ROOT / "spokoyno.user.js").read_text()
+        embedded = script.split("  function spokoynoMLRuntime() {\n", 1)[1].split(
+            "\n    return { tf: globalThis.tf, ML: globalThis.SpokoynoML };", 1
+        )[0]
+        self.assertEqual(embedded, (assets / "runtime.js").read_text())
+        self.assertNotIn("// @resource", script)
+        self.assertNotIn("// @require", script)
 
     def test_arbitrary_length_fft_matches_numpy(self):
         rng = np.random.default_rng(13)

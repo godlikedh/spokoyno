@@ -1,0 +1,142 @@
+{
+  "version": "6.0.1",
+  "userscript_sha256": "1be4d6303c245ef94339b9e650aa2763b36ca81d4ec3c81245b68d317f594673",
+  "asset_commit": "9e292bbfbf5858b17bfab9a95a3d5ba627183489",
+  "model_and_assets_unchanged": true,
+  "published_cdn_files": [
+    {
+      "file": "model.json",
+      "status": 200,
+      "bytes": 645221,
+      "match": true
+    },
+    {
+      "file": "weights.bin.b64",
+      "status": 200,
+      "bytes": 17249024,
+      "match": true
+    },
+    {
+      "file": "tf.wasm.b64",
+      "status": 200,
+      "bytes": 414832,
+      "match": true
+    },
+    {
+      "file": "tf-simd.wasm.b64",
+      "status": 200,
+      "bytes": 566128,
+      "match": true
+    }
+  ],
+  "browser": {
+    "fixtures": 27,
+    "maximum_score_error": 5.687170437917999e-7,
+    "tier_changes": [],
+    "workers": 6,
+    "reused_workers": true,
+    "cancellation_passed": true,
+    "fallback": {
+      "file": "17929233629432480892.mp4",
+      "score": 0.992787753215536,
+      "tier": "alert",
+      "milliseconds": 505.7000002861023,
+      "badge": "⚠ SCREAMER · score 0.992 · @ 1:32.8"
+    },
+    "corrupt_resource": {
+      "status": "model-error",
+      "message": "Cannot load ML file model.json (cdn.jsdelivr.net: checksum mismatch; raw.githubusercontent.com: checksum mismatch). Check network/site permissions and reset screamer results to retry"
+    },
+    "old_cache_invalidated": true,
+    "primary_host_failure_recovered": true,
+    "verified_cache_works_offline": true,
+    "userscript_sha256": "1be4d6303c245ef94339b9e650aa2763b36ca81d4ec3c81245b68d317f594673",
+    "resources": {
+      "model": "model.json",
+      "weights": "weights.bin.b64",
+      "wasm": "tf.wasm.b64",
+      "simd": "tf-simd.wasm.b64"
+    },
+    "scope": "Complete bundled userscript and actual Blob workers; GM HTTP API shim forces primary-host failure, serves exact release bytes through fallback, and then verifies offline CacheStorage reuse."
+  },
+  "tampermonkey": {
+    "tampermonkey": "5.5.1",
+    "isolated_profile": true,
+    "actual_GM_requests": true,
+    "primary_network_failure_recovered": true,
+    "offline_reload_passed": true,
+    "main_thread_fallback_passed": true,
+    "cold": {
+      "score": 0.992787753215536,
+      "workers": 1
+    },
+    "offline": {
+      "score": 0.992787753215536,
+      "workers": 1
+    },
+    "fallback": {
+      "score": 0.992787753215536,
+      "workers": 0
+    },
+    "requests": [
+      {
+        "host": "primary",
+        "file": "model.json",
+        "online": true
+      },
+      {
+        "host": "primary",
+        "file": "weights.bin.b64",
+        "online": true
+      },
+      {
+        "host": "primary",
+        "file": "tf.wasm.b64",
+        "online": true
+      },
+      {
+        "host": "primary",
+        "file": "tf-simd.wasm.b64",
+        "online": true
+      },
+      {
+        "host": "fallback",
+        "file": "model.json",
+        "online": true
+      },
+      {
+        "host": "fallback",
+        "file": "weights.bin.b64",
+        "online": true
+      },
+      {
+        "host": "fallback",
+        "file": "tf.wasm.b64",
+        "online": true
+      },
+      {
+        "host": "fallback",
+        "file": "tf-simd.wasm.b64",
+        "online": true
+      }
+    ],
+    "userscript_sha256": "1be4d6303c245ef94339b9e650aa2763b36ca81d4ec3c81245b68d317f594673",
+    "scope": "Actual Tampermonkey with local test URLs and hooks; model/runtime bytes unchanged. No personal profile modified."
+  },
+  "artifacts": {
+    "browser": {
+      "path": "research/artifacts/ml-userscript-browser-20261027-delivery.json",
+      "sha256": "92e234e9df74bff5efd6316ddb461ac3ee3db36407659335c420996491ad72c5"
+    },
+    "tampermonkey": {
+      "path": "research/artifacts/ml-tampermonkey-delivery-20261027.json",
+      "sha256": "d88226c4795da66893aa783f62324aa0df75f8e9b431c429a376cc107c501aba"
+    }
+  },
+  "tests": {
+    "python_passed": 85,
+    "node_passed": 26,
+    "skipped": 0
+  },
+  "limits": "Other PC exact network/permission configuration is unknown. Actual-extension checks used isolated Brave on macOS, not that Chrome/PC. Both hosts unavailable on a cold cache still means unknown."
+}
