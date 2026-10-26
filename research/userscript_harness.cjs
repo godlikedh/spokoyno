@@ -9,13 +9,22 @@ function detector(source = SOURCE, environment = {}) {
     source.indexOf('  const ANALYSIS_VERSION'),
     source.indexOf('\n\n  if (!THREAD_PATH_RE')
   );
-  const core = source.slice(source.indexOf('  const dbPower'), source.indexOf('  function queueScreamerAnalysis'));
+  const core = source.slice(
+    source.includes('  // ML_INFERENCE_START')
+      ? source.indexOf('  // ML_INFERENCE_START')
+      : source.indexOf('  const dbPower'),
+    source.indexOf('  function queueScreamerAnalysis')
+  );
   if (!constants || !core) throw Error('Userscript extraction markers changed');
   return new Function(
     'environment',
     `${constants}\nconst yieldMain = async () => {};
     const Worker = environment.Worker;
+    const tf = environment.tf || {};
+    const SpokoynoML = environment.ML;
+    const GM_getResourceText = environment.getResource;
     const analysisWorkers = new Map(); let analysisWorkerUrl = null, analysisWorkersUnavailable = false;
+    let mlResourcesPromise=null,mlRuntimeSource='',mainMLPromise=null,mainMLChain=Promise.resolve();
     let decoderContext = { decodeAudioData: async value => value };
     ${core}
     return {analyzeScreamer,
@@ -26,9 +35,51 @@ function detector(source = SOURCE, environment = {}) {
       workerSource: typeof makeAnalysisWorkerSource === 'function' ? makeAnalysisWorkerSource : null,
       workerAnalyze: typeof analyzeDecodedAudio === 'function' ? analyzeDecodedAudio : null,
       stopWorker: typeof stopAnalysisWorker === 'function' ? stopAnalysisWorker : null,
+      loadResources: typeof loadMLResources === 'function' ? loadMLResources : null,
       workers: analysisWorkers};`
-  )(environment);
+  )({ ML: nodeML, getResource: resource, ...environment });
 }
+
+const resourceNames = {
+  spokoynoMLRuntime: 'runtime.js',
+  spokoynoMLModel: 'model.json',
+  spokoynoMLWeights: 'weights.bin.b64',
+  spokoynoMLWasm: 'tf.wasm.b64',
+  spokoynoMLSimd: 'tf-simd.wasm.b64'
+};
+const resources = new Map();
+function resource(name) {
+  if (!resources.has(name))
+    resources.set(name, fs.readFileSync(path.join(ROOT, 'ml/assets', resourceNames[name]), 'utf8'));
+  return resources.get(name);
+}
+let nodeModel;
+const nodeML = {
+  digest: async (bytes) => require('node:crypto').createHash('sha256').update(bytes).digest('hex'),
+  initialize: async () => {
+    if (!nodeModel)
+      nodeModel = (async () => {
+        const deps = fs.existsSync(path.join(ROOT, 'node_modules/@tensorflow/tfjs/package.json'))
+          ? path.join(ROOT, 'node_modules/@tensorflow')
+          : path.join(ROOT, 'research/artifacts/robust-js-runtime-20261026/node_modules/@tensorflow');
+        const tf = require(path.join(deps, 'tfjs'));
+        const wasm = require(path.join(deps, 'tfjs-backend-wasm'));
+        tf.env().set('WASM_HAS_MULTITHREAD_SUPPORT', false);
+        wasm.setThreadsCount(1);
+        wasm.setWasmPaths(path.join(deps, 'tfjs-backend-wasm/dist/'));
+        await tf.setBackend('wasm');
+        await tf.ready();
+        const { Detector } = require('../ml/model.cjs');
+        const bytes = Buffer.from(resource('spokoynoMLWeights'), 'base64');
+        return new Detector(
+          tf,
+          JSON.parse(resource('spokoynoMLModel')),
+          new Float32Array(bytes.buffer, bytes.byteOffset, bytes.length / 4)
+        );
+      })();
+    return nodeModel;
+  }
+};
 
 function readWav(filename) {
   const raw = fs.readFileSync(filename);

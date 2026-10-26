@@ -4,7 +4,9 @@ Spokoyno is a Tampermonkey companion for 2ch video threads. It preloads video at
 
 ## Install
 
-Install [spokoyno.user.js](spokoyno.user.js) in Tampermonkey. It supports `2ch.org`, `2ch.su`, and `2ch.life`.
+Open the [userscript installation link](https://raw.githubusercontent.com/godlikedh/spokoyno/main/spokoyno.user.js) and choose **Install** or **Update** in Tampermonkey, then reload the thread. Version **6.0.0** uses the frozen **synthetic-mil-20pct** ML model. It supports `2ch.org`, `2ch.su`, and `2ch.life`.
+
+Tampermonkey downloads approximately 20 MB of pinned model/runtime resources during installation and caches them. No Python, local server, or separate model setup is needed. A score badge's tooltip identifies the model. Existing downloaded videos are retained; old heuristic scores are automatically recomputed with ML.
 
 All analysis stays in the browser. Decode, cache, and download failures are displayed as unknown rather than safe. CacheStorage is origin-specific, so caches are not physically shared between mirror hostnames.
 
@@ -26,16 +28,23 @@ All analysis stays in the browser. Decode, cache, and download failures are disp
 - [New acoustic features, synthetic training, and a stronger frozen candidate](research/ACOUSTIC_RESEARCH_20261025.md)
 - [Codec/delay augmentation, synthetic recordings, and production-runtime research](research/ROBUST_AUDIO_RESEARCH_20261026.md)
 - [Hard-negative training, 32 new sound-context features, and controlled comparisons](research/CONTEXT_RESEARCH_20261026.md)
+- [Browser ML release, numerical parity, and installation verification](research/BROWSER_ML_RELEASE_20261026.md)
 - [Versioned label policy](corpus/labels.json)
 
 The audio corpus and generated research artifacts are intentionally local. `corpus/audio/` contains 16 kHz WAV files, while `corpus/index.json` maps them to canonical media paths and hashes. Back up the entire ignored `corpus/` directory: expired imageboard media cannot necessarily be reconstructed from a fresh clone.
 
-The v5.8.2 userscript exposes a continuous 0–1 evidence score: below 0.6 is low risk, 0.6–below 0.8 is a yellow **MAYBE**, and 0.8 or higher is a red alert. Unlike v5.8.0, failed red-alert eligibility checks no longer erase the underlying evidence to zero. Raw evidence that fails those checks is capped at 0.799; the tooltip shows both raw evidence and the strict red-decision score. Very small nonzero scores use scientific notation. This is heuristic evidence, not a calibrated probability. Decode/download failures remain unknown. Community reports remain separate red warnings and do not modify the audio score. Old audio-analysis results are invalidated on upgrade; downloaded media is retained.
+The userscript displays the model's continuous 0–1 evidence score directly: below 0.6 is low risk, 0.6–below 0.8 is a yellow **MAYBE**, and 0.8 or higher is a red alert. There is no heuristic cap or blending with the old rules. Very small nonzero scores use scientific notation. Scores are not calibrated probabilities. Decode/download/model failures and audio shorter than 300 ms remain unknown. Community reports remain separate red warnings and do not modify the audio score. Proposed event times are approximate candidates, not verified scream boundaries.
 
-Version 5.8.2 uses spectral-change evidence within plus/minus 100 ms to reduce sensitivity to browser decoding differences. The reported screamer changes from approximately 0.666 to 0.936 in the original-media browser test. At release, retained-WAV corpus replay detected all 11 then-known screamers, with 5 false alerts among 2,810 negatives versus 2 in 5.8.1. Later reviewed-thread results include confirmed screamers that receive only yellow warnings. This accepted tradeoff is not an independent accuracy guarantee; see the comparisons above for model results and overfitting limitations.
+The selected model's existing thread/family-excluded development evaluation detects 30/30 positives with 34 false red alerts among 3,466 negatives. Repeated research on this corpus limits what these numbers prove about new threads. Known sensitivity to codecs, level changes, and added delays remains; this release ports the measured best candidate without retraining or claiming those problems are solved. See the release report for browser verification and the earlier studies for model comparisons.
 
-Audio analysis reuses the existing `CONCURRENCY` setting (currently 6), independently of the download pool. Reusable local Web Workers perform the detector computation off the main thread; the browser still handles audio decoding. If workers are unavailable or blocked, the same detector runs with cooperative main-thread yielding. More parallel jobs use more memory, including owned channel copies transferred to workers. The panel shows active and queued audio jobs, and cache diagnostics report the analysis limit and worker/fallback mode.
+Audio analysis reuses the existing `CONCURRENCY` setting (currently 6), independently of the download pool. Reusable local Web Workers run the feature extractor and YAMNet/ML inference; the browser handles audio decoding. Each worker retains its own initialized model. If workers are unavailable or blocked, the same model runs through a serialized main-thread fallback, which can briefly affect responsiveness. More parallel jobs use more memory. The panel shows active and queued audio jobs, and cache diagnostics report the analysis limit and worker/fallback mode.
 
 The labeling workflow is: supply a reviewed thread and its screamer filenames; download its video attachments and label the other attachments in that snapshot as non-screamers. Exact sound timings can be supplied later. New posts outside the reviewed snapshot remain unlabeled. See the [workflow commands](research/ML_PLAYGROUND.md#1-extend-the-corpus).
 
-Exported ML models and audio fingerprints remain offline shadow experiments. They are not embedded into the userscript or allowed to create browser warnings.
+Only `synthetic-mil-20pct` is shipped in the browser. Other research models and audio fingerprints remain offline experiments.
+
+## Development checks
+
+Run `npm ci` and `npm test` with Node 22 or newer. The optional retained-corpus regression skips when local audio is unavailable; synthetic-signal ML, worker scheduling, score tiers, and error behavior still run. Python research checks use `research/requirements-dev.txt` and `python -m unittest discover -s research -p 'test_*.py'`. Run `npm run format:check` and `ruff check research` for formatting/lint checks.
+
+Production sources are in `ml/*.cjs`; `ml/assets/` contains generated, pinned release resources and the TensorFlow.js/YAMNet Apache licenses. The [release report](research/BROWSER_ML_RELEASE_20261026.md) describes building, immutable resource pinning, and full-corpus/browser verification.

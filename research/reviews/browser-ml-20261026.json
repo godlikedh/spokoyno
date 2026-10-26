@@ -1,0 +1,346 @@
+{
+  "version": "6.0.0",
+  "model": "synthetic-mil-20pct",
+  "model_asset_commit": "9e292bbfbf5858b17bfab9a95a3d5ba627183489",
+  "userscript_sha256": "2506b631d313e690cda6c80837a994076541b61419fb718d520f869a800737b7",
+  "assets": {
+    "model": "synthetic-mil-20pct",
+    "snapshot_sha256": "538af19d0fa071dcfd01a64bff87722b44ec6b971df83c55642721b12bac34b9",
+    "tfjs_version": "4.22.0",
+    "source_sha256": {
+      "ml/assets/tf.min.js": "300dfae273d20b4046f46a06d735688f03675a807561e9bcb5f664eb2f3d2831",
+      "ml/assets/tf-wasm.min.js": "691bbec0ef8b5a7f17f212e9c5d85832030f90d030b46e99acb4dea1fb16f009",
+      "ml/encoder.cjs": "687e4ee0bc8373368b69dd5b7b19fb802af0fc7c3ff74ad3d8253e54899d4161",
+      "ml/roughness.cjs": "3f0fd46f06f6e1ec63a323ffcfcd4c696ef378498e4f488f816ad832e618d98b",
+      "ml/features.cjs": "d5dd0d7244e67b267b267808237d73c7f77cd6e488670af7d61aeab90fd98465",
+      "ml/model.cjs": "dddf61239d3e6804a87aeeb175909db842c170226b9f0de6f78c9f52c31829cd"
+    },
+    "resources": {
+      "model.json": "8620f9905d0f97477f1bc0c5a29ac59711765c3b73d3ef21c57de94739f116cd",
+      "weights.bin.b64": "8feb55dc5864c60f83d5b3a6382af6b31052e2b2879d2a4aba7c1a3e280f4ca5",
+      "tf.wasm.b64": "d58d377303468920672e747d43487cde8180e15e9bc2121808e211d7d0b42a72",
+      "tf-simd.wasm.b64": "630134cad54a86cc834cbf6a2866577ed7e2dc0ffa4df44d464fd5aa5ae843b9",
+      "runtime.js": "92a8808cc74884af032f8102146f8e104d5e111def6db41cffc86e42a5cf6e03"
+    }
+  },
+  "artifacts": {
+    "corpus_parity": {
+      "path": "research/artifacts/browser-ml-corpus-parity-20261026-v2.json",
+      "sha256": "2e54d074947c4a473ac71f28acb871220aa69183d565ac5ba99c39a7ee205884"
+    },
+    "userscript_browser": {
+      "path": "research/artifacts/ml-userscript-browser-20261026-release.json",
+      "sha256": "00977768560a484bdeb4cb32b24a6965a25287bc1106d8c69017228abae34ed0"
+    },
+    "tampermonkey_install": {
+      "path": "research/artifacts/tampermonkey-ml-install-20261026.json",
+      "sha256": "dd7670727ae6d578bf1cb347a9c71eab6f16eccae4955acec77006163eac1300"
+    }
+  },
+  "corpus_parity": {
+    "fixtures": 4014,
+    "maximum_feature_error": 8.707887053560626e-5,
+    "maximum_score_error": 9.247656995725606e-8,
+    "failures": 0,
+    "window_failures": 0,
+    "patch_failures": 0,
+    "tier_changes": 0,
+    "scope": "Fresh JS proposals/features, byte-identical encoder patches, and classifier parity using saved frozen embeddings; both held-out and final-fit classifiers."
+  },
+  "existing_heldout_development_metrics": {
+    "positive": {
+      "total": 30,
+      "red": 30,
+      "yellow_or_red": 30
+    },
+    "negative": {
+      "total": 3466,
+      "red": 34,
+      "yellow_or_red": 98
+    }
+  },
+  "unknown_excluded": 518,
+  "browser": {
+    "fixtures": 27,
+    "maximum_score_error": 5.687170437917999e-7,
+    "tier_changes": [],
+    "workers": 6,
+    "reused_workers": true,
+    "cancellation_passed": true,
+    "fallback": {
+      "file": "17929233629432480892.mp4",
+      "score": 0.992787753215536,
+      "tier": "alert",
+      "milliseconds": 416.90000009536743,
+      "badge": "⚠ SCREAMER · score 0.992 · @ 1:32.8"
+    },
+    "corrupt_resource": {
+      "status": "model-error",
+      "message": "Missing or damaged model resource: spokoynoMLWeights; reinstall the userscript"
+    },
+    "old_cache_invalidated": true,
+    "userscript_sha256": "2506b631d313e690cda6c80837a994076541b61419fb718d520f869a800737b7",
+    "resources": {
+      "spokoynoMLRuntime": "runtime.js",
+      "spokoynoMLModel": "model.json",
+      "spokoynoMLWeights": "weights.bin.b64",
+      "spokoynoMLWasm": "tf.wasm.b64",
+      "spokoynoMLSimd": "tf-simd.wasm.b64"
+    },
+    "results": [
+      {
+        "file": "17929233629432480892.mp4",
+        "score": 0.992787753215536,
+        "tier": "alert",
+        "milliseconds": 791.9000000953674,
+        "badge": "⚠ SCREAMER · score 0.992 · @ 1:32.8"
+      },
+      {
+        "file": "17929235424520630151.webm",
+        "score": 0.994244481366893,
+        "tier": "alert",
+        "milliseconds": 941.1000003814697,
+        "badge": "⚠ SCREAMER · score 0.994 · @ 3:24.8"
+      },
+      {
+        "file": "17929246374352604972.mp4",
+        "score": 0.5828200216807498,
+        "tier": "low",
+        "milliseconds": 635.5,
+        "badge": "🔊 low risk · score 0.582"
+      },
+      {
+        "file": "17929253560550736111.mp4",
+        "score": 0.7050722136242146,
+        "tier": "maybe",
+        "milliseconds": 939.8000001907349,
+        "badge": "⚠ MAYBE · score 0.705 · @ 1:59.8"
+      },
+      {
+        "file": "17929258136773388913.webm",
+        "score": 0.9951830667691621,
+        "tier": "alert",
+        "milliseconds": 1179.0999999046326,
+        "badge": "⚠ SCREAMER · score 0.995 · @ 1:38.6"
+      },
+      {
+        "file": "17929289055560894598.webm",
+        "score": 0.9997686981713447,
+        "tier": "alert",
+        "milliseconds": 846.2000002861023,
+        "badge": "⚠ SCREAMER · score 0.999 · @ 4:58.2"
+      },
+      {
+        "file": "17929291025992177046.webm",
+        "score": 0.9710702562243752,
+        "tier": "alert",
+        "milliseconds": 756.8000001907349,
+        "badge": "⚠ SCREAMER · score 0.971 · @ 16.9s"
+      },
+      {
+        "file": "17929309020131362624.webm",
+        "score": 0.9998796083601651,
+        "tier": "alert",
+        "milliseconds": 776.5999999046326,
+        "badge": "⚠ SCREAMER · score 0.999 · @ 4.8s"
+      },
+      {
+        "file": "17929312599970679631.webm",
+        "score": 0.9994217164407304,
+        "tier": "alert",
+        "milliseconds": 967.7999997138977,
+        "badge": "⚠ SCREAMER · score 0.999 · @ 11:26.8"
+      },
+      {
+        "file": "17929312600881938742.webm",
+        "score": 0.5344392089848158,
+        "tier": "low",
+        "milliseconds": 872.8000001907349,
+        "badge": "🔊 low risk · score 0.534"
+      },
+      {
+        "file": "17929312601933009367.webm",
+        "score": 0.9990699972101637,
+        "tier": "alert",
+        "milliseconds": 294.80000019073486,
+        "badge": "⚠ SCREAMER · score 0.999 · @ 21.2s"
+      },
+      {
+        "file": "17929314749450126327.webm",
+        "score": 0.999889284967424,
+        "tier": "alert",
+        "milliseconds": 680,
+        "badge": "⚠ SCREAMER · score 0.999 · @ 1:00.9"
+      },
+      {
+        "file": "17929314751662663260.webm",
+        "score": 0.9005216076377772,
+        "tier": "alert",
+        "milliseconds": 549.9000000953674,
+        "badge": "⚠ SCREAMER · score 0.900 · @ 2:36.5"
+      },
+      {
+        "file": "17929323417171926603.webm",
+        "score": 0.9852010890283657,
+        "tier": "alert",
+        "milliseconds": 480.7999997138977,
+        "badge": "⚠ SCREAMER · score 0.985 · @ 28.9s"
+      },
+      {
+        "file": "17929369520563549638.mp4",
+        "score": 0.8313777635459962,
+        "tier": "alert",
+        "milliseconds": 441.5,
+        "badge": "⚠ SCREAMER · score 0.831 · @ 29.6s"
+      },
+      {
+        "file": "17929377550172852142.mp4",
+        "score": 0.826744849560301,
+        "tier": "alert",
+        "milliseconds": 342.80000019073486,
+        "badge": "⚠ SCREAMER · score 0.826 · @ 37.3s"
+      },
+      {
+        "file": "17885426225650373621.mp4",
+        "score": 0.24238379357103298,
+        "tier": "low",
+        "milliseconds": 390.90000009536743,
+        "badge": "🔊 low risk · score 0.242"
+      },
+      {
+        "file": "17929388634960411428.mp4",
+        "score": 0.6373940297365579,
+        "tier": "maybe",
+        "milliseconds": 533.9000000953674,
+        "badge": "⚠ MAYBE · score 0.637 · @ 3:15.1"
+      },
+      {
+        "file": "17929395998260540420.mp4",
+        "score": 0.3523505682198604,
+        "tier": "low",
+        "milliseconds": 379.6000003814697,
+        "badge": "🔊 low risk · score 0.352"
+      },
+      {
+        "file": "17894991604970318432.mp4",
+        "score": 0.8142756172936712,
+        "tier": "alert",
+        "milliseconds": 359.90000009536743,
+        "badge": "⚠ SCREAMER · score 0.814 · @ 1:15.0"
+      },
+      {
+        "file": "17929441862380303154.webm",
+        "score": 0.7263866049092017,
+        "tier": "maybe",
+        "milliseconds": 380.30000019073486,
+        "badge": "⚠ MAYBE · score 0.726 · @ 45.8s"
+      },
+      {
+        "file": "17929471544543809082.mp4",
+        "score": 0.5963100678267725,
+        "tier": "low",
+        "milliseconds": 440.80000019073486,
+        "badge": "🔊 low risk · score 0.596"
+      },
+      {
+        "file": "17929480884480367074.webm",
+        "score": 0.999626800766957,
+        "tier": "alert",
+        "milliseconds": 339.09999990463257,
+        "badge": "⚠ SCREAMER · score 0.999 · @ 54.0s"
+      },
+      {
+        "file": "17929484944890327872.webm",
+        "score": 0.44106957896373905,
+        "tier": "low",
+        "milliseconds": 399.80000019073486,
+        "badge": "🔊 low risk · score 0.441"
+      },
+      {
+        "file": "17929498438732758260.mp4",
+        "score": 0.5789105879278386,
+        "tier": "low",
+        "milliseconds": 304.69999980926514,
+        "badge": "🔊 low risk · score 0.578"
+      },
+      {
+        "file": "17929502589060439332.mp4",
+        "score": 0.9675002727122447,
+        "tier": "alert",
+        "milliseconds": 272.69999980926514,
+        "badge": "⚠ SCREAMER · score 0.967 · @ 21.4s"
+      },
+      {
+        "file": "17929508924060208542.webm",
+        "score": 0.9999865664198896,
+        "tier": "alert",
+        "milliseconds": 479.2000002861023,
+        "badge": "⚠ SCREAMER · score 0.999 · @ 1:01.3"
+      }
+    ],
+    "scope": "Complete userscript and actual Blob workers; GM resource API is simulated using the exact cached release bytes."
+  },
+  "browser_timing": {
+    "median_ms": 480.7999997138977,
+    "maximum_ms": 1179.0999999046326,
+    "scope": "Per-fixture inference including worker/model startup on this machine, six concurrent slots; excludes media download and decoding."
+  },
+  "tampermonkey": {
+    "tampermonkey": "5.5.1",
+    "isolated_profile": true,
+    "actual_cached_resources": true,
+    "actual_require": true,
+    "ready": true,
+    "expected": 0.9927877558793827,
+    "score_error": 2.663846698780503e-9,
+    "r": {
+      "status": "ok",
+      "model": "synthetic-mil-20pct",
+      "score": 0.992787753215536,
+      "riskTier": "alert",
+      "suspicious": true,
+      "detectionMode": "ml",
+      "eventAt": 92.75,
+      "events": [
+        {
+          "slot": 1,
+          "start_s": 92.75,
+          "end_s": 93.05,
+          "score": 0.9979188258728352
+        },
+        {
+          "slot": 0,
+          "start_s": 91.75,
+          "end_s": 92.05,
+          "score": 0.9878348734331418
+        },
+        {
+          "slot": 2,
+          "start_s": 110.25,
+          "end_s": 110.55,
+          "score": 0.00022947430243743015
+        },
+        {
+          "slot": 3,
+          "start_s": 0.25,
+          "end_s": 0.55,
+          "score": 1.005976862623727e-11
+        }
+      ],
+      "duration": 115.9893125
+    },
+    "workers": 1,
+    "scope": "Actual Tampermonkey install in temporary Brave profile, locally served URLs and test hook, unchanged release resource bytes; one fixture; no personal profile modification."
+  },
+  "tests": {
+    "python_passed": 85,
+    "node_passed": 16,
+    "skipped": 0
+  },
+  "limitations": [
+    "Existing research candidate; no retraining or new independent accuracy evaluation.",
+    "Held-out development numbers have selection bias from repeated research on the same corpus.",
+    "Known codec, level, and delay sensitivity remains.",
+    "Fresh browser CNN execution covers 27 fixtures, not the entire retained corpus."
+  ]
+}

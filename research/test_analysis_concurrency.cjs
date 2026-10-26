@@ -1,10 +1,12 @@
 const assert = require('node:assert/strict');
-const fs = require('node:fs');
-const path = require('node:path');
 const { test } = require('node:test');
 const { Worker: NodeWorker } = require('node:worker_threads');
-const { ROOT, SOURCE, detector, analyze, readWav } = require('./userscript_harness.cjs');
+const { SOURCE, detector, analyze } = require('./userscript_harness.cjs');
 
+const mockML = {
+  digest: async (bytes) => require('node:crypto').createHash('sha256').update(bytes).digest('hex'),
+  initialize: async () => ({ score: async () => ({ status: 'ok', score: 0.73, riskTier: 'maybe' }) })
+};
 const turn = () => new Promise((resolve) => setImmediate(resolve));
 function deferred() {
   let resolve, reject;
@@ -26,7 +28,7 @@ function queueHarness(options = {}) {
     const CONCURRENCY = options.limit || 3;
     const analysisQueued = new Map(), analysisQueue = [], activeAnalyses = new Map(), analysisWorkers = new Map();
     const analysisResults = new Map(), cached = new Set(), seenMedia = new Map(), published = [], retries = [];
-    let analysisGeneration = 0, tabStateDirty = false;
+    let analysisGeneration = 0, tabStateDirty = false, mlResourcesPromise = null;
     const screamerKey = url => url;
     const cache = options.cache || {match: async key => ({blob: async () => ({key}), headers: {get: () => 'video/webm'}})};
     const analyzeScreamer = options.analyze || (async () => ({status:'ok', score:.2}));
@@ -120,7 +122,7 @@ test('a rejected analysis releases its slot and keeps the failed result unknown'
   await turn();
   assert.deepEqual(
     harness.published.map((r) => r.result.status),
-    ['decode-error', 'ok']
+    ['model-error', 'ok']
   );
   assert.equal(harness.active.size, 0);
   assert.equal(harness.pending.size, 0);
@@ -182,7 +184,7 @@ function audioBuffer(channels) {
 }
 
 test(
-  'actual generated worker program matches main-thread inference and reuses workers',
+  'worker message protocol initializes once, transfers copies, and reuses workers',
   { timeout: 10000 },
   async (t) => {
     let created = 0;
@@ -192,7 +194,8 @@ test(
         this.thread = new NodeWorker(
           `const {parentPort}=require('node:worker_threads');
         const self={postMessage: data=>parentPort.postMessage(data)};
-        ${runtime.workerSource()}
+        const tf={};const SpokoynoML={initialize:async()=>({score:async()=>({status:"ok",score:.73,riskTier:"maybe"})})};
+        ${runtime.workerSource().slice(runtime.workerSource().lastIndexOf(';let modelPromise;'))}
         parentPort.on('message',data=>self.onmessage({data}));`,
           { eval: true }
         );
@@ -206,7 +209,8 @@ test(
         this.thread.terminate();
       }
     }
-    const runtime = detector(SOURCE, { Worker: BrowserWorker });
+    const runtime = detector(SOURCE, { Worker: BrowserWorker, ML: mockML });
+    await runtime.loadResources();
     t.after(() => {
       for (const slot of [...runtime.workers.keys()]) runtime.stopWorker(slot);
     });
@@ -222,24 +226,6 @@ test(
     assert.ok(channels[0].byteLength > 0, 'transferring worker copies must not detach AudioBuffer storage');
     assert.deepEqual(await runtime.workerAnalyze(buffer, 0, () => true), expected);
     assert.equal(created, 2);
-
-    // The retained corpus is intentionally local; exercise real positives when available.
-    // A content label is not an expected prediction: new positives may expose
-    // misses. This test checks execution parity, not perfect detector recall.
-    const indexPath = path.join(ROOT, 'corpus/index.json');
-    if (fs.existsSync(indexPath)) {
-      const labels = JSON.parse(fs.readFileSync(path.join(ROOT, 'corpus/labels.json'), 'utf8'));
-      const rows = JSON.parse(fs.readFileSync(indexPath, 'utf8')).items;
-      for (const row of rows.filter((item) => item.path in labels.confirmed_positives)) {
-        const recording = readWav(path.join(ROOT, 'corpus/audio', row.audio_file));
-        const direct = await analyze(runtime, recording);
-        const threaded = await runtime.workerAnalyze(audioBuffer(recording), 0, () => true);
-        assert.deepEqual(threaded, direct, row.file);
-        assert.equal(threaded.status, 'ok', row.file);
-      }
-      assert.equal(created, 2);
-      assert.equal(runtime.workers.size, 2, 'real recordings must also execute in workers without fallback');
-    }
   }
 );
 
@@ -249,7 +235,7 @@ test('blocked workers fall back to identical inference, not a safe default', asy
       throw Error('worker blocked by CSP');
     }
   }
-  const runtime = detector(SOURCE, { Worker: BlockedWorker }),
+  const runtime = detector(SOURCE, { Worker: BlockedWorker, ML: mockML }),
     channels = signal();
   assert.deepEqual(await runtime.workerAnalyze(audioBuffer(channels), 0, () => true), await analyze(runtime, channels));
   assert.equal(runtime.workers.size, 0);
@@ -264,8 +250,10 @@ test('worker cancellation settles the job and releases its timeout/resources', a
       terminated = true;
     }
   }
-  const runtime = detector(SOURCE, { Worker: SilentWorker });
+  const runtime = detector(SOURCE, { Worker: SilentWorker, ML: mockML });
+  await runtime.loadResources();
   const job = runtime.workerAnalyze(audioBuffer(signal()), 0, () => current);
+  await turn();
   current = false;
   runtime.stopWorker(0);
   assert.equal(await job, null);
