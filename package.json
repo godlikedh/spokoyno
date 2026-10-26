@@ -1,10 +1,10 @@
 {
   "name": "spokoyno",
   "private": true,
-  "version": "6.0.0",
+  "version": "6.0.1",
   "description": "Local ML audio screamer detection for the Spokoyno userscript",
   "scripts": {
-    "test": "node --test research/test_userscript.cjs research/test_analysis_concurrency.cjs research/test_scoring_regression.cjs",
+    "test": "node --test research/test_userscript.cjs research/test_analysis_concurrency.cjs research/test_scoring_regression.cjs research/test_model_loading.cjs",
     "format:check": "prettier --check ."
   },
   "devDependencies": {

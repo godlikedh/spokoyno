@@ -1,4 +1,4 @@
-// Executes the complete userscript with cached GM resources in an isolated browser.
+// Executes the complete bundled userscript, download failover and cache in an isolated browser.
 'use strict';
 const fs = require('node:fs'),
   path = require('node:path'),
@@ -44,9 +44,7 @@ async function main() {
     .split('\n')
     .map((s) => JSON.parse(s));
   const source = fs.readFileSync(path.join(__dirname, '../spokoyno.user.js'), 'utf8');
-  const resources = Object.fromEntries(
-    [...source.matchAll(/^\/\/ @resource\s+(\S+)\s+.*\/([^/#]+)#/gm)].map((m) => [m[1], m[2]])
-  );
+  const resources = { model: 'model.json', weights: 'weights.bin.b64', wasm: 'tf.wasm.b64', simd: 'tf-simd.wasm.b64' };
   const hook = `globalThis.mlTest={analyze:analyzeDecodedAudio,render:renderScreamerResult,workers:analysisWorkers,stop:stopAnalysisWorker,reset:resetAnalysisQueue,load:loadMLResources,results:analysisResults,state,concurrency:CONCURRENCY};`;
   const instrumented = source.replace(/\}\)\(\);\s*$/, hook + '\n})();');
   const fixed = Object.fromEntries(
@@ -55,7 +53,7 @@ async function main() {
   const server = http.createServer((request, response) => {
     if (request.url === '/b/res/1.html') {
       response.setHeader('Content-Type', 'text/html; charset=utf-8');
-      response.end('<!doctype html><html><body><script src="/assets/runtime.js"></script></body></html>');
+      response.end('<!doctype html><html><body></body></html>');
       return;
     }
     if (request.url === '/script.js') {
@@ -164,17 +162,25 @@ async function main() {
       return result.result.value;
     };
     await rpc('Page.navigate', { url: `http://127.0.0.1:${server.address().port}/b/res/1.html` });
-    for (let i = 0; !(await evaluate('typeof SpokoynoML!=="undefined"')); i++) {
+    for (let i = 0; !(await evaluate('document.readyState === "complete"')); i++) {
       if (i > 100) throw new Error('runtime did not load');
       await new Promise((r) => setTimeout(r, 100));
     }
     await evaluate(`(async()=>{
-      globalThis.cachedMLResources=Object.fromEntries(await Promise.all(Object.entries(${JSON.stringify(resources)}).map(async([name,file])=>[name,await (await fetch('/assets/'+file)).text()])));
-      globalThis.GM_getResourceText=name=>cachedMLResources[name];
+      globalThis.modelRequests=[];globalThis.modelNetworkMode='fallback';
       globalThis.GM_getTab=cb=>cb({tm2chMediaV4:{token:'test',cacheName:'tm2ch-media-v4:test',screamer:{old:{analysisVersion:10,status:'ok',score:0}}}});
       globalThis.GM_saveTab=(tab,cb)=>cb?.();globalThis.GM_getTabs=cb=>cb({});
       globalThis.GM_registerMenuCommand=()=>{};globalThis.GM_openInTab=()=>{};
-      globalThis.GM_xmlhttpRequest=()=>{throw new Error('unexpected media network request')};
+      globalThis.GM_xmlhttpRequest=d=>{
+        const url=new URL(d.url),file=url.pathname.split('/').pop();
+        if(!${JSON.stringify(Object.values(resources))}.includes(file))throw Error('unexpected media network request');
+        modelRequests.push(d.url);
+        const controller=new AbortController();
+        if(modelNetworkMode==='offline'||(modelNetworkMode==='fallback'&&url.hostname==='cdn.jsdelivr.net'))queueMicrotask(()=>d.onerror());
+        else if(modelNetworkMode==='corrupt')queueMicrotask(()=>d.onload({status:200,responseText:'damaged model'}));
+        else fetch('/assets/'+file,{signal:controller.signal}).then(async r=>d.onload({status:r.status,responseText:await r.text()})).catch(()=>d.onerror());
+        return {abort:()=>controller.abort()};
+      };
       await new Promise((resolve,reject)=>{const s=document.createElement('script');s.src='/script.js';s.onload=resolve;s.onerror=reject;document.body.append(s)});
       return true;
     })()`);
@@ -204,6 +210,10 @@ async function main() {
     }
     const workers = await evaluate('mlTest.workers.size');
     assert.equal(workers, 6, 'inference must run in reusable workers');
+    const requests = await evaluate('modelRequests.length');
+    assert.equal(requests, 8, 'four primary failures must use four fallback downloads, shared across workers');
+    await evaluate(`(async()=>{mlTest.reset();modelNetworkMode='offline';await mlTest.load();return true})()`);
+    assert.equal(await evaluate('modelRequests.length'), requests, 'verified cache must work offline');
     const cancelled = await evaluate(`(async()=>{
       for(const slot of [...mlTest.workers.keys()])mlTest.stop(slot);
       const values=new Float32Array(32000),buffer={sampleRate:16000,length:32000,numberOfChannels:1,getChannelData:()=>values};
@@ -216,9 +226,9 @@ async function main() {
     const fallback = await evaluate(`(${evaluateFixture.toString()})(0,0)`);
     assert(Math.abs(fallback.score - results[0].score) < 1e-10, 'fallback differs');
     const corrupt = await evaluate(`(async()=>{
-      mlTest.reset();const saved=cachedMLResources.spokoynoMLWeights;cachedMLResources.spokoynoMLWeights='broken';
+      mlTest.reset();await caches.delete('spokoyno-ml-v1');modelNetworkMode='corrupt';
       const v=new Float32Array(32000);const r=await mlTest.analyze({sampleRate:16000,length:32000,numberOfChannels:1,getChannelData:()=>v},0,()=>true);
-      cachedMLResources.spokoynoMLWeights=saved;globalThis.Worker=savedWorker;return r;
+      globalThis.Worker=savedWorker;return r;
     })()`);
     assert.equal(corrupt.status, 'model-error');
     assert.equal(corrupt.score, undefined);
@@ -232,11 +242,13 @@ async function main() {
       fallback,
       corrupt_resource: corrupt,
       old_cache_invalidated: true,
+      primary_host_failure_recovered: true,
+      verified_cache_works_offline: true,
       userscript_sha256: crypto.createHash('sha256').update(source).digest('hex'),
       resources,
       results,
       scope:
-        'Complete userscript and actual Blob workers; GM resource API is simulated using the exact cached release bytes.'
+        'Complete bundled userscript and actual Blob workers; GM HTTP API shim forces primary-host failure, serves exact release bytes through fallback, and then verifies offline CacheStorage reuse.'
     };
     fs.writeFileSync(output, JSON.stringify(payload, null, 2) + '\n', { flag: 'wx' });
     assert.equal(tierChanges.length, 0);
