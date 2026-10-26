@@ -1,0 +1,431 @@
+[
+  {
+    "path": "/b/src/336185346/17883557324650588814.webm",
+    "delays_s": [
+      0.013,
+      0.125,
+      1.75,
+      11.0,
+      30.0
+    ],
+    "maximum_feature_or_encoder_input_difference": 0.0
+  },
+  {
+    "path": "/b/src/336185346/17883557325462786367.mp4",
+    "delays_s": [
+      0.013,
+      0.125,
+      1.75,
+      11.0,
+      30.0
+    ],
+    "maximum_feature_or_encoder_input_difference": 0.0
+  },
+  {
+    "path": "/b/src/336243339/17883629069140053716.mp4",
+    "delays_s": [
+      0.013,
+      0.125,
+      1.75,
+      11.0,
+      30.0
+    ],
+    "maximum_feature_or_encoder_input_difference": 0.0
+  },
+  {
+    "path": "/b/src/336243339/17883659327260384359.webm",
+    "delays_s": [
+      0.013,
+      0.125,
+      1.75,
+      11.0,
+      30.0
+    ],
+    "maximum_feature_or_encoder_input_difference": 0.0
+  },
+  {
+    "path": "/b/src/336272252/17884174673280229863.mp4",
+    "delays_s": [
+      0.013,
+      0.125,
+      1.75,
+      11.0,
+      30.0
+    ],
+    "maximum_feature_or_encoder_input_difference": 0.0
+  },
+  {
+    "path": "/b/src/336272252/17884274747240014140.mp4",
+    "delays_s": [
+      0.013,
+      0.125,
+      1.75,
+      11.0,
+      30.0
+    ],
+    "maximum_feature_or_encoder_input_difference": 0.0
+  },
+  {
+    "path": "/b/src/336291305/17885024222391568056.mp4",
+    "delays_s": [
+      0.013,
+      0.125,
+      1.75,
+      11.0,
+      30.0
+    ],
+    "maximum_feature_or_encoder_input_difference": 0.0
+  },
+  {
+    "path": "/b/src/336291305/17885426225650373621.mp4",
+    "delays_s": [
+      0.013,
+      0.125,
+      1.75,
+      11.0,
+      30.0
+    ],
+    "maximum_feature_or_encoder_input_difference": 0.0
+  },
+  {
+    "path": "/b/src/336291305/17885460222141837902.mp4",
+    "delays_s": [
+      0.013,
+      0.125,
+      1.75,
+      11.0,
+      30.0
+    ],
+    "maximum_feature_or_encoder_input_difference": 0.0
+  },
+  {
+    "path": "/b/src/336291305/17885474189950590427.webm",
+    "delays_s": [
+      0.013,
+      0.125,
+      1.75,
+      11.0,
+      30.0
+    ],
+    "maximum_feature_or_encoder_input_difference": 0.0
+  },
+  {
+    "path": "/b/src/336291305/17885487431220276835.mp4",
+    "delays_s": [
+      0.013,
+      0.125,
+      1.75,
+      11.0,
+      30.0
+    ],
+    "maximum_feature_or_encoder_input_difference": 0.0
+  },
+  {
+    "path": "/b/src/336466927/17890640049030714798.webm",
+    "delays_s": [
+      0.013,
+      0.125,
+      1.75,
+      11.0,
+      30.0
+    ],
+    "maximum_feature_or_encoder_input_difference": 0.0
+  },
+  {
+    "path": "/b/src/336723954/17898262773380676776.webm",
+    "delays_s": [
+      0.013,
+      0.125,
+      1.75,
+      11.0,
+      30.0
+    ],
+    "maximum_feature_or_encoder_input_difference": 0.0
+  },
+  {
+    "path": "/b/src/336991612/17907067660803027078.mp4",
+    "delays_s": [
+      0.013,
+      0.125,
+      1.75,
+      11.0,
+      30.0
+    ],
+    "maximum_feature_or_encoder_input_difference": 0.0
+  },
+  {
+    "path": "/b/src/336991612/17907090692410007259.webm",
+    "delays_s": [
+      0.013,
+      0.125,
+      1.75,
+      11.0,
+      30.0
+    ],
+    "maximum_feature_or_encoder_input_difference": 0.0
+  },
+  {
+    "path": "/b/src/337355133/17918104369341732532.mp4",
+    "delays_s": [
+      0.013,
+      0.125,
+      1.75,
+      11.0,
+      30.0
+    ],
+    "maximum_feature_or_encoder_input_difference": 0.0
+  },
+  {
+    "path": "/b/src/337355133/17918133645200787146.mp4",
+    "delays_s": [
+      0.013,
+      0.125,
+      1.75,
+      11.0,
+      30.0
+    ],
+    "maximum_feature_or_encoder_input_difference": 0.0
+  },
+  {
+    "path": "/b/src/337690329/17929233629432480892.mp4",
+    "delays_s": [
+      0.013,
+      0.125,
+      1.75,
+      11.0,
+      30.0
+    ],
+    "maximum_feature_or_encoder_input_difference": 0.0
+  },
+  {
+    "path": "/b/src/337690329/17929235424520630151.webm",
+    "delays_s": [
+      0.013,
+      0.125,
+      1.75,
+      11.0,
+      30.0
+    ],
+    "maximum_feature_or_encoder_input_difference": 0.0
+  },
+  {
+    "path": "/b/src/337690329/17929246374352604972.mp4",
+    "delays_s": [
+      0.013,
+      0.125,
+      1.75,
+      11.0,
+      30.0
+    ],
+    "maximum_feature_or_encoder_input_difference": 0.0
+  },
+  {
+    "path": "/b/src/337690329/17929253560550736111.mp4",
+    "delays_s": [
+      0.013,
+      0.125,
+      1.75,
+      11.0,
+      30.0
+    ],
+    "maximum_feature_or_encoder_input_difference": 0.0
+  },
+  {
+    "path": "/b/src/337690329/17929258136773388913.webm",
+    "delays_s": [
+      0.013,
+      0.125,
+      1.75,
+      11.0,
+      30.0
+    ],
+    "maximum_feature_or_encoder_input_difference": 0.0
+  },
+  {
+    "path": "/b/src/337690329/17929289055560894598.webm",
+    "delays_s": [
+      0.013,
+      0.125,
+      1.75,
+      11.0,
+      30.0
+    ],
+    "maximum_feature_or_encoder_input_difference": 0.0
+  },
+  {
+    "path": "/b/src/337690329/17929291025992177046.webm",
+    "delays_s": [
+      0.013,
+      0.125,
+      1.75,
+      11.0,
+      30.0
+    ],
+    "maximum_feature_or_encoder_input_difference": 0.0
+  },
+  {
+    "path": "/b/src/337690329/17929309020131362624.webm",
+    "delays_s": [
+      0.013,
+      0.125,
+      1.75,
+      11.0,
+      30.0
+    ],
+    "maximum_feature_or_encoder_input_difference": 0.0
+  },
+  {
+    "path": "/b/src/337690329/17929312599970679631.webm",
+    "delays_s": [
+      0.013,
+      0.125,
+      1.75,
+      11.0,
+      30.0
+    ],
+    "maximum_feature_or_encoder_input_difference": 0.0
+  },
+  {
+    "path": "/b/src/337690329/17929312601933009367.webm",
+    "delays_s": [
+      0.013,
+      0.125,
+      1.75,
+      11.0,
+      30.0
+    ],
+    "maximum_feature_or_encoder_input_difference": 0.0
+  },
+  {
+    "path": "/b/src/337690329/17929314749450126327.webm",
+    "delays_s": [
+      0.013,
+      0.125,
+      1.75,
+      11.0,
+      30.0
+    ],
+    "maximum_feature_or_encoder_input_difference": 0.0
+  },
+  {
+    "path": "/b/src/337690329/17929314751662663260.webm",
+    "delays_s": [
+      0.013,
+      0.125,
+      1.75,
+      11.0,
+      30.0
+    ],
+    "maximum_feature_or_encoder_input_difference": 0.0
+  },
+  {
+    "path": "/b/src/337690329/17929323417171926603.webm",
+    "delays_s": [
+      0.013,
+      0.125,
+      1.75,
+      11.0,
+      30.0
+    ],
+    "maximum_feature_or_encoder_input_difference": 0.0
+  },
+  {
+    "path": "/b/src/337690329/17929369520563549638.mp4",
+    "delays_s": [
+      0.013,
+      0.125,
+      1.75,
+      11.0,
+      30.0
+    ],
+    "maximum_feature_or_encoder_input_difference": 0.0
+  },
+  {
+    "path": "/b/src/337690329/17929377550172852142.mp4",
+    "delays_s": [
+      0.013,
+      0.125,
+      1.75,
+      11.0,
+      30.0
+    ],
+    "maximum_feature_or_encoder_input_difference": 0.0
+  },
+  {
+    "path": "/b/src/337690329/17929388634960411428.mp4",
+    "delays_s": [
+      0.013,
+      0.125,
+      1.75,
+      11.0,
+      30.0
+    ],
+    "maximum_feature_or_encoder_input_difference": 0.0
+  },
+  {
+    "path": "/b/src/337690329/17929395998260540420.mp4",
+    "delays_s": [
+      0.013,
+      0.125,
+      1.75,
+      11.0,
+      30.0
+    ],
+    "maximum_feature_or_encoder_input_difference": 0.0
+  },
+  {
+    "path": "/b/src/337690329/17929480884480367074.webm",
+    "delays_s": [
+      0.013,
+      0.125,
+      1.75,
+      11.0,
+      30.0
+    ],
+    "maximum_feature_or_encoder_input_difference": 0.0
+  },
+  {
+    "path": "/b/src/337690329/17929484944890327872.webm",
+    "delays_s": [
+      0.013,
+      0.125,
+      1.75,
+      11.0,
+      30.0
+    ],
+    "maximum_feature_or_encoder_input_difference": 0.0
+  },
+  {
+    "path": "/b/src/337690329/17929498438732758260.mp4",
+    "delays_s": [
+      0.013,
+      0.125,
+      1.75,
+      11.0,
+      30.0
+    ],
+    "maximum_feature_or_encoder_input_difference": 0.0
+  },
+  {
+    "path": "/b/src/337690329/17929502589060439332.mp4",
+    "delays_s": [
+      0.013,
+      0.125,
+      1.75,
+      11.0,
+      30.0
+    ],
+    "maximum_feature_or_encoder_input_difference": 0.0
+  },
+  {
+    "path": "/b/src/337690329/17929508924060208542.webm",
+    "delays_s": [
+      0.013,
+      0.125,
+      1.75,
+      11.0,
+      30.0
+    ],
+    "maximum_feature_or_encoder_input_difference": 0.0
+  }
+]

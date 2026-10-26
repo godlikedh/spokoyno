@@ -1,0 +1,11 @@
+{
+  "records": 25794,
+  "maximum_absolute_error": {
+    "consistent-hybrid": 1.0547118733938987e-15,
+    "augmented-hybrid": 8.881784197001252e-16,
+    "consistent-physical": 0.0,
+    "augmented-physical": 0.0,
+    "unaugmented-hybrid": 1.2212453270876722e-15,
+    "augmented-softmax": 8.881784197001252e-16
+  }
+}

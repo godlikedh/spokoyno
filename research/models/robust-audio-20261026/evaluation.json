@@ -1,0 +1,661 @@
+{
+  "metrics": {
+    "consistent-hybrid": {
+      "original": {
+        "positive": 30,
+        "negative": 3466,
+        "alert": {
+          "detected": 30,
+          "missed": 0,
+          "false_warnings": 66,
+          "false_warnings_per_1000": 19.042123485285632
+        },
+        "maybe_or_alert": {
+          "detected": 30,
+          "missed": 0,
+          "false_warnings": 168,
+          "false_warnings_per_1000": 48.47085978072706
+        },
+        "average_precision": 0.792373395741531
+      },
+      "worst-training-view": {
+        "positive": 30,
+        "negative": 3466,
+        "alert": {
+          "detected": 21,
+          "missed": 9,
+          "false_warnings": 87,
+          "false_warnings_per_1000": 25.100980957876516
+        },
+        "maybe_or_alert": {
+          "detected": 27,
+          "missed": 3,
+          "false_warnings": 200,
+          "false_warnings_per_1000": 57.70340450086555
+        },
+        "average_precision": 0.2397876386293798
+      },
+      "aac80": {
+        "positive": 30,
+        "negative": 3466,
+        "alert": {
+          "detected": 23,
+          "missed": 7,
+          "false_warnings": 43,
+          "false_warnings_per_1000": 12.406231967686093
+        },
+        "maybe_or_alert": {
+          "detected": 29,
+          "missed": 1,
+          "false_warnings": 134,
+          "false_warnings_per_1000": 38.66128101557992
+        },
+        "average_precision": 0.5751146486137036
+      },
+      "opus48": {
+        "positive": 30,
+        "negative": 3466,
+        "alert": {
+          "detected": 29,
+          "missed": 1,
+          "false_warnings": 62,
+          "false_warnings_per_1000": 17.88805539526832
+        },
+        "maybe_or_alert": {
+          "detected": 30,
+          "missed": 0,
+          "false_warnings": 165,
+          "false_warnings_per_1000": 47.60530871321408
+        },
+        "average_precision": 0.7984296603903445
+      },
+      "mp3_128": {
+        "positive": 30,
+        "negative": 3466,
+        "alert": {
+          "detected": 30,
+          "missed": 0,
+          "false_warnings": 58,
+          "false_warnings_per_1000": 16.73398730525101
+        },
+        "maybe_or_alert": {
+          "detected": 30,
+          "missed": 0,
+          "false_warnings": 152,
+          "false_warnings_per_1000": 43.85458742065782
+        },
+        "average_precision": 0.8008973982948553
+      }
+    },
+    "augmented-hybrid": {
+      "original": {
+        "positive": 30,
+        "negative": 3466,
+        "alert": {
+          "detected": 30,
+          "missed": 0,
+          "false_warnings": 65,
+          "false_warnings_per_1000": 18.753606462781303
+        },
+        "maybe_or_alert": {
+          "detected": 30,
+          "missed": 0,
+          "false_warnings": 165,
+          "false_warnings_per_1000": 47.60530871321408
+        },
+        "average_precision": 0.7890640845613963
+      },
+      "worst-training-view": {
+        "positive": 30,
+        "negative": 3466,
+        "alert": {
+          "detected": 21,
+          "missed": 9,
+          "false_warnings": 86,
+          "false_warnings_per_1000": 24.812463935372186
+        },
+        "maybe_or_alert": {
+          "detected": 27,
+          "missed": 3,
+          "false_warnings": 199,
+          "false_warnings_per_1000": 57.41488747836122
+        },
+        "average_precision": 0.23642843713532957
+      },
+      "aac80": {
+        "positive": 30,
+        "negative": 3466,
+        "alert": {
+          "detected": 23,
+          "missed": 7,
+          "false_warnings": 43,
+          "false_warnings_per_1000": 12.406231967686093
+        },
+        "maybe_or_alert": {
+          "detected": 29,
+          "missed": 1,
+          "false_warnings": 131,
+          "false_warnings_per_1000": 37.795729948066935
+        },
+        "average_precision": 0.5722259107261126
+      },
+      "opus48": {
+        "positive": 30,
+        "negative": 3466,
+        "alert": {
+          "detected": 29,
+          "missed": 1,
+          "false_warnings": 62,
+          "false_warnings_per_1000": 17.88805539526832
+        },
+        "maybe_or_alert": {
+          "detected": 30,
+          "missed": 0,
+          "false_warnings": 165,
+          "false_warnings_per_1000": 47.60530871321408
+        },
+        "average_precision": 0.8013973668710255
+      },
+      "mp3_128": {
+        "positive": 30,
+        "negative": 3466,
+        "alert": {
+          "detected": 30,
+          "missed": 0,
+          "false_warnings": 56,
+          "false_warnings_per_1000": 16.156953260242354
+        },
+        "maybe_or_alert": {
+          "detected": 30,
+          "missed": 0,
+          "false_warnings": 151,
+          "false_warnings_per_1000": 43.56607039815349
+        },
+        "average_precision": 0.7999140197937633
+      }
+    },
+    "consistent-physical": {
+      "original": {
+        "positive": 30,
+        "negative": 3466,
+        "alert": {
+          "detected": 30,
+          "missed": 0,
+          "false_warnings": 66,
+          "false_warnings_per_1000": 19.042123485285632
+        },
+        "maybe_or_alert": {
+          "detected": 30,
+          "missed": 0,
+          "false_warnings": 182,
+          "false_warnings_per_1000": 52.510098095787654
+        },
+        "average_precision": 0.7926838731385025
+      },
+      "worst-training-view": {
+        "positive": 30,
+        "negative": 3466,
+        "alert": {
+          "detected": 20,
+          "missed": 10,
+          "false_warnings": 87,
+          "false_warnings_per_1000": 25.100980957876516
+        },
+        "maybe_or_alert": {
+          "detected": 27,
+          "missed": 3,
+          "false_warnings": 220,
+          "false_warnings_per_1000": 63.4737449509521
+        },
+        "average_precision": 0.23927884757669352
+      },
+      "aac80": {
+        "positive": 30,
+        "negative": 3466,
+        "alert": {
+          "detected": 24,
+          "missed": 6,
+          "false_warnings": 35,
+          "false_warnings_per_1000": 10.098095787651472
+        },
+        "maybe_or_alert": {
+          "detected": 29,
+          "missed": 1,
+          "false_warnings": 143,
+          "false_warnings_per_1000": 41.25793421811887
+        },
+        "average_precision": 0.5810272181095391
+      },
+      "opus48": {
+        "positive": 30,
+        "negative": 3466,
+        "alert": {
+          "detected": 30,
+          "missed": 0,
+          "false_warnings": 65,
+          "false_warnings_per_1000": 18.753606462781303
+        },
+        "maybe_or_alert": {
+          "detected": 30,
+          "missed": 0,
+          "false_warnings": 171,
+          "false_warnings_per_1000": 49.33641084824005
+        },
+        "average_precision": 0.7824005743001253
+      },
+      "mp3_128": {
+        "positive": 30,
+        "negative": 3466,
+        "alert": {
+          "detected": 30,
+          "missed": 0,
+          "false_warnings": 60,
+          "false_warnings_per_1000": 17.311021350259665
+        },
+        "maybe_or_alert": {
+          "detected": 30,
+          "missed": 0,
+          "false_warnings": 157,
+          "false_warnings_per_1000": 45.297172533179456
+        },
+        "average_precision": 0.808173783992197
+      }
+    },
+    "augmented-physical": {
+      "original": {
+        "positive": 30,
+        "negative": 3466,
+        "alert": {
+          "detected": 30,
+          "missed": 0,
+          "false_warnings": 67,
+          "false_warnings_per_1000": 19.33064050778996
+        },
+        "maybe_or_alert": {
+          "detected": 30,
+          "missed": 0,
+          "false_warnings": 179,
+          "false_warnings_per_1000": 51.644547028274665
+        },
+        "average_precision": 0.7851322727008825
+      },
+      "worst-training-view": {
+        "positive": 30,
+        "negative": 3466,
+        "alert": {
+          "detected": 20,
+          "missed": 10,
+          "false_warnings": 87,
+          "false_warnings_per_1000": 25.100980957876516
+        },
+        "maybe_or_alert": {
+          "detected": 27,
+          "missed": 3,
+          "false_warnings": 216,
+          "false_warnings_per_1000": 62.3196768609348
+        },
+        "average_precision": 0.23605317504145845
+      },
+      "aac80": {
+        "positive": 30,
+        "negative": 3466,
+        "alert": {
+          "detected": 24,
+          "missed": 6,
+          "false_warnings": 35,
+          "false_warnings_per_1000": 10.098095787651472
+        },
+        "maybe_or_alert": {
+          "detected": 29,
+          "missed": 1,
+          "false_warnings": 140,
+          "false_warnings_per_1000": 40.39238315060589
+        },
+        "average_precision": 0.5790826230576178
+      },
+      "opus48": {
+        "positive": 30,
+        "negative": 3466,
+        "alert": {
+          "detected": 30,
+          "missed": 0,
+          "false_warnings": 65,
+          "false_warnings_per_1000": 18.753606462781303
+        },
+        "maybe_or_alert": {
+          "detected": 30,
+          "missed": 0,
+          "false_warnings": 170,
+          "false_warnings_per_1000": 49.04789382573572
+        },
+        "average_precision": 0.7842810793414772
+      },
+      "mp3_128": {
+        "positive": 30,
+        "negative": 3466,
+        "alert": {
+          "detected": 30,
+          "missed": 0,
+          "false_warnings": 59,
+          "false_warnings_per_1000": 17.02250432775534
+        },
+        "maybe_or_alert": {
+          "detected": 30,
+          "missed": 0,
+          "false_warnings": 156,
+          "false_warnings_per_1000": 45.00865551067513
+        },
+        "average_precision": 0.8093365452673222
+      }
+    },
+    "unaugmented-hybrid": {
+      "original": {
+        "positive": 30,
+        "negative": 3466,
+        "alert": {
+          "detected": 25,
+          "missed": 5,
+          "false_warnings": 34,
+          "false_warnings_per_1000": 9.809578765147144
+        },
+        "maybe_or_alert": {
+          "detected": 29,
+          "missed": 1,
+          "false_warnings": 65,
+          "false_warnings_per_1000": 18.753606462781303
+        },
+        "average_precision": 0.7559205873765121
+      },
+      "worst-training-view": {
+        "positive": 30,
+        "negative": 3466,
+        "alert": {
+          "detected": 10,
+          "missed": 20,
+          "false_warnings": 40,
+          "false_warnings_per_1000": 11.54068090017311
+        },
+        "maybe_or_alert": {
+          "detected": 17,
+          "missed": 13,
+          "false_warnings": 78,
+          "false_warnings_per_1000": 22.504327755337567
+        },
+        "average_precision": 0.15574222226738588
+      },
+      "aac80": {
+        "positive": 30,
+        "negative": 3466,
+        "alert": {
+          "detected": 12,
+          "missed": 18,
+          "false_warnings": 10,
+          "false_warnings_per_1000": 2.8851702250432774
+        },
+        "maybe_or_alert": {
+          "detected": 21,
+          "missed": 9,
+          "false_warnings": 34,
+          "false_warnings_per_1000": 9.809578765147144
+        },
+        "average_precision": 0.4885000122777036
+      },
+      "opus48": {
+        "positive": 30,
+        "negative": 3466,
+        "alert": {
+          "detected": 26,
+          "missed": 4,
+          "false_warnings": 30,
+          "false_warnings_per_1000": 8.655510675129833
+        },
+        "maybe_or_alert": {
+          "detected": 29,
+          "missed": 1,
+          "false_warnings": 57,
+          "false_warnings_per_1000": 16.445470282746683
+        },
+        "average_precision": 0.7758917983427986
+      },
+      "mp3_128": {
+        "positive": 30,
+        "negative": 3466,
+        "alert": {
+          "detected": 25,
+          "missed": 5,
+          "false_warnings": 21,
+          "false_warnings_per_1000": 6.058857472590883
+        },
+        "maybe_or_alert": {
+          "detected": 29,
+          "missed": 1,
+          "false_warnings": 53,
+          "false_warnings_per_1000": 15.291402192729372
+        },
+        "average_precision": 0.7733198709238488
+      }
+    },
+    "augmented-softmax": {
+      "original": {
+        "positive": 30,
+        "negative": 3466,
+        "alert": {
+          "detected": 27,
+          "missed": 3,
+          "false_warnings": 33,
+          "false_warnings_per_1000": 9.521061742642816
+        },
+        "maybe_or_alert": {
+          "detected": 30,
+          "missed": 0,
+          "false_warnings": 104,
+          "false_warnings_per_1000": 30.005770340450088
+        },
+        "average_precision": 0.7327350570872244
+      },
+      "worst-training-view": {
+        "positive": 30,
+        "negative": 3466,
+        "alert": {
+          "detected": 22,
+          "missed": 8,
+          "false_warnings": 35,
+          "false_warnings_per_1000": 10.098095787651472
+        },
+        "maybe_or_alert": {
+          "detected": 27,
+          "missed": 3,
+          "false_warnings": 128,
+          "false_warnings_per_1000": 36.93017888055395
+        },
+        "average_precision": 0.38425480287131136
+      },
+      "aac80": {
+        "positive": 30,
+        "negative": 3466,
+        "alert": {
+          "detected": 23,
+          "missed": 7,
+          "false_warnings": 13,
+          "false_warnings_per_1000": 3.750721292556261
+        },
+        "maybe_or_alert": {
+          "detected": 28,
+          "missed": 2,
+          "false_warnings": 78,
+          "false_warnings_per_1000": 22.504327755337567
+        },
+        "average_precision": 0.7378847064615726
+      },
+      "opus48": {
+        "positive": 30,
+        "negative": 3466,
+        "alert": {
+          "detected": 28,
+          "missed": 2,
+          "false_warnings": 27,
+          "false_warnings_per_1000": 7.78995960761685
+        },
+        "maybe_or_alert": {
+          "detected": 30,
+          "missed": 0,
+          "false_warnings": 102,
+          "false_warnings_per_1000": 29.428736295441432
+        },
+        "average_precision": 0.7777148527195803
+      },
+      "mp3_128": {
+        "positive": 30,
+        "negative": 3466,
+        "alert": {
+          "detected": 29,
+          "missed": 1,
+          "false_warnings": 25,
+          "false_warnings_per_1000": 7.212925562608194
+        },
+        "maybe_or_alert": {
+          "detected": 30,
+          "missed": 0,
+          "false_warnings": 89,
+          "false_warnings_per_1000": 25.67801500288517
+        },
+        "average_precision": 0.7869970326154762
+      }
+    },
+    "nested-selection": {
+      "original": {
+        "positive": 30,
+        "negative": 3466,
+        "alert": {
+          "detected": 27,
+          "missed": 3,
+          "false_warnings": 63,
+          "false_warnings_per_1000": 18.176572417772647
+        },
+        "maybe_or_alert": {
+          "detected": 30,
+          "missed": 0,
+          "false_warnings": 157,
+          "false_warnings_per_1000": 45.297172533179456
+        },
+        "average_precision": 0.5656395324687197
+      },
+      "worst-training-view": {
+        "positive": 30,
+        "negative": 3466,
+        "alert": {
+          "detected": 20,
+          "missed": 10,
+          "false_warnings": 81,
+          "false_warnings_per_1000": 23.36987882285055
+        },
+        "maybe_or_alert": {
+          "detected": 26,
+          "missed": 4,
+          "false_warnings": 189,
+          "false_warnings_per_1000": 54.52971725331795
+        },
+        "average_precision": 0.2032082066415452
+      },
+      "aac80": {
+        "positive": 30,
+        "negative": 3466,
+        "alert": {
+          "detected": 23,
+          "missed": 7,
+          "false_warnings": 40,
+          "false_warnings_per_1000": 11.54068090017311
+        },
+        "maybe_or_alert": {
+          "detected": 29,
+          "missed": 1,
+          "false_warnings": 127,
+          "false_warnings_per_1000": 36.64166185804962
+        },
+        "average_precision": 0.5229575707617748
+      },
+      "opus48": {
+        "positive": 30,
+        "negative": 3466,
+        "alert": {
+          "detected": 28,
+          "missed": 2,
+          "false_warnings": 59,
+          "false_warnings_per_1000": 17.02250432775534
+        },
+        "maybe_or_alert": {
+          "detected": 30,
+          "missed": 0,
+          "false_warnings": 157,
+          "false_warnings_per_1000": 45.297172533179456
+        },
+        "average_precision": 0.6115420293604586
+      },
+      "mp3_128": {
+        "positive": 30,
+        "negative": 3466,
+        "alert": {
+          "detected": 29,
+          "missed": 1,
+          "false_warnings": 54,
+          "false_warnings_per_1000": 15.5799192152337
+        },
+        "maybe_or_alert": {
+          "detected": 30,
+          "missed": 0,
+          "false_warnings": 142,
+          "false_warnings_per_1000": 40.96941719561454
+        },
+        "average_precision": 0.6208412498592789
+      }
+    }
+  },
+  "selection_decisions": [
+    {
+      "thread": "336185346",
+      "chosen": "consistent-hybrid"
+    },
+    {
+      "thread": "336243339",
+      "chosen": "consistent-hybrid"
+    },
+    {
+      "thread": "336272252",
+      "chosen": "augmented-hybrid"
+    },
+    {
+      "thread": "336291305",
+      "chosen": "augmented-hybrid"
+    },
+    {
+      "thread": "336466927",
+      "chosen": "augmented-hybrid"
+    },
+    {
+      "thread": "336603044",
+      "chosen": "consistent-hybrid"
+    },
+    {
+      "thread": "336679639",
+      "chosen": "consistent-hybrid"
+    },
+    {
+      "thread": "336723954",
+      "chosen": "augmented-hybrid"
+    },
+    {
+      "thread": "336991612",
+      "chosen": "consistent-hybrid"
+    },
+    {
+      "thread": "337355133",
+      "chosen": "consistent-hybrid"
+    },
+    {
+      "thread": "337690329",
+      "chosen": "augmented-softmax"
+    }
+  ],
+  "final_model": "augmented-hybrid",
+  "final_fit_key": "e31db4c2c365b07b"
+}

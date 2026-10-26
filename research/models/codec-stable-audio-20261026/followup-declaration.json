@@ -1,0 +1,35 @@
+{
+  "created_at": "2026-10-26T07:43:26.108010+00:00",
+  "entry_sha256": "e9b28885a38500ac6b408fddb48521fafdcf301b8e62b2df02ff6f21b1b4fa32",
+  "trainer_sha256": "065a1476f68bd01e08fe41decf58b7ef6d759346d0028eb78b606c7061a4d170",
+  "primary": "codec-stable-hybrid",
+  "candidates": {
+    "codec-stable-hybrid": {
+      "audio": true,
+      "augment": true,
+      "power": 8,
+      "consistency": 10.0
+    },
+    "codec-stable-physical": {
+      "audio": false,
+      "augment": true,
+      "power": 8,
+      "consistency": 10.0
+    },
+    "codec-stable-softmax": {
+      "audio": true,
+      "augment": true,
+      "power": 2,
+      "consistency": 10.0
+    },
+    "noclip-hybrid": {
+      "audio": true,
+      "augment": true,
+      "power": 8,
+      "consistency": 1.0
+    }
+  },
+  "disabled_feature": "near_clip_fraction",
+  "reason": "AAC changes near-clipping count despite high waveform correlation; first-round models assigned it large positive weight. Zero this input during training so its coefficient is exactly zero, and increase source-variant consistency weight.",
+  "limitation": "Adaptive follow-up on the same development corpus, motivated by first-round held-out failure analysis; not prospective validation. Candidate list and thresholds fixed before follow-up fits."
+}

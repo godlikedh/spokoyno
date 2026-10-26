@@ -1,0 +1,38 @@
+{
+  "seed": 2026102601,
+  "created_at": "2026-10-25T23:34:08.936422+00:00",
+  "source_sha256": "572b314c7cc2f857369d0a4a250030e8416c914fe72418570272d94a96d6a475dddba79765a96020073d39e0fe1a5897bda7efe5dfbed49e5d7d12ec8765063f",
+  "base_manifest_sha256": "2b07fc925c41eb18253d5429e38e25355d95d2a37056fadb677a5e038e023c9e",
+  "train_codecs": [
+    "aac64",
+    "aac96",
+    "opus32",
+    "opus64"
+  ],
+  "evaluation_profiles": {
+    "aac80": {
+      "codec": "aac80",
+      "delay_s": 0.013
+    },
+    "opus48": {
+      "codec": "opus48",
+      "delay_s": 0.125
+    },
+    "mp3_128": {
+      "codec": "mp3_128",
+      "delay_s": 1.75
+    }
+  },
+  "mixes_per_donor": 200,
+  "total_records": 25794,
+  "policy": "Real sources and every synthetic parent remain on the same side of each exclusion. Evaluation profiles never used for fitting. Derivatives do not increase independent sample counts.",
+  "full_plan_sha256": "78d6bde9d6c03f5fd4b8ab09c39f80a7354de490381255fe76e3859f4c5efd2f",
+  "counts": {
+    "original": 4014,
+    "real_training_variants": 7292,
+    "synthetic_positive": 2000,
+    "synthetic_negative_controls": 2000,
+    "reserved_evaluation_codecs": 10488
+  },
+  "event_windows": 348112
+}

@@ -5,5 +5,7 @@ corpus/index.json
 corpus/manifests/
 research/artifacts/
 research/models/*.json
+# Exporters own the byte representation of checksum-verified model snapshots.
+research/models/**/*.json
 research/thread-*
 research/supplemental-positives.*

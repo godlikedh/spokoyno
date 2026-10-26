@@ -1,0 +1,10 @@
+{
+  "fixtures": 40,
+  "values": 40451,
+  "milliseconds": 14514.134627000003,
+  "maximum_absolute_error": 0.00003110997545263672,
+  "windowFailures": [],
+  "patchFailures": [],
+  "failures": [],
+  "failure_count": 0
+}
