@@ -1,0 +1,9 @@
+{
+  "records": 25794,
+  "maximum_absolute_error": {
+    "codec-stable-hybrid": 1.1102230246251565e-15,
+    "codec-stable-physical": 0.0,
+    "codec-stable-softmax": 9.43689570931383e-16,
+    "noclip-hybrid": 1.1657341758564144e-15
+  }
+}

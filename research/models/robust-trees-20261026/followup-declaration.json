@@ -1,0 +1,32 @@
+{
+  "created_at": "2026-10-26T07:52:58.931165+00:00",
+  "entry_sha256": "ec9d72d3a7dfb5b6cfb3fee37d6fc7c88e98cf09b34b288182a92c0a097a0fc4",
+  "tree_runtime_sha256": "a2be3788c7518c8459c57b843679f4423bd132eae56613dcf06325de1843464c",
+  "trainer_sha256": "065a1476f68bd01e08fe41decf58b7ef6d759346d0028eb78b606c7061a4d170",
+  "primary": "mil-boost-7",
+  "candidates": {
+    "mil-boost-7": {
+      "audio": false,
+      "augment": true,
+      "power": 8,
+      "consistency": 0,
+      "leaves": 7,
+      "depth": 3,
+      "l2": 10.0,
+      "min_leaf": 30
+    },
+    "mil-boost-15": {
+      "audio": false,
+      "augment": true,
+      "power": 8,
+      "consistency": 0,
+      "leaves": 15,
+      "depth": 4,
+      "l2": 20.0,
+      "min_leaf": 50
+    }
+  },
+  "seed_run": "research/artifacts/codec-stable-study-20261026",
+  "protocol": "Exactly two MIL pseudo-label rounds, 120 iterations, learning rate .08, 63 bins, early stopping disabled. Seed classifier is codec-stable-hybrid from the same source-excluded training partition. Every derivative parent must be eligible. Evaluation codecs are never used for fitting or selection.",
+  "limitation": "Adaptive development research on the existing corpus; declared before inspecting these nonlinear fits or the codec-stable linear follow-up results."
+}

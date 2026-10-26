@@ -1,0 +1,937 @@
+{
+  "fixtures": 27,
+  "maximum_score_error": 0.0000018167020734427552,
+  "tier_changes": [],
+  "sources": {
+    "/tf.js": "300dfae273d20b4046f46a06d735688f03675a807561e9bcb5f664eb2f3d2831",
+    "/wasm.js": "691bbec0ef8b5a7f17f212e9c5d85832030f90d030b46e99acb4dea1fb16f009",
+    "/encoder.json": "176f1b3ea582af0c3c5c98145a67eebeb72b5a22251fac7c53f8faafbb7fc8c6",
+    "/weights.bin": "e9ae2e9dbb1eeb9fac9771b81cef667933c7facd35a00c96dd6c7a49622956eb",
+    "/robust_encoder.cjs": "687e4ee0bc8373368b69dd5b7b19fb802af0fc7c3ff74ad3d8253e54899d4161",
+    "/robust_features.cjs": "0367a377838db42adf23e2836f324f35a7df23168a34c04b96f0c9bb18c7ba0d",
+    "/robust_model.cjs": "8467165f8b15f27cceffa197766eca0ca85e80bc6b8d2db53642b173dddf5be8",
+    "/tfjs-backend-wasm.wasm": "70a5d516060464e5269f01c74bac1772d6b8ab6cb612acf16b5cdaf61f78d892",
+    "/tfjs-backend-wasm-simd.wasm": "77ebb28a6d34f371dbbf2086b7f2de8994acd8ea5a3cf1fa24d2c26c840cac7b",
+    "/tfjs-backend-wasm-threaded-simd.wasm": "c052228d4bef185c27bbe59a9e029570c78bbb9f08b3cb46b597851650373de2"
+  },
+  "results": [
+    {
+      "file": "17929233629432480892.mp4",
+      "predictions": {
+        "consistent-hybrid": {
+          "score": 0.9571272933230113,
+          "event_at_s": 92.042125
+        },
+        "augmented-hybrid": {
+          "score": 0.9576237441511211,
+          "event_at_s": 92.042125
+        },
+        "consistent-physical": {
+          "score": 0.9612356601299882,
+          "event_at_s": 92.042125
+        },
+        "augmented-physical": {
+          "score": 0.9600975283946002,
+          "event_at_s": 92.042125
+        },
+        "unaugmented-hybrid": {
+          "score": 0.9945116238219761,
+          "event_at_s": 92.042125
+        },
+        "augmented-softmax": {
+          "score": 0.8807527577563561,
+          "event_at_s": 92.042125
+        }
+      },
+      "feature_ms": 390.90000009536743,
+      "total_ms": 837.3000001907349,
+      "event_count": 15,
+      "backend": "wasm",
+      "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36"
+    },
+    {
+      "file": "17929235424520630151.webm",
+      "predictions": {
+        "consistent-hybrid": {
+          "score": 0.999715572085114,
+          "event_at_s": 204.55
+        },
+        "augmented-hybrid": {
+          "score": 0.9997477655450011,
+          "event_at_s": 204.55
+        },
+        "consistent-physical": {
+          "score": 0.9996518043930376,
+          "event_at_s": 204.55
+        },
+        "augmented-physical": {
+          "score": 0.9997130185094834,
+          "event_at_s": 204.55
+        },
+        "unaugmented-hybrid": {
+          "score": 0.9998882913122322,
+          "event_at_s": 204.55
+        },
+        "augmented-softmax": {
+          "score": 0.738890570093086,
+          "event_at_s": 204.55
+        }
+      },
+      "feature_ms": 537.5999999046326,
+      "total_ms": 1025.1999998092651,
+      "event_count": 19,
+      "backend": "wasm",
+      "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36"
+    },
+    {
+      "file": "17929246374352604972.mp4",
+      "predictions": {
+        "consistent-hybrid": {
+          "score": 0.22641662742846624,
+          "event_at_s": 7.495875000000001
+        },
+        "augmented-hybrid": {
+          "score": 0.23228609821441684,
+          "event_at_s": 7.495875000000001
+        },
+        "consistent-physical": {
+          "score": 0.31567537777034516,
+          "event_at_s": 7.495875000000001
+        },
+        "augmented-physical": {
+          "score": 0.3176113464955599,
+          "event_at_s": 7.495875000000001
+        },
+        "unaugmented-hybrid": {
+          "score": 0.08125671611548191,
+          "event_at_s": 7.495875000000001
+        },
+        "augmented-softmax": {
+          "score": 0.3671155254841687,
+          "event_at_s": 7.495875000000001
+        }
+      },
+      "feature_ms": 235.5,
+      "total_ms": 605.6000003814697,
+      "event_count": 14,
+      "backend": "wasm",
+      "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36"
+    },
+    {
+      "file": "17929253560550736111.mp4",
+      "predictions": {
+        "consistent-hybrid": {
+          "score": 0.8726269405979723,
+          "event_at_s": 119.76
+        },
+        "augmented-hybrid": {
+          "score": 0.8732999586988938,
+          "event_at_s": 119.76
+        },
+        "consistent-physical": {
+          "score": 0.8950549343164553,
+          "event_at_s": 119.76
+        },
+        "augmented-physical": {
+          "score": 0.8951791375064819,
+          "event_at_s": 119.76
+        },
+        "unaugmented-hybrid": {
+          "score": 0.8110762526653948,
+          "event_at_s": 119.76
+        },
+        "augmented-softmax": {
+          "score": 0.6153961427356088,
+          "event_at_s": 119.76
+        }
+      },
+      "feature_ms": 524.0999999046326,
+      "total_ms": 986.8000001907349,
+      "event_count": 18,
+      "backend": "wasm",
+      "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36"
+    },
+    {
+      "file": "17929258136773388913.webm",
+      "predictions": {
+        "consistent-hybrid": {
+          "score": 0.9995266735179322,
+          "event_at_s": 97.60000000000001
+        },
+        "augmented-hybrid": {
+          "score": 0.999573031780908,
+          "event_at_s": 97.60000000000001
+        },
+        "consistent-physical": {
+          "score": 0.9998898168108259,
+          "event_at_s": 97.60000000000001
+        },
+        "augmented-physical": {
+          "score": 0.9999061295748477,
+          "event_at_s": 97.60000000000001
+        },
+        "unaugmented-hybrid": {
+          "score": 0.9994193484836086,
+          "event_at_s": 97.60000000000001
+        },
+        "augmented-softmax": {
+          "score": 0.7556974362409103,
+          "event_at_s": 97.60000000000001
+        }
+      },
+      "feature_ms": 750.5999999046326,
+      "total_ms": 1322.0999999046326,
+      "event_count": 22,
+      "backend": "wasm",
+      "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36"
+    },
+    {
+      "file": "17929289055560894598.webm",
+      "predictions": {
+        "consistent-hybrid": {
+          "score": 0.9960597374740188,
+          "event_at_s": 298.74962500000004
+        },
+        "augmented-hybrid": {
+          "score": 0.9963897720993219,
+          "event_at_s": 298.74962500000004
+        },
+        "consistent-physical": {
+          "score": 0.9965279366936319,
+          "event_at_s": 298.74962500000004
+        },
+        "augmented-physical": {
+          "score": 0.9969197295229519,
+          "event_at_s": 298.74962500000004
+        },
+        "unaugmented-hybrid": {
+          "score": 0.9984619227942608,
+          "event_at_s": 298.74962500000004
+        },
+        "augmented-softmax": {
+          "score": 0.9532737749576253,
+          "event_at_s": 298.74962500000004
+        }
+      },
+      "feature_ms": 774.7000002861023,
+      "total_ms": 1396.8000001907349,
+      "event_count": 24,
+      "backend": "wasm",
+      "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36"
+    },
+    {
+      "file": "17929291025992177046.webm",
+      "predictions": {
+        "consistent-hybrid": {
+          "score": 0.8337371288369931,
+          "event_at_s": 16.950000000000003
+        },
+        "augmented-hybrid": {
+          "score": 0.8402172799985687,
+          "event_at_s": 16.950000000000003
+        },
+        "consistent-physical": {
+          "score": 0.8981645536806208,
+          "event_at_s": 16.950000000000003
+        },
+        "augmented-physical": {
+          "score": 0.9029814248169491,
+          "event_at_s": 16.950000000000003
+        },
+        "unaugmented-hybrid": {
+          "score": 0.7062783751841611,
+          "event_at_s": 18.6
+        },
+        "augmented-softmax": {
+          "score": 0.8504538414843058,
+          "event_at_s": 16.950000000000003
+        }
+      },
+      "feature_ms": 241.7999997138977,
+      "total_ms": 582.3999996185303,
+      "event_count": 13,
+      "backend": "wasm",
+      "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36"
+    },
+    {
+      "file": "17929309020131362624.webm",
+      "predictions": {
+        "consistent-hybrid": {
+          "score": 0.9969870239614141,
+          "event_at_s": 1.25
+        },
+        "augmented-hybrid": {
+          "score": 0.9970795650225759,
+          "event_at_s": 1.25
+        },
+        "consistent-physical": {
+          "score": 0.9913366186918812,
+          "event_at_s": 1.25
+        },
+        "augmented-physical": {
+          "score": 0.9915339199395016,
+          "event_at_s": 1.25
+        },
+        "unaugmented-hybrid": {
+          "score": 0.9980778463715873,
+          "event_at_s": 0.05000000000000071
+        },
+        "augmented-softmax": {
+          "score": 0.9180023240884002,
+          "event_at_s": 1.25
+        }
+      },
+      "feature_ms": 772.3000001907349,
+      "total_ms": 1504.5,
+      "event_count": 28,
+      "backend": "wasm",
+      "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36"
+    },
+    {
+      "file": "17929312599970679631.webm",
+      "predictions": {
+        "consistent-hybrid": {
+          "score": 0.9726774523287218,
+          "event_at_s": 686.85
+        },
+        "augmented-hybrid": {
+          "score": 0.9737048256932288,
+          "event_at_s": 686.85
+        },
+        "consistent-physical": {
+          "score": 0.9651498180320527,
+          "event_at_s": 686.85
+        },
+        "augmented-physical": {
+          "score": 0.9669553234916745,
+          "event_at_s": 686.85
+        },
+        "unaugmented-hybrid": {
+          "score": 0.9572125203929036,
+          "event_at_s": 686.85
+        },
+        "augmented-softmax": {
+          "score": 0.9202063429561262,
+          "event_at_s": 686.85
+        }
+      },
+      "feature_ms": 1235.1999998092651,
+      "total_ms": 2387.4000000953674,
+      "event_count": 44,
+      "backend": "wasm",
+      "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36"
+    },
+    {
+      "file": "17929312600881938742.webm",
+      "predictions": {
+        "consistent-hybrid": {
+          "score": 0.38140447446641873,
+          "event_at_s": 360.385125
+        },
+        "augmented-hybrid": {
+          "score": 0.38387562260877256,
+          "event_at_s": 360.385125
+        },
+        "consistent-physical": {
+          "score": 0.3087595836173333,
+          "event_at_s": 360.385125
+        },
+        "augmented-physical": {
+          "score": 0.31291677074319413,
+          "event_at_s": 360.385125
+        },
+        "unaugmented-hybrid": {
+          "score": 0.13406839247060745,
+          "event_at_s": 360.385125
+        },
+        "augmented-softmax": {
+          "score": 0.2887565731726337,
+          "event_at_s": 360.385125
+        }
+      },
+      "feature_ms": 1042.5,
+      "total_ms": 2000.8000001907349,
+      "event_count": 37,
+      "backend": "wasm",
+      "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36"
+    },
+    {
+      "file": "17929312601933009367.webm",
+      "predictions": {
+        "consistent-hybrid": {
+          "score": 0.9952054860175907,
+          "event_at_s": 21.414375
+        },
+        "augmented-hybrid": {
+          "score": 0.9954553261637855,
+          "event_at_s": 21.414375
+        },
+        "consistent-physical": {
+          "score": 0.9948900418869208,
+          "event_at_s": 21.414375
+        },
+        "augmented-physical": {
+          "score": 0.9952761929014914,
+          "event_at_s": 21.414375
+        },
+        "unaugmented-hybrid": {
+          "score": 0.9916246475099898,
+          "event_at_s": 25.164375
+        },
+        "augmented-softmax": {
+          "score": 0.9967910489105155,
+          "event_at_s": 25.164375
+        }
+      },
+      "feature_ms": 211.19999980926514,
+      "total_ms": 550.5999999046326,
+      "event_count": 13,
+      "backend": "wasm",
+      "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36"
+    },
+    {
+      "file": "17929314749450126327.webm",
+      "predictions": {
+        "consistent-hybrid": {
+          "score": 0.998685628763349,
+          "event_at_s": 60.937749999999994
+        },
+        "augmented-hybrid": {
+          "score": 0.9987640019323851,
+          "event_at_s": 60.937749999999994
+        },
+        "consistent-physical": {
+          "score": 0.9983627367663689,
+          "event_at_s": 60.937749999999994
+        },
+        "augmented-physical": {
+          "score": 0.9984974323783593,
+          "event_at_s": 60.937749999999994
+        },
+        "unaugmented-hybrid": {
+          "score": 0.9975836378582793,
+          "event_at_s": 60.937749999999994
+        },
+        "augmented-softmax": {
+          "score": 0.8577623723722586,
+          "event_at_s": 60.937749999999994
+        }
+      },
+      "feature_ms": 258.59999990463257,
+      "total_ms": 597,
+      "event_count": 13,
+      "backend": "wasm",
+      "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36"
+    },
+    {
+      "file": "17929314751662663260.webm",
+      "predictions": {
+        "consistent-hybrid": {
+          "score": 0.8262433996633389,
+          "event_at_s": 156.5
+        },
+        "augmented-hybrid": {
+          "score": 0.8252512338663899,
+          "event_at_s": 156.5
+        },
+        "consistent-physical": {
+          "score": 0.8635249179832083,
+          "event_at_s": 156.5
+        },
+        "augmented-physical": {
+          "score": 0.8654673251223244,
+          "event_at_s": 156.5
+        },
+        "unaugmented-hybrid": {
+          "score": 0.27481832125664046,
+          "event_at_s": 156.5
+        },
+        "augmented-softmax": {
+          "score": 0.7659201999162432,
+          "event_at_s": 156.5
+        }
+      },
+      "feature_ms": 508.2000002861023,
+      "total_ms": 1029.4000000953674,
+      "event_count": 20,
+      "backend": "wasm",
+      "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36"
+    },
+    {
+      "file": "17929323417171926603.webm",
+      "predictions": {
+        "consistent-hybrid": {
+          "score": 0.9980064518203475,
+          "event_at_s": 28.9
+        },
+        "augmented-hybrid": {
+          "score": 0.998068558546541,
+          "event_at_s": 28.9
+        },
+        "consistent-physical": {
+          "score": 0.9984429974120544,
+          "event_at_s": 28.9
+        },
+        "augmented-physical": {
+          "score": 0.9985423660060768,
+          "event_at_s": 28.9
+        },
+        "unaugmented-hybrid": {
+          "score": 0.9978668975156559,
+          "event_at_s": 28.9
+        },
+        "augmented-softmax": {
+          "score": 0.9308368842057161,
+          "event_at_s": 28.9
+        }
+      },
+      "feature_ms": 236.80000019073486,
+      "total_ms": 598.8000001907349,
+      "event_count": 14,
+      "backend": "wasm",
+      "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36"
+    },
+    {
+      "file": "17929369520563549638.mp4",
+      "predictions": {
+        "consistent-hybrid": {
+          "score": 0.5703233588782397,
+          "event_at_s": 11.254750000000001
+        },
+        "augmented-hybrid": {
+          "score": 0.5657981527151248,
+          "event_at_s": 11.254750000000001
+        },
+        "consistent-physical": {
+          "score": 0.5161522977580785,
+          "event_at_s": 11.254750000000001
+        },
+        "augmented-physical": {
+          "score": 0.4955813680966319,
+          "event_at_s": 11.254750000000001
+        },
+        "unaugmented-hybrid": {
+          "score": 0.21351632544289367,
+          "event_at_s": 29.504750000000005
+        },
+        "augmented-softmax": {
+          "score": 0.5469608747223362,
+          "event_at_s": 22.304750000000002
+        }
+      },
+      "feature_ms": 217.69999980926514,
+      "total_ms": 530.1999998092651,
+      "event_count": 12,
+      "backend": "wasm",
+      "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36"
+    },
+    {
+      "file": "17929377550172852142.mp4",
+      "predictions": {
+        "consistent-hybrid": {
+          "score": 0.8356993383545672,
+          "event_at_s": 28.1686875
+        },
+        "augmented-hybrid": {
+          "score": 0.8373859950468173,
+          "event_at_s": 28.1686875
+        },
+        "consistent-physical": {
+          "score": 0.8379264561476177,
+          "event_at_s": 28.1686875
+        },
+        "augmented-physical": {
+          "score": 0.8409824086722693,
+          "event_at_s": 28.1686875
+        },
+        "unaugmented-hybrid": {
+          "score": 0.49250543229537,
+          "event_at_s": 37.268687500000006
+        },
+        "augmented-softmax": {
+          "score": 0.7223523771443897,
+          "event_at_s": 28.1686875
+        }
+      },
+      "feature_ms": 160.80000019073486,
+      "total_ms": 498.09999990463257,
+      "event_count": 13,
+      "backend": "wasm",
+      "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36"
+    },
+    {
+      "file": "17885426225650373621.mp4",
+      "predictions": {
+        "consistent-hybrid": {
+          "score": 0.47033386088637275,
+          "event_at_s": 26.9
+        },
+        "augmented-hybrid": {
+          "score": 0.4619030930857166,
+          "event_at_s": 26.9
+        },
+        "consistent-physical": {
+          "score": 0.5941636944469785,
+          "event_at_s": 26.9
+        },
+        "augmented-physical": {
+          "score": 0.5824749930359364,
+          "event_at_s": 26.9
+        },
+        "unaugmented-hybrid": {
+          "score": 0.2815458865085025,
+          "event_at_s": 13.55
+        },
+        "augmented-softmax": {
+          "score": 0.30760717726461556,
+          "event_at_s": 13.55
+        }
+      },
+      "feature_ms": 227.90000009536743,
+      "total_ms": 566.0999999046326,
+      "event_count": 13,
+      "backend": "wasm",
+      "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36"
+    },
+    {
+      "file": "17929388634960411428.mp4",
+      "predictions": {
+        "consistent-hybrid": {
+          "score": 0.6467256072796941,
+          "event_at_s": 165.27468750000003
+        },
+        "augmented-hybrid": {
+          "score": 0.6469496771129488,
+          "event_at_s": 165.27468750000003
+        },
+        "consistent-physical": {
+          "score": 0.6770166998499261,
+          "event_at_s": 165.27468750000003
+        },
+        "augmented-physical": {
+          "score": 0.6760149605094659,
+          "event_at_s": 165.27468750000003
+        },
+        "unaugmented-hybrid": {
+          "score": 0.4957315717554274,
+          "event_at_s": 195.12468750000002
+        },
+        "augmented-softmax": {
+          "score": 0.5183409317560479,
+          "event_at_s": 165.27468750000003
+        }
+      },
+      "feature_ms": 524,
+      "total_ms": 1072.6999998092651,
+      "event_count": 21,
+      "backend": "wasm",
+      "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36"
+    },
+    {
+      "file": "17929395998260540420.mp4",
+      "predictions": {
+        "consistent-hybrid": {
+          "score": 0.15017779609760284,
+          "event_at_s": 91.7000625
+        },
+        "augmented-hybrid": {
+          "score": 0.15014312296123553,
+          "event_at_s": 91.7000625
+        },
+        "consistent-physical": {
+          "score": 0.11068287791752322,
+          "event_at_s": 26.0000625
+        },
+        "augmented-physical": {
+          "score": 0.1076913799519159,
+          "event_at_s": 26.0000625
+        },
+        "unaugmented-hybrid": {
+          "score": 0.11301037559802259,
+          "event_at_s": 15.350062500000002
+        },
+        "augmented-softmax": {
+          "score": 0.13047266920572326,
+          "event_at_s": 91.7000625
+        }
+      },
+      "feature_ms": 398.30000019073486,
+      "total_ms": 842.1999998092651,
+      "event_count": 17,
+      "backend": "wasm",
+      "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36"
+    },
+    {
+      "file": "17894991604970318432.mp4",
+      "predictions": {
+        "consistent-hybrid": {
+          "score": 0.8179616769602626,
+          "event_at_s": 74.90050000000001
+        },
+        "augmented-hybrid": {
+          "score": 0.8155157775111735,
+          "event_at_s": 74.90050000000001
+        },
+        "consistent-physical": {
+          "score": 0.6651226461344394,
+          "event_at_s": 74.90050000000001
+        },
+        "augmented-physical": {
+          "score": 0.6604094075589722,
+          "event_at_s": 74.90050000000001
+        },
+        "unaugmented-hybrid": {
+          "score": 0.4762076903071286,
+          "event_at_s": 74.90050000000001
+        },
+        "augmented-softmax": {
+          "score": 0.7055252449643424,
+          "event_at_s": 74.90050000000001
+        }
+      },
+      "feature_ms": 375,
+      "total_ms": 801.2999997138977,
+      "event_count": 17,
+      "backend": "wasm",
+      "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36"
+    },
+    {
+      "file": "17929441862380303154.webm",
+      "predictions": {
+        "consistent-hybrid": {
+          "score": 0.7548482965975004,
+          "event_at_s": 43.5696875
+        },
+        "augmented-hybrid": {
+          "score": 0.7551751222905695,
+          "event_at_s": 43.5696875
+        },
+        "consistent-physical": {
+          "score": 0.6314485631291,
+          "event_at_s": 45.7696875
+        },
+        "augmented-physical": {
+          "score": 0.6277643206911832,
+          "event_at_s": 45.7696875
+        },
+        "unaugmented-hybrid": {
+          "score": 0.7790823703955702,
+          "event_at_s": 45.7696875
+        },
+        "augmented-softmax": {
+          "score": 0.5893793297621075,
+          "event_at_s": 43.5696875
+        }
+      },
+      "feature_ms": 407.90000009536743,
+      "total_ms": 827.4000000953674,
+      "event_count": 16,
+      "backend": "wasm",
+      "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36"
+    },
+    {
+      "file": "17929471544543809082.mp4",
+      "predictions": {
+        "consistent-hybrid": {
+          "score": 0.33756528119385376,
+          "event_at_s": 15.350000000000001
+        },
+        "augmented-hybrid": {
+          "score": 0.33857273674489385,
+          "event_at_s": 15.350000000000001
+        },
+        "consistent-physical": {
+          "score": 0.46943186830690775,
+          "event_at_s": 15.350000000000001
+        },
+        "augmented-physical": {
+          "score": 0.4681351952217773,
+          "event_at_s": 15.350000000000001
+        },
+        "unaugmented-hybrid": {
+          "score": 0.057106521928000815,
+          "event_at_s": 43.6
+        },
+        "augmented-softmax": {
+          "score": 0.3921876195690525,
+          "event_at_s": 43.6
+        }
+      },
+      "feature_ms": 251.90000009536743,
+      "total_ms": 591,
+      "event_count": 13,
+      "backend": "wasm",
+      "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36"
+    },
+    {
+      "file": "17929480884480367074.webm",
+      "predictions": {
+        "consistent-hybrid": {
+          "score": 0.996814235208889,
+          "event_at_s": 53.996125000000006
+        },
+        "augmented-hybrid": {
+          "score": 0.9970169023482065,
+          "event_at_s": 53.996125000000006
+        },
+        "consistent-physical": {
+          "score": 0.9973611154895015,
+          "event_at_s": 53.996125000000006
+        },
+        "augmented-physical": {
+          "score": 0.9976168483820254,
+          "event_at_s": 53.996125000000006
+        },
+        "unaugmented-hybrid": {
+          "score": 0.99914402597014,
+          "event_at_s": 53.996125000000006
+        },
+        "augmented-softmax": {
+          "score": 0.9982724007799889,
+          "event_at_s": 53.996125000000006
+        }
+      },
+      "feature_ms": 272.3999996185303,
+      "total_ms": 634.5999999046326,
+      "event_count": 14,
+      "backend": "wasm",
+      "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36"
+    },
+    {
+      "file": "17929484944890327872.webm",
+      "predictions": {
+        "consistent-hybrid": {
+          "score": 0.8944747061234076,
+          "event_at_s": 1.7996249999999998
+        },
+        "augmented-hybrid": {
+          "score": 0.8938265743589243,
+          "event_at_s": 1.7996249999999998
+        },
+        "consistent-physical": {
+          "score": 0.8399024773827506,
+          "event_at_s": 1.7996249999999998
+        },
+        "augmented-physical": {
+          "score": 0.8393521768317066,
+          "event_at_s": 1.7996249999999998
+        },
+        "unaugmented-hybrid": {
+          "score": 0.7815462302657379,
+          "event_at_s": 1.7996249999999998
+        },
+        "augmented-softmax": {
+          "score": 0.6664496538426715,
+          "event_at_s": 1.7996249999999998
+        }
+      },
+      "feature_ms": 243.19999980926514,
+      "total_ms": 608.2999997138977,
+      "event_count": 14,
+      "backend": "wasm",
+      "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36"
+    },
+    {
+      "file": "17929498438732758260.mp4",
+      "predictions": {
+        "consistent-hybrid": {
+          "score": 0.8044347009159347,
+          "event_at_s": 20.201812500000003
+        },
+        "augmented-hybrid": {
+          "score": 0.8050975263428801,
+          "event_at_s": 20.201812500000003
+        },
+        "consistent-physical": {
+          "score": 0.8210462470221379,
+          "event_at_s": 20.201812500000003
+        },
+        "augmented-physical": {
+          "score": 0.8193026045892233,
+          "event_at_s": 20.201812500000003
+        },
+        "unaugmented-hybrid": {
+          "score": 0.2594418281792715,
+          "event_at_s": 20.201812500000003
+        },
+        "augmented-softmax": {
+          "score": 0.542183017571415,
+          "event_at_s": 20.201812500000003
+        }
+      },
+      "feature_ms": 143.19999980926514,
+      "total_ms": 507.7999997138977,
+      "event_count": 14,
+      "backend": "wasm",
+      "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36"
+    },
+    {
+      "file": "17929502589060439332.mp4",
+      "predictions": {
+        "consistent-hybrid": {
+          "score": 0.9892836270602903,
+          "event_at_s": 20.980062500000003
+        },
+        "augmented-hybrid": {
+          "score": 0.989482832115556,
+          "event_at_s": 20.980062500000003
+        },
+        "consistent-physical": {
+          "score": 0.9797402333334092,
+          "event_at_s": 20.980062500000003
+        },
+        "augmented-physical": {
+          "score": 0.9802025903679467,
+          "event_at_s": 20.980062500000003
+        },
+        "unaugmented-hybrid": {
+          "score": 0.8755814799997611,
+          "event_at_s": 20.980062500000003
+        },
+        "augmented-softmax": {
+          "score": 0.923342498978084,
+          "event_at_s": 20.980062500000003
+        }
+      },
+      "feature_ms": 215.69999980926514,
+      "total_ms": 555.4000000953674,
+      "event_count": 13,
+      "backend": "wasm",
+      "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36"
+    },
+    {
+      "file": "17929508924060208542.webm",
+      "predictions": {
+        "consistent-hybrid": {
+          "score": 0.9953588663329671,
+          "event_at_s": 60.450750000000006
+        },
+        "augmented-hybrid": {
+          "score": 0.9956276292810194,
+          "event_at_s": 60.450750000000006
+        },
+        "consistent-physical": {
+          "score": 0.9969068741097328,
+          "event_at_s": 61.250750000000004
+        },
+        "augmented-physical": {
+          "score": 0.9971859726715693,
+          "event_at_s": 61.250750000000004
+        },
+        "unaugmented-hybrid": {
+          "score": 0.9943794551540978,
+          "event_at_s": 60.450750000000006
+        },
+        "augmented-softmax": {
+          "score": 0.8593200875817197,
+          "event_at_s": 60.450750000000006
+        }
+      },
+      "feature_ms": 452.7999997138977,
+      "total_ms": 924.8999996185303,
+      "event_count": 18,
+      "backend": "wasm",
+      "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36"
+    }
+  ]
+}

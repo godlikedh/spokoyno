@@ -1,0 +1,5 @@
+{
+  "previous_run": "research/artifacts/robust-tree-study-20261026",
+  "reused_completed_partitions": 10,
+  "reason": "Stopped before inspecting predictions; ruff formatting only, no algorithm or candidate changes. New source declaration records formatted source hashes."
+}

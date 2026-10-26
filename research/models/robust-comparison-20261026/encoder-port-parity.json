@@ -1,0 +1,12 @@
+{
+  "backend": "wasm",
+  "milliseconds_for_three_patches": 149.36145800000003,
+  "logmel": {
+    "maximum_absolute_error": 0.0013637542724609375,
+    "rmse": 0.00016837044453022978
+  },
+  "embeddings": {
+    "maximum_absolute_error": 0.00035774707794189453,
+    "rmse": 0.000019516671869588916
+  }
+}

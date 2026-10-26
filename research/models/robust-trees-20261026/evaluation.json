@@ -1,0 +1,313 @@
+{
+  "metrics": {
+    "mil-boost-7": {
+      "original": {
+        "positive": 30,
+        "negative": 3466,
+        "alert": {
+          "detected": 29,
+          "missed": 1,
+          "false_warnings": 154,
+          "false_warnings_per_1000": 44.431621465666474
+        },
+        "maybe_or_alert": {
+          "detected": 30,
+          "missed": 0,
+          "false_warnings": 263,
+          "false_warnings_per_1000": 75.8799769186382
+        },
+        "average_precision": 0.7243480420708129
+      },
+      "worst-training-view": {
+        "positive": 30,
+        "negative": 3466,
+        "alert": {
+          "detected": 28,
+          "missed": 2,
+          "false_warnings": 189,
+          "false_warnings_per_1000": 54.52971725331795
+        },
+        "maybe_or_alert": {
+          "detected": 29,
+          "missed": 1,
+          "false_warnings": 319,
+          "false_warnings_per_1000": 92.03693017888055
+        },
+        "average_precision": 0.46672586228103824
+      },
+      "aac80": {
+        "positive": 30,
+        "negative": 3466,
+        "alert": {
+          "detected": 29,
+          "missed": 1,
+          "false_warnings": 127,
+          "false_warnings_per_1000": 36.64166185804962
+        },
+        "maybe_or_alert": {
+          "detected": 29,
+          "missed": 1,
+          "false_warnings": 240,
+          "false_warnings_per_1000": 69.24408540103866
+        },
+        "average_precision": 0.6706125130794193
+      },
+      "opus48": {
+        "positive": 30,
+        "negative": 3466,
+        "alert": {
+          "detected": 29,
+          "missed": 1,
+          "false_warnings": 147,
+          "false_warnings_per_1000": 42.41200230813618
+        },
+        "maybe_or_alert": {
+          "detected": 30,
+          "missed": 0,
+          "false_warnings": 247,
+          "false_warnings_per_1000": 71.26370455856896
+        },
+        "average_precision": 0.7138781164782763
+      },
+      "mp3_128": {
+        "positive": 30,
+        "negative": 3466,
+        "alert": {
+          "detected": 29,
+          "missed": 1,
+          "false_warnings": 138,
+          "false_warnings_per_1000": 39.81534910559723
+        },
+        "maybe_or_alert": {
+          "detected": 30,
+          "missed": 0,
+          "false_warnings": 236,
+          "false_warnings_per_1000": 68.09001731102136
+        },
+        "average_precision": 0.7416927328540365
+      }
+    },
+    "mil-boost-15": {
+      "original": {
+        "positive": 30,
+        "negative": 3466,
+        "alert": {
+          "detected": 29,
+          "missed": 1,
+          "false_warnings": 158,
+          "false_warnings_per_1000": 45.585689555683786
+        },
+        "maybe_or_alert": {
+          "detected": 29,
+          "missed": 1,
+          "false_warnings": 252,
+          "false_warnings_per_1000": 72.70628967109059
+        },
+        "average_precision": 0.74442903753856
+      },
+      "worst-training-view": {
+        "positive": 30,
+        "negative": 3466,
+        "alert": {
+          "detected": 25,
+          "missed": 5,
+          "false_warnings": 187,
+          "false_warnings_per_1000": 53.95268320830929
+        },
+        "maybe_or_alert": {
+          "detected": 29,
+          "missed": 1,
+          "false_warnings": 306,
+          "false_warnings_per_1000": 88.28620888632429
+        },
+        "average_precision": 0.459582083789759
+      },
+      "aac80": {
+        "positive": 30,
+        "negative": 3466,
+        "alert": {
+          "detected": 28,
+          "missed": 2,
+          "false_warnings": 127,
+          "false_warnings_per_1000": 36.64166185804962
+        },
+        "maybe_or_alert": {
+          "detected": 29,
+          "missed": 1,
+          "false_warnings": 223,
+          "false_warnings_per_1000": 64.33929601846509
+        },
+        "average_precision": 0.6896386936014847
+      },
+      "opus48": {
+        "positive": 30,
+        "negative": 3466,
+        "alert": {
+          "detected": 28,
+          "missed": 2,
+          "false_warnings": 145,
+          "false_warnings_per_1000": 41.83496826312752
+        },
+        "maybe_or_alert": {
+          "detected": 29,
+          "missed": 1,
+          "false_warnings": 230,
+          "false_warnings_per_1000": 66.35891517599538
+        },
+        "average_precision": 0.7246079585562414
+      },
+      "mp3_128": {
+        "positive": 30,
+        "negative": 3466,
+        "alert": {
+          "detected": 29,
+          "missed": 1,
+          "false_warnings": 138,
+          "false_warnings_per_1000": 39.81534910559723
+        },
+        "maybe_or_alert": {
+          "detected": 29,
+          "missed": 1,
+          "false_warnings": 226,
+          "false_warnings_per_1000": 65.20484708597807
+        },
+        "average_precision": 0.7469957659881072
+      }
+    },
+    "nested-selection": {
+      "original": {
+        "positive": 30,
+        "negative": 3466,
+        "alert": {
+          "detected": 29,
+          "missed": 1,
+          "false_warnings": 154,
+          "false_warnings_per_1000": 44.431621465666474
+        },
+        "maybe_or_alert": {
+          "detected": 30,
+          "missed": 0,
+          "false_warnings": 263,
+          "false_warnings_per_1000": 75.8799769186382
+        },
+        "average_precision": 0.7243480420708129
+      },
+      "worst-training-view": {
+        "positive": 30,
+        "negative": 3466,
+        "alert": {
+          "detected": 28,
+          "missed": 2,
+          "false_warnings": 189,
+          "false_warnings_per_1000": 54.52971725331795
+        },
+        "maybe_or_alert": {
+          "detected": 29,
+          "missed": 1,
+          "false_warnings": 319,
+          "false_warnings_per_1000": 92.03693017888055
+        },
+        "average_precision": 0.46672586228103824
+      },
+      "aac80": {
+        "positive": 30,
+        "negative": 3466,
+        "alert": {
+          "detected": 29,
+          "missed": 1,
+          "false_warnings": 127,
+          "false_warnings_per_1000": 36.64166185804962
+        },
+        "maybe_or_alert": {
+          "detected": 29,
+          "missed": 1,
+          "false_warnings": 240,
+          "false_warnings_per_1000": 69.24408540103866
+        },
+        "average_precision": 0.6706125130794193
+      },
+      "opus48": {
+        "positive": 30,
+        "negative": 3466,
+        "alert": {
+          "detected": 29,
+          "missed": 1,
+          "false_warnings": 147,
+          "false_warnings_per_1000": 42.41200230813618
+        },
+        "maybe_or_alert": {
+          "detected": 30,
+          "missed": 0,
+          "false_warnings": 247,
+          "false_warnings_per_1000": 71.26370455856896
+        },
+        "average_precision": 0.7138781164782763
+      },
+      "mp3_128": {
+        "positive": 30,
+        "negative": 3466,
+        "alert": {
+          "detected": 29,
+          "missed": 1,
+          "false_warnings": 138,
+          "false_warnings_per_1000": 39.81534910559723
+        },
+        "maybe_or_alert": {
+          "detected": 30,
+          "missed": 0,
+          "false_warnings": 236,
+          "false_warnings_per_1000": 68.09001731102136
+        },
+        "average_precision": 0.7416927328540365
+      }
+    }
+  },
+  "selection_decisions": [
+    {
+      "thread": "336185346",
+      "chosen": "mil-boost-7"
+    },
+    {
+      "thread": "336243339",
+      "chosen": "mil-boost-7"
+    },
+    {
+      "thread": "336272252",
+      "chosen": "mil-boost-7"
+    },
+    {
+      "thread": "336291305",
+      "chosen": "mil-boost-7"
+    },
+    {
+      "thread": "336466927",
+      "chosen": "mil-boost-7"
+    },
+    {
+      "thread": "336603044",
+      "chosen": "mil-boost-7"
+    },
+    {
+      "thread": "336679639",
+      "chosen": "mil-boost-7"
+    },
+    {
+      "thread": "336723954",
+      "chosen": "mil-boost-7"
+    },
+    {
+      "thread": "336991612",
+      "chosen": "mil-boost-7"
+    },
+    {
+      "thread": "337355133",
+      "chosen": "mil-boost-7"
+    },
+    {
+      "thread": "337690329",
+      "chosen": "mil-boost-7"
+    }
+  ],
+  "final_model": "mil-boost-7",
+  "final_fit_key": "e31db4c2c365b07b"
+}

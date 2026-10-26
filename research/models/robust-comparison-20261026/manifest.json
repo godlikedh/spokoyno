@@ -1,0 +1,17 @@
+{
+  "status": "No new candidate passed the overall promotion gate. Previous synthetic-mil-20pct remains the research baseline.",
+  "files": {
+    "feature-port-parity.json": "1a5c958b19fe025f7b20da930c94bb415cc3e6320e0bb7579d824f9ac718c270",
+    "encoder-port-parity.json": "9b2e09511a029acf883eaa6ef3b5a2837bbd7a1c1b60818c661bfbf8c874b135",
+    "generation-plan.json": "d8582152aae3cd49c61a26646cd545d3d49d1594a4b24b732af0350e1b85efcf",
+    "previous-ml-codec-predictions.json": "c932bb0bb45836d84f600390f7662e4e8c3bfc36c6a63efb48b3d97f3a8f602b",
+    "previous-ml-codec-stress.json": "c37e04a3bd41ccced097e807720830b15803693238339d590850f0fde49a10e0",
+    "tree-javascript-runtime.json": "2fd649be76f6011394b2305ad503acc40aa781d3fa2535ed61ed229940c36d2a",
+    "browser-runtime-round-one.json": "9002de45429fc47a3e0aee968ed50b5264a07c463f552cec822adda21b8eadba",
+    "comparison.json": "3bb2fb334eb1e7c27ca214cb8adb13e06e2caa29f5b0403f871c494651a4a325",
+    "browser-runtime-no-clipping.json": "98e5142de624d74b02f476a95928af909f2aa17ebb4bd547128b186bcbfe28b5",
+    "family-audit.json": "51ebfb27f4c4a09f0657bdd05c1e4ff52472bd27b2f4e3aa8308bc5d058476cb",
+    "environment.json": "2ac4f86ea3f7454c8e94580d586731139f40d8daf175cb4b1d9fa32ba07ab805",
+    "initial-candidate-declaration.json": "937056eeb7a608e0d90aa5d14251a5c1bfd6abbc5ce3b64499776ef775f709f0"
+  }
+}

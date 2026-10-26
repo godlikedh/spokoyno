@@ -1,0 +1,223 @@
+{
+  "fixtures": 27,
+  "maximum_score_error": 0,
+  "execution": "Node JavaScript on preserved browser PCM; this check does not launch a browser",
+  "results": [
+    {
+      "file": "17929233629432480892.mp4",
+      "milliseconds": 402.943542,
+      "predictions": {
+        "mil-boost-7": 0.977734015819349,
+        "mil-boost-15": 0.9770389936478919
+      }
+    },
+    {
+      "file": "17929235424520630151.webm",
+      "milliseconds": 538.8422500000001,
+      "predictions": {
+        "mil-boost-7": 0.929929952091796,
+        "mil-boost-15": 0.8128528063208136
+      }
+    },
+    {
+      "file": "17929246374352604972.mp4",
+      "milliseconds": 210.6930420000001,
+      "predictions": {
+        "mil-boost-7": 0.28441098433337414,
+        "mil-boost-15": 0.2302719474101812
+      }
+    },
+    {
+      "file": "17929253560550736111.mp4",
+      "milliseconds": 531.3018749999999,
+      "predictions": {
+        "mil-boost-7": 0.8566934339491283,
+        "mil-boost-15": 0.9103917755197278
+      }
+    },
+    {
+      "file": "17929258136773388913.webm",
+      "milliseconds": 781.1738750000002,
+      "predictions": {
+        "mil-boost-7": 0.9831413166215396,
+        "mil-boost-15": 0.9811709905571506
+      }
+    },
+    {
+      "file": "17929289055560894598.webm",
+      "milliseconds": 679.5827079999999,
+      "predictions": {
+        "mil-boost-7": 0.9250953317847255,
+        "mil-boost-15": 0.8175798525758691
+      }
+    },
+    {
+      "file": "17929291025992177046.webm",
+      "milliseconds": 261.14995799999997,
+      "predictions": {
+        "mil-boost-7": 0.615065564799183,
+        "mil-boost-15": 0.4415630582718652
+      }
+    },
+    {
+      "file": "17929309020131362624.webm",
+      "milliseconds": 840.0888750000004,
+      "predictions": {
+        "mil-boost-7": 0.9799222286695808,
+        "mil-boost-15": 0.9809184277639835
+      }
+    },
+    {
+      "file": "17929312599970679631.webm",
+      "milliseconds": 1365.3345420000005,
+      "predictions": {
+        "mil-boost-7": 0.9132036393274908,
+        "mil-boost-15": 0.9187296082021865
+      }
+    },
+    {
+      "file": "17929312600881938742.webm",
+      "milliseconds": 1129.8346249999995,
+      "predictions": {
+        "mil-boost-7": 0.8250540920522856,
+        "mil-boost-15": 0.8841028738081267
+      }
+    },
+    {
+      "file": "17929312601933009367.webm",
+      "milliseconds": 214.42716699999983,
+      "predictions": {
+        "mil-boost-7": 0.9865823802819238,
+        "mil-boost-15": 0.9849419049613296
+      }
+    },
+    {
+      "file": "17929314749450126327.webm",
+      "milliseconds": 263.31866699999955,
+      "predictions": {
+        "mil-boost-7": 0.9739346416187996,
+        "mil-boost-15": 0.9765818783128328
+      }
+    },
+    {
+      "file": "17929314751662663260.webm",
+      "milliseconds": 557.2107499999993,
+      "predictions": {
+        "mil-boost-7": 0.9846868714611544,
+        "mil-boost-15": 0.9824484157954555
+      }
+    },
+    {
+      "file": "17929323417171926603.webm",
+      "milliseconds": 241.78983400000016,
+      "predictions": {
+        "mil-boost-7": 0.9951651369528115,
+        "mil-boost-15": 0.9949765496928644
+      }
+    },
+    {
+      "file": "17929369520563549638.mp4",
+      "milliseconds": 224.85804200000166,
+      "predictions": {
+        "mil-boost-7": 0.4605018616252726,
+        "mil-boost-15": 0.5786290176198626
+      }
+    },
+    {
+      "file": "17929377550172852142.mp4",
+      "milliseconds": 177.13891700000022,
+      "predictions": {
+        "mil-boost-7": 0.9288797548024652,
+        "mil-boost-15": 0.9385327767069951
+      }
+    },
+    {
+      "file": "17885426225650373621.mp4",
+      "milliseconds": 229.73749999999927,
+      "predictions": {
+        "mil-boost-7": 0.39588544590212865,
+        "mil-boost-15": 0.6327398107691642
+      }
+    },
+    {
+      "file": "17929388634960411428.mp4",
+      "milliseconds": 555.3211250000004,
+      "predictions": {
+        "mil-boost-7": 0.92237828438739,
+        "mil-boost-15": 0.8060223859393961
+      }
+    },
+    {
+      "file": "17929395998260540420.mp4",
+      "milliseconds": 398.20758399999977,
+      "predictions": {
+        "mil-boost-7": 0.34499867392044303,
+        "mil-boost-15": 0.32111666726712024
+      }
+    },
+    {
+      "file": "17894991604970318432.mp4",
+      "milliseconds": 368.4885839999988,
+      "predictions": {
+        "mil-boost-7": 0.20500186798933875,
+        "mil-boost-15": 0.18120558668329706
+      }
+    },
+    {
+      "file": "17929441862380303154.webm",
+      "milliseconds": 395.12945899999977,
+      "predictions": {
+        "mil-boost-7": 0.8669309110096245,
+        "mil-boost-15": 0.8483516890917262
+      }
+    },
+    {
+      "file": "17929471544543809082.mp4",
+      "milliseconds": 251.1788749999996,
+      "predictions": {
+        "mil-boost-7": 0.6008690026942846,
+        "mil-boost-15": 0.49602195534514987
+      }
+    },
+    {
+      "file": "17929480884480367074.webm",
+      "milliseconds": 268.760542,
+      "predictions": {
+        "mil-boost-7": 0.9875628469317026,
+        "mil-boost-15": 0.9857508998424618
+      }
+    },
+    {
+      "file": "17929484944890327872.webm",
+      "milliseconds": 236.3967500000017,
+      "predictions": {
+        "mil-boost-7": 0.8387931315299476,
+        "mil-boost-15": 0.8459287848960182
+      }
+    },
+    {
+      "file": "17929498438732758260.mp4",
+      "milliseconds": 140.43795899999895,
+      "predictions": {
+        "mil-boost-7": 0.8844320768900902,
+        "mil-boost-15": 0.8662738714039322
+      }
+    },
+    {
+      "file": "17929502589060439332.mp4",
+      "milliseconds": 216.6150409999991,
+      "predictions": {
+        "mil-boost-7": 0.989943068143603,
+        "mil-boost-15": 0.988212537107729
+      }
+    },
+    {
+      "file": "17929508924060208542.webm",
+      "milliseconds": 434.8053749999999,
+      "predictions": {
+        "mil-boost-7": 0.9614303698176137,
+        "mil-boost-15": 0.9648770622989056
+      }
+    }
+  ]
+}

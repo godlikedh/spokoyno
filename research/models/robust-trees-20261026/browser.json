@@ -1,0 +1,650 @@
+[
+  {
+    "path": "/b/src/337690329/17929233629432480892.mp4",
+    "label": "positive",
+    "predictions": {
+      "mil-boost-7": {
+        "score": 0.977734015819349,
+        "event_at_s": 92.042125
+      },
+      "mil-boost-15": {
+        "score": 0.9770389936478919,
+        "event_at_s": 92.042125
+      },
+      "nested-selection": {
+        "score": 0.977734015819349,
+        "event_at_s": 92.042125
+      }
+    },
+    "evidence": {
+      "replay": "research/artifacts/browser-337690329-17929233629432480892-20261025.json",
+      "replay_sha256": "07a577008b65190046181f1aeff34f865c09bfa0fc3921ec8d160551f9098209",
+      "media_sha256": "75136f0dce37d0d7d0d7885039735db4e1fba1ff258e77d763cfff41dafbe637",
+      "pcm_sha256": "9b4707cb2e8d18c4f28cc1d8f9ee205e5616856ec6d38ec475fc6fd19cedabca"
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929235424520630151.webm",
+    "label": "positive",
+    "predictions": {
+      "mil-boost-7": {
+        "score": 0.929929952091796,
+        "event_at_s": 204.55
+      },
+      "mil-boost-15": {
+        "score": 0.8128528063208136,
+        "event_at_s": 204.55
+      },
+      "nested-selection": {
+        "score": 0.929929952091796,
+        "event_at_s": 204.55
+      }
+    },
+    "evidence": {
+      "replay": "research/artifacts/browser-337690329-17929235424520630151-20261025.json",
+      "replay_sha256": "212168a1cc10b5b0d9ee8dba8111b37f9892a574a869d5daf478589d1b77adbe",
+      "media_sha256": "6f8b76b6baec0437ccce5bf9d10ea0e25d48d613c7e48b13aee27be2640ad4a0",
+      "pcm_sha256": "bd72fcd36abcec1a54d1439f2e82fe7b9dd377ec2d5b712161921f1bc07b0c7d"
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929246374352604972.mp4",
+    "label": "negative",
+    "predictions": {
+      "mil-boost-7": {
+        "score": 0.28441098433337414,
+        "event_at_s": 7.495875000000001
+      },
+      "mil-boost-15": {
+        "score": 0.2302719474101812,
+        "event_at_s": 7.495875000000001
+      },
+      "nested-selection": {
+        "score": 0.28441098433337414,
+        "event_at_s": 7.495875000000001
+      }
+    },
+    "evidence": {
+      "replay": "research/artifacts/browser-337690329-17929246374352604972-20261025.json",
+      "replay_sha256": "a27f21155ca670d325dbe6fdda0d8c526902ad2fb7538b5b131656a45c121b3d",
+      "media_sha256": "bab99d8087491895a3274b3d73d6b7eedefaffde3f663bacef175cdfa5372290",
+      "pcm_sha256": "e134c0caa27387bb2d750c9110b39e72e117390470626fa1547d564b095458f1"
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929253560550736111.mp4",
+    "label": "negative",
+    "predictions": {
+      "mil-boost-7": {
+        "score": 0.8566934339491283,
+        "event_at_s": 119.76
+      },
+      "mil-boost-15": {
+        "score": 0.9103917755197278,
+        "event_at_s": 119.76
+      },
+      "nested-selection": {
+        "score": 0.8566934339491283,
+        "event_at_s": 119.76
+      }
+    },
+    "evidence": {
+      "replay": "research/artifacts/browser-337690329-17929253560550736111-20261025.json",
+      "replay_sha256": "ca50550c4fa671b4c1a5f4c0050639fd78a46668f6ad40cc86af4bd4bf2b292d",
+      "media_sha256": "d528565d0c9bee8d6ab24849b79afad1a8b79bd1f6ab55dded892e9261c2a5a2",
+      "pcm_sha256": "52fb6e06cd46806afccc445665a4c200773b3831f02c0955b5d4e2cfa9bae959"
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929258136773388913.webm",
+    "label": "positive",
+    "predictions": {
+      "mil-boost-7": {
+        "score": 0.9831413166215396,
+        "event_at_s": 97.60000000000001
+      },
+      "mil-boost-15": {
+        "score": 0.9811709905571506,
+        "event_at_s": 97.60000000000001
+      },
+      "nested-selection": {
+        "score": 0.9831413166215396,
+        "event_at_s": 97.60000000000001
+      }
+    },
+    "evidence": {
+      "replay": "research/artifacts/browser-337690329-17929258136773388913-20261025.json",
+      "replay_sha256": "d68d4a43b7660d0b26a026bbfff985f979f1d50b632bde46f0c8cdf82316a1cb",
+      "media_sha256": "bc0cf07c353708a32b1fffec0a6b6aeb109c7c335e98a40898c3743e35f158d0",
+      "pcm_sha256": "4469f83afb4619c4746fc39fd51401203affe843684182ee694720c4f7da4ebe"
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929289055560894598.webm",
+    "label": "positive",
+    "predictions": {
+      "mil-boost-7": {
+        "score": 0.9250953317847255,
+        "event_at_s": 298.24962500000004
+      },
+      "mil-boost-15": {
+        "score": 0.8175798525758691,
+        "event_at_s": 298.24962500000004
+      },
+      "nested-selection": {
+        "score": 0.9250953317847255,
+        "event_at_s": 298.24962500000004
+      }
+    },
+    "evidence": {
+      "replay": "research/artifacts/browser-337690329-17929289055560894598-20261025.json",
+      "replay_sha256": "3c2a912a5be43bb52decbd6e8037a469545b1c965538a2ed9a6038448464ae71",
+      "media_sha256": "9908f03f01f455da54cb0cd62c4c4f5d17ecf65826a74125bba22106b5f90346",
+      "pcm_sha256": "89478512af30a5dcc39a05ccc28f43b637a76ed32d0db2732d4c27a30730bca5"
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929291025992177046.webm",
+    "label": "positive",
+    "predictions": {
+      "mil-boost-7": {
+        "score": 0.615065564799183,
+        "event_at_s": 16.950000000000003
+      },
+      "mil-boost-15": {
+        "score": 0.4415630582718652,
+        "event_at_s": 16.950000000000003
+      },
+      "nested-selection": {
+        "score": 0.615065564799183,
+        "event_at_s": 16.950000000000003
+      }
+    },
+    "evidence": {
+      "replay": "research/artifacts/browser-337690329-17929291025992177046-20261025.json",
+      "replay_sha256": "4fa2c553954c29bb40fc40e95196c4d6960b64bbccf71ed208f8f8ce93783419",
+      "media_sha256": "0503cbb3cec1d1968e4366d8e2e3e295bec7b21f924742f1d214d48284aecbe0",
+      "pcm_sha256": "ee58c8ab71aec363a3d3561103efb8e20795ef15cd287dbb99c6b99e45a89f50"
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929309020131362624.webm",
+    "label": "positive",
+    "predictions": {
+      "mil-boost-7": {
+        "score": 0.9799222286695808,
+        "event_at_s": 1.25
+      },
+      "mil-boost-15": {
+        "score": 0.9809184277639835,
+        "event_at_s": 1.25
+      },
+      "nested-selection": {
+        "score": 0.9799222286695808,
+        "event_at_s": 1.25
+      }
+    },
+    "evidence": {
+      "replay": "research/artifacts/browser-337690329-17929309020131362624-20261025.json",
+      "replay_sha256": "842ccdcec937d8df19f53496aa03ccabb451f84a431b17fae7716ba58a257c12",
+      "media_sha256": "46f8aa6122899dd858b4decf045e1d0f42a9c2331ac3b8f11c0f792e00abd0bd",
+      "pcm_sha256": "741e78e58b203881661d21ee7efde80eb808846c6f231f944893d84927e7f3a1"
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929312599970679631.webm",
+    "label": "positive",
+    "predictions": {
+      "mil-boost-7": {
+        "score": 0.9132036393274908,
+        "event_at_s": 686.85
+      },
+      "mil-boost-15": {
+        "score": 0.9187296082021865,
+        "event_at_s": 686.85
+      },
+      "nested-selection": {
+        "score": 0.9132036393274908,
+        "event_at_s": 686.85
+      }
+    },
+    "evidence": {
+      "replay": "research/artifacts/browser-337690329-17929312599970679631-20261025.json",
+      "replay_sha256": "8e1ebbbd0bb49245c461dbd3c55c38996d2b9c097851213c38c9e11f41f64b3f",
+      "media_sha256": "0166c4db748bc69dfdb82641e790e77309aa9e415f859df388da596494050125",
+      "pcm_sha256": "5f29b93678655ec178740b0e6087aa728e1f1a0bde6824c1cf6630c0a68cb209"
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929312600881938742.webm",
+    "label": "unlabeled",
+    "predictions": {
+      "mil-boost-7": {
+        "score": 0.8250540920522856,
+        "event_at_s": 360.385125
+      },
+      "mil-boost-15": {
+        "score": 0.8841028738081267,
+        "event_at_s": 360.385125
+      },
+      "nested-selection": {
+        "score": 0.8250540920522856,
+        "event_at_s": 360.385125
+      }
+    },
+    "evidence": {
+      "replay": "research/artifacts/browser-337690329-17929312600881938742-20261025.json",
+      "replay_sha256": "5daae90f46b4a668f4ab9f38238f2a61d6f598aa3b64205da6f66c35c9b9f124",
+      "media_sha256": "2b18f998f41841b758b9ce178438ccdf60b59d9c84d3515e5fd2b3fddbbf53ff",
+      "pcm_sha256": "d19747fa112f3b68edc428378129363c12841a5f1acbd724a285444efd272f6c"
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929312601933009367.webm",
+    "label": "positive",
+    "predictions": {
+      "mil-boost-7": {
+        "score": 0.9865823802819238,
+        "event_at_s": 21.414375
+      },
+      "mil-boost-15": {
+        "score": 0.9849419049613296,
+        "event_at_s": 21.414375
+      },
+      "nested-selection": {
+        "score": 0.9865823802819238,
+        "event_at_s": 21.414375
+      }
+    },
+    "evidence": {
+      "replay": "research/artifacts/browser-337690329-17929312601933009367-20261025.json",
+      "replay_sha256": "4c418c2c40d0ffeb8e5f298afb72cfd039aac986c1ae5c224fa0b247aa8f1f77",
+      "media_sha256": "054b1f45df961bc8288e147e2b3258dc44ab67bd8970f950d75701fe30492018",
+      "pcm_sha256": "e1114f9eb43571197425044623823afb7ca2653f64ac3c2f269fded6342bc45c"
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929314749450126327.webm",
+    "label": "positive",
+    "predictions": {
+      "mil-boost-7": {
+        "score": 0.9739346416187996,
+        "event_at_s": 60.937749999999994
+      },
+      "mil-boost-15": {
+        "score": 0.9765818783128328,
+        "event_at_s": 60.937749999999994
+      },
+      "nested-selection": {
+        "score": 0.9739346416187996,
+        "event_at_s": 60.937749999999994
+      }
+    },
+    "evidence": {
+      "replay": "research/artifacts/browser-337690329-17929314749450126327-20261025.json",
+      "replay_sha256": "919523538415bd7f3a4ebfe09dc16a35f3b6a48ffc45a9395680d5452713e3d2",
+      "media_sha256": "454d0ccecdf8fa4bb226604b65abd95b80dc263c006024878a50b4d36b5034d3",
+      "pcm_sha256": "b8e5c63b5087cccf52207734ef94783b7447fa37ac4e238a95cca9ce6040904e"
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929314751662663260.webm",
+    "label": "positive",
+    "predictions": {
+      "mil-boost-7": {
+        "score": 0.9846868714611544,
+        "event_at_s": 156.5
+      },
+      "mil-boost-15": {
+        "score": 0.9824484157954555,
+        "event_at_s": 156.5
+      },
+      "nested-selection": {
+        "score": 0.9846868714611544,
+        "event_at_s": 156.5
+      }
+    },
+    "evidence": {
+      "replay": "research/artifacts/browser-337690329-17929314751662663260-20261025.json",
+      "replay_sha256": "881cfcf8ec789341e5a0f06ec789f62cda5533eba662c7b8ee4adf88d2a6399e",
+      "media_sha256": "6cdff56a8de5ea0db51c60f53bf1edec7a7cc56c9a261ac033a1c3d3cfd2d575",
+      "pcm_sha256": "041c17d62a70af412defa3bd475457b0dab3eba33b7d5d1cf9254eb89366b9e6"
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929323417171926603.webm",
+    "label": "positive",
+    "predictions": {
+      "mil-boost-7": {
+        "score": 0.9951651369528115,
+        "event_at_s": 28.9
+      },
+      "mil-boost-15": {
+        "score": 0.9949765496928644,
+        "event_at_s": 28.9
+      },
+      "nested-selection": {
+        "score": 0.9951651369528115,
+        "event_at_s": 28.9
+      }
+    },
+    "evidence": {
+      "replay": "research/artifacts/browser-337690329-17929323417171926603-20261025.json",
+      "replay_sha256": "680da70508f882211ded3b0e50d0f807287510eb0966637cbc50ffcf005f745a",
+      "media_sha256": "a95ee1795d5db0dc77bbb5103ecf0c074bb75a02e4177308028744ad8a1509f4",
+      "pcm_sha256": "a7f34b7ecb6527f16625eae9a05e7a61bb5b9fcf4f21a8cf54f1940ad9159959"
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929369520563549638.mp4",
+    "label": "negative",
+    "predictions": {
+      "mil-boost-7": {
+        "score": 0.4605018616252726,
+        "event_at_s": 27.20475
+      },
+      "mil-boost-15": {
+        "score": 0.5786290176198626,
+        "event_at_s": 27.20475
+      },
+      "nested-selection": {
+        "score": 0.4605018616252726,
+        "event_at_s": 27.20475
+      }
+    },
+    "evidence": {
+      "replay": "research/artifacts/browser-337690329-17929369520563549638-20261025.json",
+      "replay_sha256": "198055fecebe13bfe29708e84634e0149ab244c64658f8a55545f8714caaf09f",
+      "media_sha256": "b0667fcd51e8007fc460baf76cefac91125102de47911bff9767333b38bf7d67",
+      "pcm_sha256": "814245509a458fdbe2fb3062e4014a2327cd1caf363ab896c85b2b2cf48e0b4e"
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929377550172852142.mp4",
+    "label": "negative",
+    "predictions": {
+      "mil-boost-7": {
+        "score": 0.9288797548024652,
+        "event_at_s": 28.1686875
+      },
+      "mil-boost-15": {
+        "score": 0.9385327767069951,
+        "event_at_s": 28.1686875
+      },
+      "nested-selection": {
+        "score": 0.9288797548024652,
+        "event_at_s": 28.1686875
+      }
+    },
+    "evidence": {
+      "replay": "research/artifacts/browser-337690329-17929377550172852142-20261025.json",
+      "replay_sha256": "acc164c7b4b7aecd90c309897bd4487412bd97d09e8b8c7cb7e924c1d32bf436",
+      "media_sha256": "26d38d1cbc609c5b68c58b96f872aed323556f371a95d0d5cccd392fa43955d0",
+      "pcm_sha256": "1fdeebf4537bdb8fb370692be30a3311b5e8f8214fa6bdfe45ef4f90258d3072"
+    }
+  },
+  {
+    "path": "/b/src/336291305/17885426225650373621.mp4",
+    "label": "negative",
+    "predictions": {
+      "mil-boost-7": {
+        "score": 0.39588544590212865,
+        "event_at_s": 15.200000000000003
+      },
+      "mil-boost-15": {
+        "score": 0.6327398107691642,
+        "event_at_s": 15.200000000000003
+      },
+      "nested-selection": {
+        "score": 0.39588544590212865,
+        "event_at_s": 15.200000000000003
+      }
+    },
+    "evidence": {
+      "replay": "research/artifacts/browser-337690329-17929386969760412142-20261025.json",
+      "replay_sha256": "1bc959c7fbe5c9acd9da0917da037fd5c2adad2c185e048f40ed7d8d0920abc2",
+      "media_sha256": "24944aa06588e68d18b70de5c9fd8fb79620ca22f9dbeb1b37e6da2f3059f077",
+      "pcm_sha256": "7d28af6209e39fd730db18c25864abb3132f726e5f75c3a446b6ab59880634e5"
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929388634960411428.mp4",
+    "label": "negative",
+    "predictions": {
+      "mil-boost-7": {
+        "score": 0.92237828438739,
+        "event_at_s": 165.27468750000003
+      },
+      "mil-boost-15": {
+        "score": 0.8060223859393961,
+        "event_at_s": 165.27468750000003
+      },
+      "nested-selection": {
+        "score": 0.92237828438739,
+        "event_at_s": 165.27468750000003
+      }
+    },
+    "evidence": {
+      "replay": "research/artifacts/browser-337690329-17929388634960411428-20261025.json",
+      "replay_sha256": "0176898701995dde8291a5cf6680739bf5e84afefadadd1758f6dec673255a37",
+      "media_sha256": "328886e2ca1344d1ac6a7552d18141a27c0a63b213e7608cd9307db1f3dc4958",
+      "pcm_sha256": "3e856139ba4be14016342e001b29c2e92b837cb9ca226426f7bf2471d27d39d8"
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929395998260540420.mp4",
+    "label": "negative",
+    "predictions": {
+      "mil-boost-7": {
+        "score": 0.34499867392044303,
+        "event_at_s": 91.7000625
+      },
+      "mil-boost-15": {
+        "score": 0.32111666726712024,
+        "event_at_s": 91.7000625
+      },
+      "nested-selection": {
+        "score": 0.34499867392044303,
+        "event_at_s": 91.7000625
+      }
+    },
+    "evidence": {
+      "replay": "research/artifacts/browser-337690329-17929395998260540420-20261025.json",
+      "replay_sha256": "e14329b9c4dd82572181ce9762f86b2fa587c29c1fb965cda6cfe3418efeda3c",
+      "media_sha256": "25195923649bef9cacf1a2f6ae8a0f622ea38c718251faca5eb8badf550125cb",
+      "pcm_sha256": "4bcc3337b490a134fffc14b97136b0cb8a54a61f47f70326384458bcb8241622"
+    }
+  },
+  {
+    "path": "/b/src/336603044/17894991604970318432.mp4",
+    "label": "unlabeled",
+    "predictions": {
+      "mil-boost-7": {
+        "score": 0.20500186798933875,
+        "event_at_s": 74.90050000000001
+      },
+      "mil-boost-15": {
+        "score": 0.18120558668329706,
+        "event_at_s": 13.8505
+      },
+      "nested-selection": {
+        "score": 0.20500186798933875,
+        "event_at_s": 74.90050000000001
+      }
+    },
+    "evidence": {
+      "replay": "research/artifacts/browser-337690329-17929433565490138553-20261025.json",
+      "replay_sha256": "708e042767035dd9bff5dc15a66ec26c1dba73355fc33efbc927ce5140dd50a5",
+      "media_sha256": "2399e89aa81f0610a2395f048f205d895484d607238eb9eba8dce1fa856d2a7c",
+      "pcm_sha256": "2de127f6aef901043ca03d2e0dc860c5d3d3ed645bc1479a1f39eb264bf155ff"
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929441862380303154.webm",
+    "label": "unlabeled",
+    "predictions": {
+      "mil-boost-7": {
+        "score": 0.8669309110096245,
+        "event_at_s": 45.7696875
+      },
+      "mil-boost-15": {
+        "score": 0.8483516890917262,
+        "event_at_s": 45.7696875
+      },
+      "nested-selection": {
+        "score": 0.8669309110096245,
+        "event_at_s": 45.7696875
+      }
+    },
+    "evidence": {
+      "replay": "research/artifacts/browser-337690329-17929441862380303154-20261025.json",
+      "replay_sha256": "c055ff8dd71eed40cb33eb4aaffbc3a9d6884736d794c2bb4353e25216177696",
+      "media_sha256": "6dafead14b001024d9bb2750187c688f4bf047aba6488f13343614476cf4ad74",
+      "pcm_sha256": "de981d4c88d4cea98764fe0bef12df9dfd72f12bea36d2f09ab6524307b0f31f"
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929471544543809082.mp4",
+    "label": "unlabeled",
+    "predictions": {
+      "mil-boost-7": {
+        "score": 0.6008690026942846,
+        "event_at_s": 43.6
+      },
+      "mil-boost-15": {
+        "score": 0.49602195534514987,
+        "event_at_s": 43.6
+      },
+      "nested-selection": {
+        "score": 0.6008690026942846,
+        "event_at_s": 43.6
+      }
+    },
+    "evidence": {
+      "replay": "research/artifacts/browser-337690329-17929471544543809082-20261025.json",
+      "replay_sha256": "7b56a0a2c4a83efa8ba9c4ec688b59673bc86178c2f8b8928f760d6d52e35f39",
+      "media_sha256": "3d3cd548690d2fcfa8acce8d0a5886b3387b06464caa1e2531bda11b7aeac511",
+      "pcm_sha256": "6560c51ad67031cbf4ed8727458e518156d126bea7849e50b984ba5397445bfa"
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929480884480367074.webm",
+    "label": "positive",
+    "predictions": {
+      "mil-boost-7": {
+        "score": 0.9875628469317026,
+        "event_at_s": 53.996125000000006
+      },
+      "mil-boost-15": {
+        "score": 0.9857508998424618,
+        "event_at_s": 53.996125000000006
+      },
+      "nested-selection": {
+        "score": 0.9875628469317026,
+        "event_at_s": 53.996125000000006
+      }
+    },
+    "evidence": {
+      "replay": "research/artifacts/browser-337690329-17929480884480367074-20261025.json",
+      "replay_sha256": "2b5c19cd76d60827f14c257f2128bd51d6d7c9c696b5ac2302a1b15e1557e8b9",
+      "media_sha256": "0ef2c05b5767d2c8a07de19b1789662109295e426b3da638af9c2af48d80d59a",
+      "pcm_sha256": "553db0dcaa8b455bfa57739dffa648631f6f29c494ac017ebb4f3dcea0bad798"
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929484944890327872.webm",
+    "label": "negative",
+    "predictions": {
+      "mil-boost-7": {
+        "score": 0.8387931315299476,
+        "event_at_s": 1.2996249999999998
+      },
+      "mil-boost-15": {
+        "score": 0.8459287848960182,
+        "event_at_s": 1.2996249999999998
+      },
+      "nested-selection": {
+        "score": 0.8387931315299476,
+        "event_at_s": 1.2996249999999998
+      }
+    },
+    "evidence": {
+      "replay": "research/artifacts/browser-337690329-17929484944890327872-20261025.json",
+      "replay_sha256": "6bad521bc5c24999f373c1af4a2b4d18bc630e1656d06f42ef2aa47dcb6dfe51",
+      "media_sha256": "12e28fed658dec7ea04341e4bb4e560771c41094d00c9264859d8da91e6f11e1",
+      "pcm_sha256": "38350a06dc870a4efc315bc8cd990b22ec86abd6b4e7b862ac639af9388cb55f"
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929498438732758260.mp4",
+    "label": "negative",
+    "predictions": {
+      "mil-boost-7": {
+        "score": 0.8844320768900902,
+        "event_at_s": 20.201812500000003
+      },
+      "mil-boost-15": {
+        "score": 0.8662738714039322,
+        "event_at_s": 20.201812500000003
+      },
+      "nested-selection": {
+        "score": 0.8844320768900902,
+        "event_at_s": 20.201812500000003
+      }
+    },
+    "evidence": {
+      "replay": "research/artifacts/browser-337690329-17929498438732758260-20261025.json",
+      "replay_sha256": "7622374817ad2ff36da9a00ac2367d9da4fc5a9bb8c79ba1dc660e2398f581a1",
+      "media_sha256": "1f169f3c3c3badd47ec428d2e41f9ec1208a330e85ccda4c0716703db8cfbab0",
+      "pcm_sha256": "8a6022b8c7dd444e96cbbfa219b5de814a1a29512979b374cdcfacbd7b89558f"
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929502589060439332.mp4",
+    "label": "positive",
+    "predictions": {
+      "mil-boost-7": {
+        "score": 0.989943068143603,
+        "event_at_s": 21.5300625
+      },
+      "mil-boost-15": {
+        "score": 0.988212537107729,
+        "event_at_s": 21.5300625
+      },
+      "nested-selection": {
+        "score": 0.989943068143603,
+        "event_at_s": 21.5300625
+      }
+    },
+    "evidence": {
+      "replay": "research/artifacts/browser-337690329-17929502589060439332-20261025.json",
+      "replay_sha256": "6ecc66c9670a92dcbd9db1152644a6c04b62574b50aa28f149d90847d9a87709",
+      "media_sha256": "4a6840fd7d661794e2059d13f0d8a95cc7fd3280f22474f3b3a1116cd1b431ef",
+      "pcm_sha256": "49682012f1776ac0a6deb948254b33f41459fad37aee0ede7865c6cbd6d892cf"
+    }
+  },
+  {
+    "path": "/b/src/337690329/17929508924060208542.webm",
+    "label": "positive",
+    "predictions": {
+      "mil-boost-7": {
+        "score": 0.9614303698176137,
+        "event_at_s": 59.55075
+      },
+      "mil-boost-15": {
+        "score": 0.9648770622989056,
+        "event_at_s": 58.000750000000004
+      },
+      "nested-selection": {
+        "score": 0.9614303698176137,
+        "event_at_s": 59.55075
+      }
+    },
+    "evidence": {
+      "replay": "research/artifacts/browser-337690329-17929508924060208542-20261025.json",
+      "replay_sha256": "020351987224660151cb9263cf3c25430ac978035c94ee6cf94e40441e81c4e1",
+      "media_sha256": "f6c99a035286c4ec2afaf93d13fcab35438c86338893f51cfaa9ed67a4bb7778",
+      "pcm_sha256": "19624fb9fd3b5a02367e9fc9215bc2da4a4fedb1a05d79eb988bbe46984d0d04"
+    }
+  }
+]

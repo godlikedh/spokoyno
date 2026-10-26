@@ -1,0 +1,44 @@
+{
+  "created_at": "2026-10-25T23:51:13.753715+00:00",
+  "configs": {
+    "consistent-hybrid": {
+      "audio": true,
+      "augment": true,
+      "power": 8,
+      "consistency": 1.0
+    },
+    "augmented-hybrid": {
+      "audio": true,
+      "augment": true,
+      "power": 8,
+      "consistency": 0.0
+    },
+    "consistent-physical": {
+      "audio": false,
+      "augment": true,
+      "power": 8,
+      "consistency": 1.0
+    },
+    "augmented-physical": {
+      "audio": false,
+      "augment": true,
+      "power": 8,
+      "consistency": 0.0
+    },
+    "unaugmented-hybrid": {
+      "audio": true,
+      "augment": false,
+      "power": 8,
+      "consistency": 0.0
+    },
+    "augmented-softmax": {
+      "audio": true,
+      "augment": true,
+      "power": 2,
+      "consistency": 0.0
+    }
+  },
+  "primary": "consistent-hybrid",
+  "source_sha256": "065a1476f68bd01e08fe41decf58b7ef6d759346d0028eb78b606c7061a4d170",
+  "status": "declared before any model fitting or held-out score inspection in this run"
+}

@@ -1,0 +1,126 @@
+{
+  "source_sha256": "3f5d11bed4aa54669ea89e9c95870a908c502a235f3f504b0e34be342a1da21c",
+  "model": "synthetic-mil-20pct",
+  "metrics": {
+    "raw-original": {
+      "positive": 30,
+      "negative": 9,
+      "alert": {
+        "detected": 30,
+        "missed": 0,
+        "false_warnings": 1,
+        "false_warnings_per_1000": 111.11111111111111
+      },
+      "maybe_or_alert": {
+        "detected": 30,
+        "missed": 0,
+        "false_warnings": 2,
+        "false_warnings_per_1000": 222.22222222222223
+      },
+      "average_precision": 0.995473718593852
+    },
+    "bounded-original": {
+      "positive": 30,
+      "negative": 9,
+      "alert": {
+        "detected": 29,
+        "missed": 1,
+        "false_warnings": 1,
+        "false_warnings_per_1000": 111.11111111111111
+      },
+      "maybe_or_alert": {
+        "detected": 30,
+        "missed": 0,
+        "false_warnings": 2,
+        "false_warnings_per_1000": 222.22222222222223
+      },
+      "average_precision": 0.995473718593852
+    },
+    "delay-11s": {
+      "positive": 30,
+      "negative": 9,
+      "alert": {
+        "detected": 30,
+        "missed": 0,
+        "false_warnings": 1,
+        "false_warnings_per_1000": 111.11111111111111
+      },
+      "maybe_or_alert": {
+        "detected": 30,
+        "missed": 0,
+        "false_warnings": 4,
+        "false_warnings_per_1000": 444.44444444444446
+      },
+      "average_precision": 0.9989247311827957
+    },
+    "aac80": {
+      "positive": 30,
+      "negative": 9,
+      "alert": {
+        "detected": 25,
+        "missed": 5,
+        "false_warnings": 1,
+        "false_warnings_per_1000": 111.11111111111111
+      },
+      "maybe_or_alert": {
+        "detected": 30,
+        "missed": 0,
+        "false_warnings": 4,
+        "false_warnings_per_1000": 444.44444444444446
+      },
+      "average_precision": 0.9870258685602532
+    },
+    "opus48": {
+      "positive": 30,
+      "negative": 9,
+      "alert": {
+        "detected": 28,
+        "missed": 2,
+        "false_warnings": 0,
+        "false_warnings_per_1000": 0.0
+      },
+      "maybe_or_alert": {
+        "detected": 30,
+        "missed": 0,
+        "false_warnings": 4,
+        "false_warnings_per_1000": 444.44444444444446
+      },
+      "average_precision": 0.9989247311827957
+    },
+    "mp3_128": {
+      "positive": 30,
+      "negative": 9,
+      "alert": {
+        "detected": 28,
+        "missed": 2,
+        "false_warnings": 0,
+        "false_warnings_per_1000": 0.0
+      },
+      "maybe_or_alert": {
+        "detected": 30,
+        "missed": 0,
+        "false_warnings": 4,
+        "false_warnings_per_1000": 444.44444444444446
+      },
+      "average_precision": 0.9978136200716845
+    },
+    "aac-aligned": {
+      "positive": 30,
+      "negative": 9,
+      "alert": {
+        "detected": 23,
+        "missed": 7,
+        "false_warnings": 1,
+        "false_warnings_per_1000": 111.11111111111111
+      },
+      "maybe_or_alert": {
+        "detected": 30,
+        "missed": 0,
+        "false_warnings": 3,
+        "false_warnings_per_1000": 333.3333333333333
+      },
+      "average_precision": 0.9852229592714471
+    }
+  },
+  "limitations": "Selected hard negatives are not a representative false-positive-rate sample; all transforms share the same 39 originals."
+}

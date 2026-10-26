@@ -1,0 +1,7 @@
+{
+  "source_thread_and_transitive_family_partitions_verified": 121,
+  "family_source_sha256": "e5292e6ab25d2b6a5b33d27203fed37f960f73e617e6c8b767b7fec28bc3c016",
+  "labels_sha256": "2024f8dec02d86307081626275614a23d9e3923be4efd79723bafe48ceef4247",
+  "intervals_sha256": "ece77d2bceb330becd6e8c49ce16b2a84d0089381b76687f3ef81c2195caa911",
+  "method": "Recomputed all source/thread/transitive known-family exclusions and exact outer-inner intersections from the frozen family graph; human labels and timings unchanged."
+}
