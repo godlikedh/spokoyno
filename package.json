@@ -1,0 +1,18 @@
+{
+  "name": "spokoyno",
+  "private": true,
+  "version": "6.0.0",
+  "description": "Local ML audio screamer detection for the Spokoyno userscript",
+  "scripts": {
+    "test": "node --test research/test_userscript.cjs research/test_analysis_concurrency.cjs research/test_scoring_regression.cjs",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "@tensorflow/tfjs": "4.22.0",
+    "@tensorflow/tfjs-backend-wasm": "4.22.0",
+    "prettier": "3.6.2"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

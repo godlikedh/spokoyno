@@ -1,0 +1,20 @@
+{
+  "model": "synthetic-mil-20pct",
+  "snapshot_sha256": "538af19d0fa071dcfd01a64bff87722b44ec6b971df83c55642721b12bac34b9",
+  "tfjs_version": "4.22.0",
+  "source_sha256": {
+    "ml/assets/tf.min.js": "300dfae273d20b4046f46a06d735688f03675a807561e9bcb5f664eb2f3d2831",
+    "ml/assets/tf-wasm.min.js": "691bbec0ef8b5a7f17f212e9c5d85832030f90d030b46e99acb4dea1fb16f009",
+    "ml/encoder.cjs": "687e4ee0bc8373368b69dd5b7b19fb802af0fc7c3ff74ad3d8253e54899d4161",
+    "ml/roughness.cjs": "3f0fd46f06f6e1ec63a323ffcfcd4c696ef378498e4f488f816ad832e618d98b",
+    "ml/features.cjs": "d5dd0d7244e67b267b267808237d73c7f77cd6e488670af7d61aeab90fd98465",
+    "ml/model.cjs": "dddf61239d3e6804a87aeeb175909db842c170226b9f0de6f78c9f52c31829cd"
+  },
+  "resources": {
+    "model.json": "8620f9905d0f97477f1bc0c5a29ac59711765c3b73d3ef21c57de94739f116cd",
+    "weights.bin.b64": "8feb55dc5864c60f83d5b3a6382af6b31052e2b2879d2a4aba7c1a3e280f4ca5",
+    "tf.wasm.b64": "d58d377303468920672e747d43487cde8180e15e9bc2121808e211d7d0b42a72",
+    "tf-simd.wasm.b64": "630134cad54a86cc834cbf6a2866577ed7e2dc0ffa4df44d464fd5aa5ae843b9",
+    "runtime.js": "92a8808cc74884af032f8102146f8e104d5e111def6db41cffc86e42a5cf6e03"
+  }
+}
