@@ -1,22 +1,7 @@
 const assert = require('node:assert/strict');
-const fs = require('node:fs');
-const path = require('node:path');
 const { test } = require('node:test');
-const { ROOT, SOURCE, detector, analyze, readWav } = require('./userscript_harness.cjs');
+const { SOURCE, detector, analyze } = require('./userscript_harness.cjs');
 const engine = detector();
-
-test('reviewed borderline loud meme stays yellow rather than becoming a red alert or low', async (t) => {
-  const wav = path.join(ROOT, 'corpus/audio/17894779850601558010.webm.audio.wav');
-  if (!fs.existsSync(wav)) {
-    t.skip('Retained audio corpus is local-only');
-    return;
-  }
-  const result = await analyze(engine, readWav(wav));
-  assert.equal(result.status, 'ok');
-  assert.equal(result.riskTier, 'maybe');
-  assert.ok(result.score >= 0.6 && result.score < 0.8);
-  assert.equal(result.suspicious, false);
-});
 
 test('risk tiers use precise inclusive boundaries and keep invalid results unknown', () => {
   for (const [score, tier] of [
@@ -153,20 +138,24 @@ test('real detector emits a numeric score and silence stays low', async () => {
   const result = await analyze(engine, [new Float32Array(32000), new Float32Array(32000)]);
   assert.equal(result.status, 'ok');
   assert.ok(Number.isFinite(result.score));
-  assert.equal(result.score, engine.continuousScore(result.decisionScore, result.rawRisk));
+  assert.equal(result.model, 'synthetic-mil-20pct');
   assert.equal(result.riskTier, 'low');
   assert.equal(result.suspicious, false);
 });
 
-test('ungated evidence remains continuous but cannot bypass the red requirements', () => {
-  assert.equal(engine.continuousScore(0, 0.25), 0.25);
-  assert.equal(engine.continuousScore(0, 0.7), 0.7);
-  assert.equal(engine.tier(engine.continuousScore(0, 0.99)), 'maybe');
-  assert.equal(engine.continuousScore(0.9, 0.99), 0.9);
+test('ML evidence is displayed directly without heuristic caps or hidden gates', () => {
+  assert.equal(engine.score({ status: 'ok', score: 0.91 }), 0.91);
+  assert.equal(engine.tier(0.91), 'alert');
   assert.equal(engine.formatScore(0), '0.000');
   assert.notEqual(engine.formatScore(0.0000123), '0.000');
   assert.equal(engine.formatScore(0.799999), '0.799');
   const b = badge();
-  render(b, { ...fixture(0.0000123), decisionScore: 0 });
+  render(b, { status: 'ok', score: 0.0000123, model: 'synthetic-mil-20pct', events: [] });
   assert.match(b.textContent, /1\.23e-5/);
+  assert.match(b.title, /ML evidence/);
+  for (const status of ['model-error', 'too-short']) {
+    render(b, { status, message: 'test failure' });
+    assert.equal(b.dataset.state, 'error');
+    assert.match(b.title, /unknown, not safe/);
+  }
 });

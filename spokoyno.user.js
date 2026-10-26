@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Spokoyno — 2ch WebM Companion
 // @namespace    local.spokoyno
-// @version      5.8.2
-// @description  Tab-local video cache, fastest mirror, speed monitor and event-based screamer warning
+// @version      6.0.0
+// @description  Tab-local video cache, fastest mirror, speed monitor and local ML screamer scores
 // @updateURL    https://raw.githubusercontent.com/godlikedh/spokoyno/main/spokoyno.user.js
 // @downloadURL  https://raw.githubusercontent.com/godlikedh/spokoyno/main/spokoyno.user.js
 // @match        https://2ch.org/*/res/*.html*
@@ -11,6 +11,12 @@
 // @connect      2ch.org
 // @connect      2ch.su
 // @connect      2ch.life
+// @require      https://raw.githubusercontent.com/godlikedh/spokoyno/9e292bbfbf5858b17bfab9a95a3d5ba627183489/ml/assets/runtime.js#sha256=92a8808cc74884af032f8102146f8e104d5e111def6db41cffc86e42a5cf6e03
+// @resource     spokoynoMLRuntime https://raw.githubusercontent.com/godlikedh/spokoyno/9e292bbfbf5858b17bfab9a95a3d5ba627183489/ml/assets/runtime.js#sha256=92a8808cc74884af032f8102146f8e104d5e111def6db41cffc86e42a5cf6e03
+// @resource     spokoynoMLModel https://raw.githubusercontent.com/godlikedh/spokoyno/9e292bbfbf5858b17bfab9a95a3d5ba627183489/ml/assets/model.json#sha256=8620f9905d0f97477f1bc0c5a29ac59711765c3b73d3ef21c57de94739f116cd
+// @resource     spokoynoMLWeights https://raw.githubusercontent.com/godlikedh/spokoyno/9e292bbfbf5858b17bfab9a95a3d5ba627183489/ml/assets/weights.bin.b64#sha256=8feb55dc5864c60f83d5b3a6382af6b31052e2b2879d2a4aba7c1a3e280f4ca5
+// @resource     spokoynoMLWasm https://raw.githubusercontent.com/godlikedh/spokoyno/9e292bbfbf5858b17bfab9a95a3d5ba627183489/ml/assets/tf.wasm.b64#sha256=d58d377303468920672e747d43487cde8180e15e9bc2121808e211d7d0b42a72
+// @resource     spokoynoMLSimd https://raw.githubusercontent.com/godlikedh/spokoyno/9e292bbfbf5858b17bfab9a95a3d5ba627183489/ml/assets/tf-simd.wasm.b64#sha256=630134cad54a86cc834cbf6a2866577ed7e2dc0ffa4df44d464fd5aa5ae843b9
 // @run-at       document-start
 // @noframes
 // @grant        GM_xmlhttpRequest
@@ -18,6 +24,7 @@
 // @grant        GM_saveTab
 // @grant        GM_getTabs
 // @grant        GM_registerMenuCommand
+// @grant        GM_getResourceText
 // @grant        GM_openInTab
 // ==/UserScript==
 
@@ -44,17 +51,18 @@
   const CACHE_META_URL = `${location.origin}/__tm2ch_cache_meta_v1__`;
   const MEDIA_EXT = /\.(?:mp4|webm|m4v|mov|ogv)$/i;
   const SCREAMER_REPORT_RE = /scream|скрим/i;
-  const ANALYSIS_VERSION = 10,
-    ANALYSIS_WINDOW = 0.05,
+  const ANALYSIS_VERSION = 11,
     ANALYSIS_TARGET_RATE = 16_000,
-    ANALYSIS_WORKER_TIMEOUT = 120_000;
-  const BASELINE_WINDOWS = 60,
-    BASELINE_GAP = 2,
-    MIN_BASELINE_WINDOWS = 20,
-    EVENT_WINDOWS = 6;
-  const EVENT_LOOKAHEAD = 10,
+    ANALYSIS_WORKER_TIMEOUT = 120_000,
     SCREAMER_MAYBE_CONFIDENCE = 0.6,
     SCREAMER_CONFIDENCE = 0.8;
+  const ML_RESOURCE_HASHES = {
+    spokoynoMLRuntime: '92a8808cc74884af032f8102146f8e104d5e111def6db41cffc86e42a5cf6e03',
+    spokoynoMLModel: '8620f9905d0f97477f1bc0c5a29ac59711765c3b73d3ef21c57de94739f116cd',
+    spokoynoMLWeights: '8feb55dc5864c60f83d5b3a6382af6b31052e2b2879d2a4aba7c1a3e280f4ca5',
+    spokoynoMLWasm: 'd58d377303468920672e747d43487cde8180e15e9bc2121808e211d7d0b42a72',
+    spokoynoMLSimd: '630134cad54a86cc834cbf6a2866577ed7e2dc0ffa4df44d464fd5aa5ae843b9'
+  };
 
   if (!THREAD_PATH_RE.test(location.pathname)) return;
 
@@ -121,7 +129,11 @@
     activeAnalyses = new Map(),
     analysisWorkers = new Map();
   let analysisWorkerUrl = null,
-    analysisWorkersUnavailable = false;
+    analysisWorkersUnavailable = false,
+    mlResourcesPromise = null,
+    mlRuntimeSource = '',
+    mainMLPromise = null,
+    mainMLChain = Promise.resolve();
   const screamerBadges = new Map(),
     communityBadges = new Map(),
     communityReports = new Map(),
@@ -772,6 +784,13 @@
       expose();
       return;
     }
+    if (r.status === 'model-error' || r.status === 'too-short') {
+      badge.textContent = r.status === 'too-short' ? '❔ audio too short' : '❔ ML analysis failed';
+      badge.title = `${r.message || 'The ML model could not analyze this audio'}. This is unknown, not safe. Use the screamer-results reset menu to retry.`;
+      badge.dataset.state = 'error';
+      expose();
+      return;
+    }
     if (r.status === 'media-error' || r.status === 'cache-error') {
       badge.textContent = r.status === 'cache-error' ? '❔ cache failed' : '❔ media unavailable';
       badge.title = `${r.message || 'The media could not be prepared for analysis'}. This is unknown, not safe.`;
@@ -790,20 +809,8 @@
       return;
     }
     const risk = formatScreamerScore(score);
-    const detectorName =
-      {
-        'loud-start': 'dangerous loud start',
-        'short-spectral-burst': 'short edited spectral burst',
-        'short-clipped-burst': 'short heavily clipped burst',
-        'short-high-contrast-burst': 'short high-contrast burst',
-        'sustained-spectral-takeover': 'sustained spectral takeover',
-        transition: 'quiet-to-loud transition'
-      }[r.detectionMode] || 'quiet-to-loud transition';
     if (tier === 'alert') {
-      badge.textContent =
-        r.detectionMode === 'loud-start'
-          ? `⚠ SCREAMER · score ${risk} · loud start @ ${formatTime(r.eventAt || 0)}`
-          : `⚠ SCREAMER · score ${risk} · +${r.jumpDb.toFixed(0)} dB @ ${formatTime(r.eventAt || 0)}`;
+      badge.textContent = `⚠ SCREAMER · score ${risk} · @ ${formatTime(r.eventAt || 0)}`;
       badge.dataset.state = 'bad';
     } else if (tier === 'maybe') {
       badge.textContent = `⚠ MAYBE · score ${risk} · @ ${formatTime(r.eventAt || 0)}`;
@@ -812,44 +819,15 @@
       badge.textContent = `🔊 low risk · score ${risk}`;
       badge.dataset.state = 'ok';
     }
-
     badge.title = [
-      `Screamer score: ${score} (heuristic evidence, not a probability)`,
+      `Screamer score: ${score} (ML evidence, not a probability)`,
+      `Model: ${r.model || 'synthetic-mil-20pct'}`,
       `Yellow: ${SCREAMER_MAYBE_CONFIDENCE} ≤ score < ${SCREAMER_CONFIDENCE}; red: score ≥ ${SCREAMER_CONFIDENCE}`,
-      `Strict red-decision score: ${r.decisionScore ?? 'unavailable'}`,
-      `Raw detector evidence: ${formatRiskPoints(r.rawRisk ?? r.displayRisk ?? 0)}/100`,
-      r.scoreCapped ? 'Evidence is capped below 0.8 because the strict red-alert requirements were not met' : '',
-      `Selected detector: ${detectorName}`,
-      `Event: ${formatTime(r.eventAt || 0)}`,
-      Number.isFinite(r.baselineDb)
-        ? `Baseline (previous 1–3 s): ${r.baselineDb.toFixed(1)} dB`
-        : 'Baseline: unavailable near start',
-      `Sustained event level: ${r.eventDb.toFixed(1)} dB`,
-      Number.isFinite(r.jumpDb) ? `Jump: +${r.jumpDb.toFixed(1)} dB` : '',
-      Number.isFinite(r.baselineMadDb) ? `Baseline MAD: ${r.baselineMadDb.toFixed(1)} dB` : '',
-      Number.isFinite(r.robustZ) ? `Robust normalized jump: ${r.robustZ.toFixed(2)}` : '',
-      Number.isFinite(r.attackMs)
-        ? `10 ms attack estimate: ${r.attackMs.toFixed(0)} ms`
-        : '10 ms attack estimate: unavailable',
-      `Event duration: ${r.eventDuration.toFixed(2)} s`,
-      `Event peak: ${r.eventPeakDb.toFixed(1)} dBFS`,
-      `Event near-clipping: ${r.eventNearClipPct.toFixed(2)}%`,
-      `Onset spectral flux: ${r.spectralFlux.toFixed(3)}`,
-      Number.isFinite(r.spectralFluxNear) ? `Nearby maximum spectral flux: ${r.spectralFluxNear.toFixed(3)}` : '',
-      Number.isFinite(r.spectralShapeDistance)
-        ? `Baseline → event spectral distance: ${r.spectralShapeDistance.toFixed(3)}`
-        : '',
-      `Transition path: ${formatRiskPoints(r.transitionConfidence)}/100`,
-      `Loud-start path: ${formatRiskPoints(r.startConfidence)}/100`,
-      Number.isFinite(r.rescueConfidence) ? `Short-burst rescue path: ${formatRiskPoints(r.rescueConfidence)}/100` : '',
-      `Start spectral flatness: ${r.startSpectralFlatness.toFixed(3)}`,
-      `Start high-frequency brightness: ${r.startBrightnessDb.toFixed(1)} dB`,
-      `Track median: ${r.medianDb.toFixed(1)} dB`,
-      `Track peak: ${r.peakDb.toFixed(1)} dBFS`,
-      r.reason
-    ]
-      .filter(Boolean)
-      .join('\n');
+      ...(r.events || [])
+        .slice(0, 3)
+        .map((event) => `Possible event: ${formatTime(event.start_s)} · ${formatScreamerScore(event.score)}`),
+      'Audio is analyzed locally. Event times are model estimates.'
+    ].join('\n');
     expose();
   }
 
@@ -1017,10 +995,7 @@
     refreshAttachmentRisk(sk);
   }
 
-  const dbPower = (x) => 10 * Math.log10(Math.max(x, 1e-9));
-  const dbAmp = (x) => 20 * Math.log10(Math.max(x, 10 ** (-90 / 20)));
-  const sigmoid = (x) => 1 / (1 + Math.exp(-Math.max(-30, Math.min(30, x))));
-
+  // ML_INFERENCE_START
   function screamerScore(result) {
     if (result?.status !== 'ok') return null;
     const score = result.score ?? result.decisionScore;
@@ -1036,385 +1011,6 @@
     if (score > 0 && score < 0.001) return score.toExponential(2);
     // Keep threshold-adjacent values in their actual displayed tier.
     return (Math.floor(score * 1000) / 1000).toFixed(3);
-  }
-
-  function continuousScreamerScore(decisionScore, rawRisk) {
-    // Preserve all existing red decisions. Ineligible raw evidence may still
-    // distinguish low-risk clips or justify yellow, but cannot create a red alert.
-    return decisionScore >= SCREAMER_CONFIDENCE
-      ? decisionScore
-      : Math.max(decisionScore, Math.min(rawRisk, SCREAMER_CONFIDENCE - 0.001));
-  }
-
-  function percentile(values, p) {
-    if (!values.length) return -90;
-    const a = Array.from(values).sort((x, y) => x - y),
-      at = (a.length - 1) * p;
-    const lo = Math.floor(at),
-      hi = Math.ceil(at),
-      f = at - lo;
-    return a[lo] * (1 - f) + a[hi] * f;
-  }
-
-  function percentileSorted(values, p) {
-    if (!values.length) return -90;
-    const at = (values.length - 1) * p,
-      lo = Math.floor(at),
-      hi = Math.ceil(at),
-      f = at - lo;
-    return values[lo] * (1 - f) + values[hi] * f;
-  }
-
-  function sortedIndex(values, value) {
-    let lo = 0,
-      hi = values.length;
-    while (lo < hi) {
-      const mid = (lo + hi) >> 1;
-      if (values[mid] < value) lo = mid + 1;
-      else hi = mid;
-    }
-    return lo;
-  }
-
-  function insertSorted(values, value) {
-    values.splice(sortedIndex(values, value), 0, value);
-  }
-
-  function removeSorted(values, value) {
-    const at = sortedIndex(values, value);
-    if (at < values.length) values.splice(at, 1);
-  }
-
-  function percentileRange(values, start, end, p, scratch) {
-    scratch.length = 0;
-    for (let i = start; i < end; i++) scratch.push(values[i]);
-    scratch.sort((a, b) => a - b);
-    return percentileSorted(scratch, p);
-  }
-
-  function makeHighPass(fs, f0 = 70, q = Math.SQRT1_2) {
-    const w = (2 * Math.PI * f0) / fs,
-      c = Math.cos(w),
-      alpha = Math.sin(w) / (2 * q),
-      a0 = 1 + alpha;
-    return {
-      b0: (1 + c) / 2 / a0,
-      b1: -(1 + c) / a0,
-      b2: (1 + c) / 2 / a0,
-      a1: (-2 * c) / a0,
-      a2: (1 - alpha) / a0,
-      z1: 0,
-      z2: 0
-    };
-  }
-
-  function makeHighShelf(fs, f0 = 1500, gainDb = 4, q = Math.SQRT1_2) {
-    const a = 10 ** (gainDb / 40),
-      w = (2 * Math.PI * f0) / fs,
-      c = Math.cos(w),
-      alpha = Math.sin(w) / (2 * q);
-    const beta = 2 * Math.sqrt(a) * alpha,
-      a0 = a + 1 - (a - 1) * c + beta;
-    return {
-      b0: (a * (a + 1 + (a - 1) * c + beta)) / a0,
-      b1: (-2 * a * (a - 1 + (a + 1) * c)) / a0,
-      b2: (a * (a + 1 + (a - 1) * c - beta)) / a0,
-      a1: (2 * (a - 1 - (a + 1) * c)) / a0,
-      a2: (a + 1 - (a - 1) * c - beta) / a0,
-      z1: 0,
-      z2: 0
-    };
-  }
-
-  function biquad(x, s) {
-    const y = s.b0 * x + s.z1;
-    s.z1 = s.b1 * x - s.a1 * y + s.z2;
-    s.z2 = s.b2 * x - s.a2 * y;
-    return y;
-  }
-
-  async function extractTimeline(buf) {
-    const stride = 1,
-      effectiveRate = buf.sampleRate;
-    const windowFrames = Math.max(1, Math.round(buf.sampleRate * ANALYSIS_WINDOW));
-    const windowSeconds = windowFrames / buf.sampleRate,
-      count = Math.max(1, Math.floor(buf.length / windowFrames));
-    const levels = new Float32Array(count),
-      peaks = new Float32Array(count);
-    const clipCounts = new Uint32Array(count),
-      sampleCounts = new Uint32Array(count);
-    const channels = Array.from({ length: buf.numberOfChannels }, (_, ch) => buf.getChannelData(ch));
-    const filters = channels.map(() => [makeHighPass(effectiveRate), makeHighShelf(effectiveRate)]);
-    let trackPeak = 0,
-      totalSq = 0,
-      totalN = 0,
-      totalClip = 0;
-
-    for (let wi = 0; wi < count; wi++) {
-      const start = wi * windowFrames,
-        end = wi === count - 1 && buf.length < windowFrames ? buf.length : start + windowFrames;
-      let rawSq = 0,
-        weightedSq = 0,
-        n = 0,
-        peak = 0,
-        clips = 0;
-      for (let i = start; i < end; i++) {
-        for (let ch = 0; ch < channels.length; ch++) {
-          const v = channels[ch][i] || 0,
-            av = Math.abs(v);
-          rawSq += v * v;
-          if (av > peak) peak = av;
-          if (av >= 10 ** (-1 / 20)) clips++;
-          const weighted = biquad(biquad(v, filters[ch][0]), filters[ch][1]);
-          weightedSq += weighted * weighted;
-          n++;
-        }
-      }
-      levels[wi] = Math.max(-90, -0.691 + dbPower(weightedSq / Math.max(1, n)));
-      peaks[wi] = dbAmp(peak);
-      clipCounts[wi] = clips;
-      sampleCounts[wi] = n;
-      if (peak > trackPeak) trackPeak = peak;
-      totalSq += rawSq;
-      totalN += n;
-      totalClip += clips;
-      if (wi % 100 === 99) await yieldMain();
-    }
-    return {
-      levels,
-      peaks,
-      clipCounts,
-      sampleCounts,
-      stride,
-      windowFrames,
-      windowSeconds,
-      peakDb: dbAmp(trackPeak),
-      rmsDb: dbPower(totalSq / Math.max(1, totalN)),
-      nearClipPct: (totalClip / Math.max(1, totalN)) * 100
-    };
-  }
-
-  function fft(re, im) {
-    const n = re.length;
-    for (let i = 1, j = 0; i < n; i++) {
-      let bit = n >> 1;
-      for (; j & bit; bit >>= 1) j ^= bit;
-      j ^= bit;
-      if (i < j) {
-        [re[i], re[j]] = [re[j], re[i]];
-        [im[i], im[j]] = [im[j], im[i]];
-      }
-    }
-    for (let len = 2; len <= n; len <<= 1) {
-      const angle = (-2 * Math.PI) / len,
-        wlenR = Math.cos(angle),
-        wlenI = Math.sin(angle);
-      for (let i = 0; i < n; i += len) {
-        let wr = 1,
-          wi = 0;
-        for (let j = 0; j < len / 2; j++) {
-          const uR = re[i + j],
-            uI = im[i + j],
-            k = i + j + len / 2;
-          const vR = re[k] * wr - im[k] * wi,
-            vI = re[k] * wi + im[k] * wr;
-          re[i + j] = uR + vR;
-          im[i + j] = uI + vI;
-          re[k] = uR - vR;
-          im[k] = uI - vI;
-          const nextR = wr * wlenR - wi * wlenI;
-          wi = wr * wlenI + wi * wlenR;
-          wr = nextR;
-        }
-      }
-    }
-  }
-
-  function spectrumProfile(buf, windowIndex, windowFrames) {
-    const start = windowIndex * windowFrames,
-      end = Math.min(buf.length, start + windowFrames);
-    if (start < 0 || start >= end) return null;
-    let n = 1;
-    while (n < end - start) n <<= 1;
-    const bins = Math.min(n / 2 + 1, Math.floor((7800 * n) / buf.sampleRate) + 1),
-      out = new Float64Array(bins);
-    for (let ch = 0; ch < buf.numberOfChannels; ch++) {
-      const data = buf.getChannelData(ch),
-        re = new Float64Array(n),
-        im = new Float64Array(n);
-      for (let i = start; i < end; i++) {
-        const j = i - start,
-          hann = end - start > 1 ? 0.5 - 0.5 * Math.cos((2 * Math.PI * j) / (end - start - 1)) : 1;
-        re[j] = data[i] * hann;
-      }
-      fft(re, im);
-      for (let i = 0; i < bins; i++) out[i] += re[i] * re[i] + im[i] * im[i] + 1e-12;
-    }
-    let total = 0;
-    let logTotal = 0;
-    for (let i = 0; i < bins; i++) {
-      const p = out[i] / buf.numberOfChannels;
-      out[i] = p;
-      total += p;
-      logTotal += Math.log(p);
-    }
-    const flatness = Math.exp(logTotal / bins) / (total / bins);
-    for (let i = 0; i < bins; i++) out[i] /= total;
-    return { bins: out, flatness };
-  }
-
-  function onsetSpectralFlux(buf, index, windowFrames) {
-    if (index < 1) return 0;
-    const before = spectrumProfile(buf, index - 1, windowFrames),
-      current = spectrumProfile(buf, index, windowFrames);
-    if (!before || !current) return 0;
-    return profileFlux(before, current);
-  }
-
-  function profileFlux(before, current) {
-    const n = Math.min(before.bins.length, current.bins.length);
-    let sum = 0;
-    for (let i = 0; i < n; i++) {
-      const d = current.bins[i] - before.bins[i];
-      if (d > 0) sum += d * d;
-    }
-    return Math.sqrt(sum);
-  }
-
-  async function transitionSpectralFeatures(buf, index, timeline) {
-    const cache = new Map();
-    const getProfile = (i) => {
-      if (i < 0 || i >= timeline.levels.length) return null;
-      if (!cache.has(i)) cache.set(i, spectrumProfile(buf, i, timeline.windowFrames));
-      return cache.get(i);
-    };
-    const onsetBefore = getProfile(index - 1),
-      onsetCurrent = getProfile(index);
-    const onsetFlux = onsetBefore && onsetCurrent ? profileFlux(onsetBefore, onsetCurrent) : 0;
-    let nearbyFlux = onsetFlux;
-    for (let i = Math.max(1, index - 2); i <= Math.min(timeline.levels.length - 1, index + 2); i++) {
-      const before = getProfile(i - 1),
-        current = getProfile(i);
-      if (before && current) nearbyFlux = Math.max(nearbyFlux, profileFlux(before, current));
-    }
-
-    const baselineProfiles = [],
-      eventProfiles = [];
-    for (let i = Math.max(0, index - 40); i < Math.max(0, index - BASELINE_GAP); i++) {
-      const profile = getProfile(i);
-      if (profile) baselineProfiles.push(profile);
-      if (i % 8 === 7) await yieldMain();
-    }
-    for (let i = index; i < Math.min(timeline.levels.length, index + EVENT_WINDOWS); i++) {
-      const profile = getProfile(i);
-      if (profile) eventProfiles.push(profile);
-    }
-
-    let shapeDistance = 0;
-    if (baselineProfiles.length && eventProfiles.length) {
-      const bins = Math.min(baselineProfiles[0].bins.length, eventProfiles[0].bins.length),
-        baselineMean = new Float64Array(bins),
-        eventMean = new Float64Array(bins);
-      for (const profile of baselineProfiles) {
-        for (let i = 0; i < bins; i++) baselineMean[i] += profile.bins[i] / baselineProfiles.length;
-      }
-      for (const profile of eventProfiles) {
-        for (let i = 0; i < bins; i++) eventMean[i] += profile.bins[i] / eventProfiles.length;
-      }
-      let distance = 0;
-      for (let i = 0; i < bins; i++) {
-        const d = Math.sqrt(eventMean[i]) - Math.sqrt(baselineMean[i]);
-        distance += d * d;
-      }
-      shapeDistance = Math.sqrt(distance) / Math.SQRT2;
-    }
-    return { onsetFlux, nearbyFlux, shapeDistance };
-  }
-
-  function windowBrightness(buf, windowIndex, windowFrames, stride) {
-    const start = windowIndex * windowFrames,
-      end = Math.min(buf.length, start + windowFrames);
-    let energy = 0,
-      differenceEnergy = 0,
-      count = 0;
-    for (let ch = 0; ch < buf.numberOfChannels; ch++) {
-      const data = buf.getChannelData(ch);
-      let previous = null;
-      for (let i = start; i < end; i += stride) {
-        const value = data[i];
-        energy += value * value;
-        if (previous !== null) {
-          const difference = value - previous;
-          differenceEnergy += difference * difference;
-        }
-        previous = value;
-        count++;
-      }
-    }
-    const differences = count - buf.numberOfChannels;
-    if (differences < 1 || energy <= 0) return -90;
-    return dbPower(differenceEnergy / differences / (energy / count));
-  }
-
-  function eventDuration(levels, start, threshold, windowSeconds) {
-    let lastAbove = start - 1,
-      misses = 0;
-    for (let i = start; i < levels.length && i < start + 60; i++) {
-      if (levels[i] >= threshold) {
-        lastAbove = i;
-        misses = 0;
-      } else if (++misses >= 2) break;
-    }
-    return Math.max(0, (lastAbove - start + 1) * windowSeconds);
-  }
-
-  function maxChange(levels, seconds, windowSeconds) {
-    const d = Math.max(1, Math.round(seconds / windowSeconds));
-    let max = 0;
-    for (let i = 0; i + d < levels.length; i++) {
-      const before = (levels[i] + (levels[i + 1] ?? levels[i])) / 2;
-      const after = (levels[i + d] + (levels[i + d + 1] ?? levels[i + d])) / 2;
-      max = Math.max(max, after - before);
-    }
-    return max;
-  }
-
-  function measureAttack(buf, index, timeline) {
-    const { stride, windowFrames } = timeline;
-    const eventFrame = index * windowFrames;
-    const visibleStart = Math.max(0, eventFrame - Math.round(buf.sampleRate * 0.5));
-    const warmupStart = Math.max(0, visibleStart - Math.round(buf.sampleRate * 3));
-    const end = Math.min(buf.length, eventFrame + Math.round(buf.sampleRate * 0.8));
-    const fineFrames = Math.max(1, Math.round(buf.sampleRate * 0.01));
-    const channels = Array.from({ length: buf.numberOfChannels }, (_, ch) => buf.getChannelData(ch));
-    const filters = channels.map(() => [makeHighPass(buf.sampleRate), makeHighShelf(buf.sampleRate)]);
-    const levels = [];
-    for (let frameStart = warmupStart; frameStart < end; frameStart += fineFrames) {
-      const frameEnd = Math.min(end, frameStart + fineFrames);
-      let square = 0,
-        count = 0;
-      for (let i = frameStart; i < frameEnd; i += stride) {
-        for (let ch = 0; ch < channels.length; ch++) {
-          const weighted = biquad(biquad(channels[ch][i] || 0, filters[ch][0]), filters[ch][1]);
-          square += weighted * weighted;
-          count++;
-        }
-      }
-      if (frameStart >= visibleStart) levels.push(Math.max(-90, -0.691 + dbPower(square / Math.max(1, count))));
-    }
-    const eventAt = Math.floor((eventFrame - visibleStart) / fineFrames);
-    const peakEnd = Math.min(levels.length, eventAt + 50);
-    if (eventAt < 0 || peakEnd <= eventAt) return null;
-    let peak = eventAt;
-    for (let i = eventAt + 1; i < peakEnd; i++) if (levels[i] > levels[peak]) peak = i;
-    let lastBelow = -1;
-    for (let i = 0; i < peak; i++) if (levels[i] <= -30) lastBelow = i;
-    if (lastBelow < 0) return null;
-    const target = levels[peak] - 3;
-    for (let i = lastBelow + 1; i <= peak; i++) {
-      if (levels[i] >= target) return ((i - lastBelow) * fineFrames * 1000) / buf.sampleRate;
-    }
-    return null;
   }
 
   async function nativeNoAudioProbe(blob) {
@@ -1505,483 +1101,159 @@
       };
     }
     if (!isCurrent()) return null;
-    return slot === null ? analyzeAudioBuffer(buf) : analyzeDecodedAudio(buf, slot, isCurrent);
+    return analyzeDecodedAudio(buf, slot, isCurrent);
   }
 
-  async function analyzeAudioBuffer(buf) {
-    if (!buf?.numberOfChannels || !buf.length) return { status: 'no-audio' };
-
-    const timeline = await extractTimeline(buf),
-      { levels, peaks, clipCounts, sampleCounts, stride, windowSeconds } = timeline;
-    if (!levels.length) return { status: 'no-audio' };
-
-    // A separate path covers near-full-scale audio before a 1 s baseline exists. It deliberately
-    // requires sustained loudness plus clipping, noise-like flatness, or high-frequency energy so
-    // ordinary loud intros and music do not inherit the transition detector's assumptions.
-    const eventScratch = [],
-      startLimit = Math.min(Math.max(0, levels.length - EVENT_WINDOWS), Math.round(1 / windowSeconds));
-    let startBest = 0,
-      startLevel = -90;
-    for (let i = 0; i <= startLimit; i++) {
-      const level = percentileRange(levels, i, Math.min(levels.length, i + EVENT_WINDOWS), 0.25, eventScratch);
-      if (level > startLevel) {
-        startBest = i;
-        startLevel = level;
-      }
+  async function loadMLResources() {
+    if (!mlResourcesPromise) {
+      mlResourcesPromise = (async () => {
+        const values = {};
+        for (const [name, expected] of Object.entries(ML_RESOURCE_HASHES)) {
+          const value = GM_getResourceText(name);
+          if (!value || (await SpokoynoML.digest(new TextEncoder().encode(value))) !== expected)
+            throw new Error(`Missing or damaged model resource: ${name}; reinstall the userscript`);
+          values[name] = value;
+        }
+        mlRuntimeSource = values.spokoynoMLRuntime;
+        if (!mlRuntimeSource || !values.spokoynoMLModel) throw new Error('ML release assets are not configured');
+        return {
+          model: values.spokoynoMLModel,
+          weights: values.spokoynoMLWeights,
+          wasm: values.spokoynoMLWasm,
+          simd: values.spokoynoMLSimd
+        };
+      })().catch((error) => {
+        mlResourcesPromise = null;
+        throw error;
+      });
     }
-    const startTarget = Math.max(-6, startLevel - 3);
-    let startPreview = startBest;
-    for (let i = 0; i <= startLimit; i++) {
-      if (percentileRange(levels, i, Math.min(levels.length, i + EVENT_WINDOWS), 0.25, eventScratch) >= startTarget) {
-        startPreview = i;
-        break;
-      }
-    }
-    const onsetThreshold = Math.max(-9, startLevel - 6);
-    let start = startPreview;
-    for (let i = startPreview; i < Math.min(levels.length, startPreview + EVENT_WINDOWS); i++) {
-      if (levels[i] >= onsetThreshold) {
-        start = i;
-        break;
-      }
-    }
-    const startDuration = eventDuration(levels, start, -9, windowSeconds),
-      startLookEnd = Math.min(levels.length, start + 20);
-    let startPeak = -90,
-      startClips = 0,
-      startSamples = 0;
-    for (let i = start; i < startLookEnd; i++) {
-      startPeak = Math.max(startPeak, peaks[i]);
-      startClips += clipCounts[i];
-      startSamples += sampleCounts[i];
-    }
-    const startNearClip = startClips / Math.max(1, startSamples);
-    const startFlatnessValues = [],
-      startBrightnessValues = [];
-    for (let i = start; i < Math.min(levels.length, start + EVENT_WINDOWS); i++) {
-      const profile = spectrumProfile(buf, i, timeline.windowFrames);
-      if (profile) startFlatnessValues.push(profile.flatness);
-      startBrightnessValues.push(windowBrightness(buf, i, timeline.windowFrames, stride));
-    }
-    const startSpectralFlatness = startFlatnessValues.length ? percentile(startFlatnessValues, 0.5) : 0;
-    const startBrightnessDb = startBrightnessValues.length ? percentile(startBrightnessValues, 0.5) : -90;
-    const startLoudComponent = sigmoid((startLevel + 6) / 2);
-    const startDurationComponent = sigmoid((startDuration - 0.35) / 0.15);
-    const startClipComponent = sigmoid((startNearClip - 0.01) / 0.03);
-    const startNoiseComponent = sigmoid((startSpectralFlatness - 0.025) / 0.025);
-    const startBrightnessComponent = sigmoid((startBrightnessDb + 8) / 2.5);
-    let startConfidence = startLoudComponent ** 1.1 * startDurationComponent ** 0.7;
-    startConfidence *= 0.68 + 0.12 * startClipComponent + 0.14 * startNoiseComponent + 0.06 * startBrightnessComponent;
-    startConfidence = Math.max(0, Math.min(1, startConfidence));
-    const startSpectralEvidence = startSpectralFlatness >= 0.04 || startBrightnessDb >= -5 || startNearClip >= 0.08;
-    const startEligible = startLevel >= -3 && startDuration >= 0.5 && startSpectralEvidence;
-
-    let best = -1,
-      bestEnvelope = -1,
-      bestBaseline = -90,
-      bestEvent = -90,
-      bestJump = 0,
-      bestBaselineMad = 0;
-    const historySorted = [],
-      madScratch = [];
-    let historyLo = 0,
-      historyHi = 0;
-    for (let i = 0; i + EVENT_WINDOWS <= levels.length; i++) {
-      const lo = Math.max(0, i - BASELINE_WINDOWS),
-        hi = i - BASELINE_GAP;
-      while (historyHi < Math.max(0, hi)) insertSorted(historySorted, levels[historyHi++]);
-      while (historyLo < lo) removeSorted(historySorted, levels[historyLo++]);
-      if (hi - lo < MIN_BASELINE_WINDOWS) continue;
-      const baseline = percentileSorted(historySorted, 0.5);
-      const event = percentileRange(levels, i, i + EVENT_WINDOWS, 0.25, eventScratch);
-      const jump = event - baseline;
-      const envelope = sigmoid((event + 10.5) / 2.5) ** 0.9 * sigmoid((jump - 13) / 3.5) ** 1.25;
-      if (envelope > bestEnvelope) {
-        best = i;
-        bestEnvelope = envelope;
-        bestBaseline = baseline;
-        bestEvent = event;
-        bestJump = jump;
-        madScratch.length = historySorted.length;
-        for (let j = 0; j < historySorted.length; j++) madScratch[j] = Math.abs(historySorted[j] - baseline);
-        madScratch.sort((a, b) => a - b);
-        bestBaselineMad = percentileSorted(madScratch, 0.5);
-      }
-      if (i % 250 === 249) await yieldMain();
-    }
-
-    const hasTransition = best >= 0;
-    if (best < 0) {
-      best = 0;
-      bestBaseline = percentile(levels, 0.5);
-      bestEvent = levels[0];
-      bestJump = bestEvent - bestBaseline;
-      bestBaselineMad = percentile(
-        Array.from(levels, (level) => Math.abs(level - bestBaseline)),
-        0.5
-      );
-    }
-
-    const threshold = Math.max(-13, bestBaseline + 9);
-    const duration = eventDuration(levels, best, threshold, windowSeconds);
-    const lookEnd = Math.min(levels.length, best + EVENT_LOOKAHEAD);
-    let eventPeak = -90,
-      eventClips = 0,
-      eventSamples = 0;
-    for (let i = best; i < lookEnd; i++) {
-      eventPeak = Math.max(eventPeak, peaks[i]);
-      eventClips += clipCounts[i];
-      eventSamples += sampleCounts[i];
-    }
-    const eventNearClip = eventClips / Math.max(1, eventSamples);
-    const transitionSpectrum = hasTransition
-      ? await transitionSpectralFeatures(buf, best, timeline)
-      : { onsetFlux: 0, nearbyFlux: 0, shapeDistance: 0 };
-    const spectralFlux = transitionSpectrum.onsetFlux,
-      spectralFluxNear = transitionSpectrum.nearbyFlux,
-      spectralShapeDistance = transitionSpectrum.shapeDistance;
-    const loudComponent = sigmoid((bestEvent + 10.5) / 2.5);
-    const jumpComponent = sigmoid((bestJump - 13) / 3.5);
-    const durationComponent = sigmoid((duration - 0.18) / 0.09);
-    const quietComponent = sigmoid((-bestBaseline - 15) / 5);
-    const clipComponent = sigmoid((eventNearClip - 0.005) / 0.012);
-    // Decoder/resampler differences can move the loudness-selected window by
-    // one 50 ms step. Use the existing bounded +/-100 ms onset neighborhood
-    // rather than letting one almost-tied window erase the spectral evidence.
-    const fluxComponent = sigmoid((spectralFluxNear - 0.22) / 0.08);
-    let transitionConfidence = hasTransition
-      ? loudComponent ** 0.9 * jumpComponent ** 1.25 * durationComponent ** 0.65
-      : 0;
-    transitionConfidence *= 0.87 + 0.1 * quietComponent + 0.03 * clipComponent;
-    transitionConfidence *= 0.65 + 0.35 * fluxComponent;
-    transitionConfidence = Math.max(0, Math.min(1, transitionConfidence));
-    const transitionEligible = hasTransition && bestEvent >= -6 && bestJump >= 14 && duration >= 0.15;
-    // Conservative rescue paths cover edited bursts that the general score intentionally
-    // suppresses. Independent gates require spectral replacement, severe clipping, or extreme
-    // short-event contrast. These rules were tuned from a tiny positive set, so their risk values
-    // are evidence scores, not calibrated probabilities.
-    const spectralBurstEligible =
-      hasTransition &&
-      bestEvent >= -4 &&
-      bestJump >= 16 &&
-      duration >= 0.3 &&
-      duration <= 1.05 &&
-      spectralFluxNear >= 0.3 &&
-      spectralShapeDistance >= 0.8;
-    const clippedBurstEligible =
-      hasTransition &&
-      bestEvent >= -3 &&
-      bestJump >= 10 &&
-      duration >= 0.25 &&
-      duration <= 0.55 &&
-      eventNearClip >= 0.35 &&
-      spectralFluxNear >= 0.3;
-    const highContrastBurstEligible =
-      hasTransition &&
-      bestEvent >= -4 &&
-      bestJump >= 30 &&
-      duration >= 0.25 &&
-      duration <= 0.5 &&
-      eventNearClip >= 0.15 &&
-      spectralFluxNear >= 0.35 &&
-      spectralShapeDistance >= 0.5;
-    const sustainedSpectralTakeoverEligible =
-      hasTransition &&
-      bestEvent >= -3.5 &&
-      bestJump >= 25 &&
-      duration >= 2 &&
-      spectralFluxNear >= 0.4 &&
-      spectralShapeDistance >= 0.8;
-    const spectralBurstConfidence = spectralBurstEligible
-      ? Math.min(
-          1,
-          0.8 +
-            0.04 * sigmoid((spectralShapeDistance - 0.85) / 0.08) +
-            0.04 * sigmoid((bestJump - 18) / 3) +
-            0.04 * sigmoid((bestEvent + 3) / 1.5)
-        )
-      : 0;
-    const clippedBurstConfidence = clippedBurstEligible
-      ? Math.min(
-          1,
-          0.8 +
-            0.04 * sigmoid((eventNearClip - 0.4) / 0.08) +
-            0.04 * sigmoid((bestJump - 12) / 2) +
-            0.04 * sigmoid((bestEvent + 2) / 1.2)
-        )
-      : 0;
-    const highContrastBurstConfidence = highContrastBurstEligible
-      ? Math.min(
-          1,
-          0.8 +
-            0.04 * sigmoid((eventNearClip - 0.2) / 0.08) +
-            0.04 * sigmoid((bestJump - 35) / 6) +
-            0.04 * sigmoid((bestEvent + 3.5) / 1.2)
-        )
-      : 0;
-    const sustainedSpectralTakeoverConfidence = sustainedSpectralTakeoverEligible
-      ? Math.min(
-          1,
-          0.8 +
-            0.04 * sigmoid((spectralShapeDistance - 0.85) / 0.08) +
-            0.04 * sigmoid((spectralFluxNear - 0.4) / 0.08) +
-            0.04 * sigmoid((bestJump - 30) / 6)
-        )
-      : 0;
-    const strongestRescue = [
-      ['short-spectral-burst', spectralBurstConfidence],
-      ['short-clipped-burst', clippedBurstConfidence],
-      ['short-high-contrast-burst', highContrastBurstConfidence],
-      ['sustained-spectral-takeover', sustainedSpectralTakeoverConfidence]
-    ].reduce((best, candidate) => (candidate[1] > best[1] ? candidate : best));
-    const [rescueMode, rescueConfidence] = strongestRescue;
-    const transitionDecisionScore = transitionEligible ? transitionConfidence : 0;
-    const startDecisionScore = startEligible ? startConfidence : 0;
-    const rescueDecisionScore = rescueConfidence;
-    const decisionScore = Math.max(transitionDecisionScore, startDecisionScore, rescueDecisionScore);
-    const suspicious = decisionScore >= SCREAMER_CONFIDENCE;
-    const decisionMode =
-      rescueDecisionScore === decisionScore && rescueDecisionScore > 0
-        ? rescueMode
-        : startDecisionScore === decisionScore && startDecisionScore > transitionDecisionScore
-          ? 'loud-start'
-          : 'transition';
-    const riskMode = startConfidence > transitionConfidence ? 'loud-start' : 'transition';
-    const detectionMode = suspicious ? decisionMode : riskMode;
-    const rawRisk = Math.max(transitionConfidence, startConfidence, rescueConfidence);
-    const score = continuousScreamerScore(decisionScore, rawRisk);
-    const displayRisk =
-      detectionMode === 'loud-start'
-        ? startConfidence
-        : detectionMode !== 'transition'
-          ? rescueConfidence
-          : transitionConfidence;
-    const confidence = displayRisk;
-    const startSuspicious = suspicious && detectionMode === 'loud-start';
-    const transitionSuspicious = suspicious && detectionMode !== 'loud-start';
-    const sortedLevels = Array.from(levels).sort((a, b) => a - b),
-      median = percentileSorted(sortedLevels, 0.5);
-    const reason =
-      detectionMode === 'loud-start'
-        ? startSuspicious
-          ? 'Sustained near-full-scale broadband or clipped audio begins before a reliable baseline exists'
-          : 'Opening audio did not combine enough loudness, persistence, and broadband evidence'
-        : transitionSuspicious
-          ? detectionMode === 'short-spectral-burst'
-            ? 'Short near-full-scale burst with a large local spectral-distribution change'
-            : detectionMode === 'short-clipped-burst'
-              ? 'Short near-full-scale transition with severe clipping'
-              : detectionMode === 'short-high-contrast-burst'
-                ? 'Short near-full-scale burst combining extreme contrast, clipping, and spectral change'
-                : detectionMode === 'sustained-spectral-takeover'
-                  ? 'Sustained near-full-scale event that replaces the baseline spectrum'
-                  : 'Sustained near-full-scale event after a quieter baseline, with a changed onset spectrum'
-          : !hasTransition
-            ? 'No quiet-to-loud transition had enough preceding audio for a reliable baseline'
-            : bestJump < 14
-              ? 'No sufficiently large sustained local transition'
-              : bestEvent < -6
-                ? 'The strongest transition did not become near-full-scale'
-                : spectralFluxNear < 0.22
-                  ? 'The loudness changed, but the onset spectrum remained similar'
-                  : 'Combined evidence stayed below the red-alert threshold';
-    const useStartEvent = detectionMode === 'loud-start';
-    const selectedSpectralFlux = useStartEvent ? onsetSpectralFlux(buf, start, timeline.windowFrames) : spectralFlux;
-    const attackMs = measureAttack(buf, useStartEvent ? start : best, timeline);
-    const robustScale = Math.max(2, 1.4826 * bestBaselineMad);
-
-    return {
-      status: 'ok',
-      score,
-      scoreKind: 'uncalibrated-heuristic',
-      riskTier: screamerTier(score),
-      rawRisk,
-      scoreCapped: rawRisk >= SCREAMER_CONFIDENCE && !suspicious,
-      suspicious,
-      confidence,
-      displayRisk,
-      decisionScore,
-      detectionMode,
-      decisionMode,
-      riskMode,
-      transitionConfidence,
-      startConfidence,
-      rescueConfidence,
-      rescueMode: rescueConfidence ? rescueMode : null,
-      eventAt: (useStartEvent ? start : best) * windowSeconds,
-      jumpDb: useStartEvent ? null : bestJump,
-      eventDb: useStartEvent ? startLevel : bestEvent,
-      baselineDb: useStartEvent ? null : bestBaseline,
-      baselineMadDb: useStartEvent ? null : bestBaselineMad,
-      robustZ: useStartEvent ? null : bestJump / robustScale,
-      attackMs,
-      eventDuration: useStartEvent ? startDuration : duration,
-      eventPeakDb: useStartEvent ? startPeak : eventPeak,
-      eventNearClipPct: (useStartEvent ? startNearClip : eventNearClip) * 100,
-      spectralFlux: selectedSpectralFlux,
-      spectralFluxNear,
-      spectralShapeDistance,
-      startAt: start * windowSeconds,
-      startEventDb: startLevel,
-      startDuration,
-      startNearClipPct: startNearClip * 100,
-      startSpectralFlatness,
-      startBrightnessDb,
-      medianDb: median,
-      p10Db: percentileSorted(sortedLevels, 0.1),
-      p25Db: percentileSorted(sortedLevels, 0.25),
-      p75Db: percentileSorted(sortedLevels, 0.75),
-      p90Db: percentileSorted(sortedLevels, 0.9),
-      p95Db: percentileSorted(sortedLevels, 0.95),
-      p99Db: percentileSorted(sortedLevels, 0.99),
-      peakDb: timeline.peakDb,
-      rmsDb: timeline.rmsDb,
-      crestDb: timeline.peakDb - timeline.rmsDb,
-      nearClipPct: timeline.nearClipPct,
-      maxChange50Db: maxChange(levels, 0.05, windowSeconds),
-      maxChange100Db: maxChange(levels, 0.1, windowSeconds),
-      maxChange250Db: maxChange(levels, 0.25, windowSeconds),
-      maxChange500Db: maxChange(levels, 0.5, windowSeconds),
-      maxChange1000Db: maxChange(levels, 1, windowSeconds),
-      duration: buf.duration,
-      reason
-    };
+    return mlResourcesPromise;
   }
 
   function makeAnalysisWorkerSource() {
-    const constants = {
-      ANALYSIS_WINDOW,
-      BASELINE_WINDOWS,
-      BASELINE_GAP,
-      MIN_BASELINE_WINDOWS,
-      EVENT_WINDOWS,
-      EVENT_LOOKAHEAD,
-      SCREAMER_CONFIDENCE,
-      SCREAMER_MAYBE_CONFIDENCE
-    };
-    // Serialize the same pure functions used by the fallback: no second copy of
-    // the detector, no external worker script, and no audio leaves this browser.
-    const functions = {
-      dbPower,
-      dbAmp,
-      sigmoid,
-      screamerTier,
-      continuousScreamerScore,
-      percentile,
-      percentileSorted,
-      sortedIndex,
-      insertSorted,
-      removeSorted,
-      percentileRange,
-      makeHighPass,
-      makeHighShelf,
-      biquad,
-      extractTimeline,
-      fft,
-      spectrumProfile,
-      onsetSpectralFlux,
-      profileFlux,
-      transitionSpectralFeatures,
-      windowBrightness,
-      eventDuration,
-      maxChange,
-      measureAttack,
-      analyzeAudioBuffer
-    };
-    return `'use strict';
-      const { ${Object.keys(constants).join(', ')} } = ${JSON.stringify(constants)};
-      const yieldMain = async () => {};
-      ${Object.entries(functions)
-        .map(([name, fn]) => `const ${name} = ${fn.toString()};`)
-        .join('\n')}
+    if (!mlRuntimeSource) throw new Error('ML assets have not loaded');
+    return (
+      mlRuntimeSource +
+      `\n;let modelPromise;
       self.onmessage = async ({data}) => {
         try {
-          const {channels, sampleRate} = data;
-          const length = channels[0]?.length || 0;
-          const result = await analyzeAudioBuffer({sampleRate, length, duration: length / sampleRate,
-            numberOfChannels: channels.length, getChannelData: channel => channels[channel]});
+          if (!modelPromise) modelPromise = SpokoynoML.initialize(tf, data.resources);
+          const detector = await modelPromise;
+          const result = await detector.score(data.channels, data.sampleRate);
           self.postMessage({result});
         } catch (error) {
-          self.postMessage({error: String(error?.message || error)});
+          self.postMessage({result:{status:'model-error',message:String(error?.message || error)}});
         }
-      };`;
+      };`
+    );
   }
 
   function getAnalysisWorker(slot) {
-    if (analysisWorkersUnavailable || typeof Worker !== 'function') return null;
+    if (slot === null || analysisWorkersUnavailable || typeof Worker !== 'function') return null;
     if (!analysisWorkers.has(slot)) {
       if (!analysisWorkerUrl)
         analysisWorkerUrl = URL.createObjectURL(new Blob([makeAnalysisWorkerSource()], { type: 'text/javascript' }));
-      const worker = new Worker(analysisWorkerUrl, { name: `spokoyno-analysis-${slot + 1}` });
-      analysisWorkers.set(slot, { worker, cancel: null });
+      const worker = new Worker(analysisWorkerUrl, { name: `spokoyno-ml-${slot + 1}` });
+      analysisWorkers.set(slot, { worker, cancel: null, initialized: false });
     }
     return analysisWorkers.get(slot);
   }
 
   function stopAnalysisWorker(slot) {
     const entry = analysisWorkers.get(slot);
-    if (!entry) return;
-    analysisWorkers.delete(slot);
-    entry.worker.terminate();
-    entry.cancel?.();
+    if (entry) {
+      analysisWorkers.delete(slot);
+      entry.worker.terminate();
+      entry.cancel?.();
+    }
     if (!analysisWorkers.size && analysisWorkerUrl) {
       URL.revokeObjectURL(analysisWorkerUrl);
       analysisWorkerUrl = null;
     }
   }
 
-  async function analyzeDecodedAudio(buf, slot, isCurrent) {
+  async function analyzeAudioBuffer(buf, resources, isCurrent = () => true) {
+    // A single fallback model is shared; serialize its work to bound memory on
+    // browsers whose CSP blocks workers. It runs the same frozen ML pipeline.
+    const run = mainMLChain.then(async () => {
+      if (!isCurrent()) return null;
+      mainMLPromise ||= SpokoynoML.initialize(tf, resources).catch((error) => {
+        mainMLPromise = null;
+        throw error;
+      });
+      const model = await mainMLPromise;
+      if (!isCurrent()) return null;
+      await yieldMain();
+      const result = await model.score(
+        Array.from({ length: Math.min(2, buf.numberOfChannels) }, (_, i) => buf.getChannelData(i)),
+        buf.sampleRate
+      );
+      return isCurrent() ? result : null;
+    });
+    mainMLChain = run.catch(() => {});
+    return run;
+  }
+
+  async function analyzeDecodedAudio(buf, slot, isCurrent = () => true) {
     if (!isCurrent()) return null;
     if (!buf?.numberOfChannels || !buf.length) return { status: 'no-audio' };
+    let resources;
+    try {
+      resources = await loadMLResources();
+    } catch (error) {
+      return isCurrent() ? { status: 'model-error', message: String(error.message || error) } : null;
+    }
+    if (!isCurrent()) return null;
     try {
       const entry = getAnalysisWorker(slot);
       if (entry) {
-        // Transfer owned copies, not AudioBuffer storage: retain the original for
-        // a same-detector fallback if workers are blocked or fail to start.
-        const channels = Array.from({ length: buf.numberOfChannels }, (_, ch) => buf.getChannelData(ch).slice());
-        return await new Promise((resolve, reject) => {
+        const channels = Array.from({ length: Math.min(2, buf.numberOfChannels) }, (_, i) =>
+          buf.getChannelData(i).slice()
+        );
+        const result = await new Promise((resolve, reject) => {
           const worker = entry.worker;
           let settled = false;
-          const finish = (result, error) => {
+          const finish = (value, error) => {
             if (settled) return;
             settled = true;
             clearTimeout(timer);
             worker.onmessage = worker.onerror = worker.onmessageerror = null;
             entry.cancel = null;
             if (error) reject(error);
-            else resolve(result);
+            else resolve(value);
           };
-          const timer = setTimeout(() => finish(null, new Error('analysis worker timed out')), ANALYSIS_WORKER_TIMEOUT);
+          const timer = setTimeout(() => finish(null, new Error('ML worker timed out')), ANALYSIS_WORKER_TIMEOUT);
           entry.cancel = () => finish(null);
           worker.onmessage = ({ data }) =>
-            data?.result
-              ? finish(data.result)
-              : finish(null, new Error(data?.error || 'invalid analysis worker response'));
+            data?.result ? finish(data.result) : finish(null, new Error('invalid ML worker response'));
           worker.onerror = (event) => {
             event.preventDefault?.();
-            finish(null, new Error(event.message || 'analysis worker unavailable'));
+            finish(null, new Error(event.message || 'ML worker unavailable'));
           };
-          worker.onmessageerror = () => finish(null, new Error('analysis worker message failed'));
+          worker.onmessageerror = () => finish(null, new Error('ML worker message failed'));
           try {
             worker.postMessage(
-              { sampleRate: buf.sampleRate, channels },
-              channels.map((channel) => channel.buffer)
+              { sampleRate: buf.sampleRate, channels, resources: entry.initialized ? null : resources },
+              channels.map((c) => c.buffer)
             );
+            entry.initialized = true;
           } catch (error) {
             finish(null, error);
           }
         });
+        if (result?.status === 'model-error') stopAnalysisWorker(slot);
+        return isCurrent() ? result : null;
       }
     } catch (error) {
       stopAnalysisWorker(slot);
-      if (!analysisWorkers.size && analysisWorkerUrl) {
-        URL.revokeObjectURL(analysisWorkerUrl);
-        analysisWorkerUrl = null;
-      }
       analysisWorkersUnavailable = true;
-      console.warn('[spokoyno screamer] worker unavailable; using the same detector on the main thread:', error);
+      console.warn('[spokoyno ML] worker unavailable; using local main-thread ML:', error);
     }
-    return isCurrent() ? analyzeAudioBuffer(buf) : null;
+    try {
+      return await analyzeAudioBuffer(buf, resources, isCurrent);
+    } catch (error) {
+      return isCurrent() ? { status: 'model-error', message: String(error.message || error) } : null;
+    }
   }
 
   function queueScreamerAnalysis(url, key) {
@@ -2032,7 +1304,7 @@
       if (isCurrent() && result) publishScreamerResult(item.sk, result);
     } catch (e) {
       console.warn('[spokoyno screamer] analysis failed:', item.url, e);
-      if (isCurrent()) publishScreamerResult(item.sk, { status: 'decode-error' });
+      if (isCurrent()) publishScreamerResult(item.sk, { status: 'model-error', message: String(e.message || e) });
     } finally {
       if (analysisQueued.get(item.sk) === item) analysisQueued.delete(item.sk);
     }
@@ -2062,6 +1334,7 @@
 
   function resetAnalysisQueue() {
     analysisGeneration++;
+    mlResourcesPromise = null;
     analysisQueue.length = 0;
     analysisQueued.clear();
     for (const slot of analysisWorkers.keys()) stopAnalysisWorker(slot);
