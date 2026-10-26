@@ -8,6 +8,7 @@ import json
 from pathlib import Path
 
 import numpy as np
+from context_runtime import physical_features
 from extract_audio_context import Encoder, ensure_encoder, sha256
 from extract_features import RATE, read_audio
 from improve_events import training_key
@@ -24,10 +25,15 @@ def infer(samples, transform, models, encoder):
     embedded = np.concatenate(
         [encoder(patches[lo : lo + 96]) for lo in range(0, len(patches), 96)]
     ).reshape(-1, 3072)
-    x = prepare(transform, extracted["physical"], embedded)
+    physical, names = physical_features(extracted, embedded, transform)
+    if names != transform["names"]:
+        raise ValueError("live feature schema differs from model")
+    x = prepare(transform, physical, embedded)
+    extracted["embeddings"] = embedded
+    extracted["scoring_physical"] = physical
     result = {}
     for name, model in models.items():
-        dimensions = x.shape[1] if model["audio"] else len(extracted["names"])
+        dimensions = x.shape[1] if model["audio"] else len(names)
         p = window_probabilities(model, x[:, :dimensions])
         score = float(pool(p, np.zeros(len(p), int), 1, model["power"])[0][0])
         result[name] = {
@@ -84,6 +90,8 @@ def main():
                     data["records"], meta["training_indices"], model["augment"]
                 )
             ).tolist()
+            if not model.get("use_synthetic", True):
+                expected = [i for i in expected if data["records"][i]["kind"] == "real"]
             if model["training_records"] != expected:
                 raise ValueError(
                     "a synthetic parent or evaluation codec crossed a fold"
@@ -189,6 +197,12 @@ def main():
             shifted = extract(np.pad(samples, ((round(delay * RATE), 0), (0, 0))))
             np.testing.assert_array_equal(shifted["physical"], features["physical"])
             np.testing.assert_array_equal(shifted["patches"], features["patches"])
+            shifted_physical, _ = physical_features(
+                shifted, features["embeddings"], fits[clip["fold_thread"]][0]
+            )
+            np.testing.assert_array_equal(
+                shifted_physical, features["scoring_physical"]
+            )
             np.testing.assert_allclose(
                 [w["start_s"] + delay for w in features["windows"]],
                 [w["start_s"] for w in shifted["windows"]],

@@ -25,6 +25,7 @@ All analysis stays in the browser. Decode, cache, and download failures are disp
 - [Event-hybrid research, nested validation, and exploratory rules plus MIL](research/EVENT_RESEARCH_20261025.md)
 - [New acoustic features, synthetic training, and a stronger frozen candidate](research/ACOUSTIC_RESEARCH_20261025.md)
 - [Codec/delay augmentation, synthetic recordings, and production-runtime research](research/ROBUST_AUDIO_RESEARCH_20261026.md)
+- [Hard-negative training, 32 new sound-context features, and controlled comparisons](research/CONTEXT_RESEARCH_20261026.md)
 - [Versioned label policy](corpus/labels.json)
 
 The audio corpus and generated research artifacts are intentionally local. `corpus/audio/` contains 16 kHz WAV files, while `corpus/index.json` maps them to canonical media paths and hashes. Back up the entire ignored `corpus/` directory: expired imageboard media cannot necessarily be reconstructed from a fresh clone.

@@ -1,0 +1,570 @@
+{
+  "source_sha256": "e54fa88f340ce705e90b58b702f214e0aefe16a92072a445e8de443e346a96c3",
+  "data_sha256": "1ce733aed3a571be3ecc1a433d3ff9fb9f747f81ecf4ca2a2de3c915d1f6996b",
+  "fit_manifest_sha256": "ac91c31a6a7110a6616c0f21f17d435246b53e074df765a5eee2ea8a77c3a961",
+  "maximum_input_difference": 6.128431095930864e-14,
+  "models": {
+    "context-boost": {
+      "records": 25794,
+      "changed_records": 4,
+      "maximum_score_error": 0.0007772648548547423,
+      "tier_changes": 0,
+      "windows": [
+        {
+          "window": 70852,
+          "record": 5147,
+          "probability_before": 0.0033109746815981676,
+          "probability_after": 0.0027391642199595715,
+          "different_nodes": [
+            {
+              "feature": 102,
+              "training": -0.1420277853224476,
+              "inference": -0.14202778532244745,
+              "threshold": -0.1420277853224476
+            },
+            {
+              "feature": 102,
+              "training": -0.1420277853224476,
+              "inference": -0.14202778532244745,
+              "threshold": -0.1420277853224476
+            },
+            {
+              "feature": 102,
+              "training": -0.1420277853224476,
+              "inference": -0.14202778532244745,
+              "threshold": -0.1420277853224476
+            },
+            {
+              "feature": 102,
+              "training": -0.1420277853224476,
+              "inference": -0.14202778532244745,
+              "threshold": -0.1420277853224476
+            }
+          ]
+        },
+        {
+          "window": 98405,
+          "record": 7181,
+          "probability_before": 0.005124685794254928,
+          "probability_after": 0.005950040386130473,
+          "different_nodes": [
+            {
+              "feature": 104,
+              "training": 0.3589918125153051,
+              "inference": 0.358991812515306,
+              "threshold": 0.3589918125153051
+            },
+            {
+              "feature": 104,
+              "training": 0.3589918125153051,
+              "inference": 0.358991812515306,
+              "threshold": 0.3589918125153051
+            }
+          ]
+        },
+        {
+          "window": 148471,
+          "record": 10875,
+          "probability_before": 0.9836503100358924,
+          "probability_after": 0.9845378944652127,
+          "different_nodes": [
+            {
+              "feature": 100,
+              "training": -0.23382052581260748,
+              "inference": -0.23382052581260696,
+              "threshold": -0.23382052581260748
+            }
+          ]
+        },
+        {
+          "window": 153901,
+          "record": 11215,
+          "probability_before": 0.060047961068324524,
+          "probability_after": 0.0620114274995226,
+          "different_nodes": [
+            {
+              "feature": 104,
+              "training": 0.09367103512376852,
+              "inference": 0.0936710351237691,
+              "threshold": 0.09367103512376852
+            },
+            {
+              "feature": 104,
+              "training": 0.09367103512376852,
+              "inference": 0.0936710351237691,
+              "threshold": 0.09367103512376852
+            }
+          ]
+        }
+      ],
+      "changed_record_details": [
+        {
+          "record": 5147,
+          "kind": "real",
+          "split": "train",
+          "before": 0.0044025483485331945,
+          "after": 0.0044339732002611765
+        },
+        {
+          "record": 7181,
+          "kind": "real",
+          "split": "train",
+          "before": 0.00514302712833182,
+          "after": 0.005506954620683087
+        },
+        {
+          "record": 10875,
+          "kind": "real",
+          "split": "train",
+          "before": 0.9497185968528145,
+          "after": 0.9504958617076692
+        },
+        {
+          "record": 11215,
+          "kind": "real",
+          "split": "train",
+          "before": 0.1608536689176816,
+          "after": 0.16084059553111993
+        }
+      ]
+    },
+    "context-boost-control": {
+      "records": 25794,
+      "changed_records": 15,
+      "maximum_score_error": 0.00926015791283652,
+      "tier_changes": 0,
+      "windows": [
+        {
+          "window": 73200,
+          "record": 5338,
+          "probability_before": 0.007484437241424479,
+          "probability_after": 0.00721730925568981,
+          "different_nodes": [
+            {
+              "feature": 102,
+              "training": -0.05829617354341603,
+              "inference": -0.05829617354341595,
+              "threshold": -0.05829617354341603
+            }
+          ]
+        },
+        {
+          "window": 74658,
+          "record": 5452,
+          "probability_before": 0.8129946096410967,
+          "probability_after": 0.8047599601751466,
+          "different_nodes": [
+            {
+              "feature": 102,
+              "training": -0.14725798383840907,
+              "inference": -0.14725798383840896,
+              "threshold": -0.14725798383840907
+            }
+          ]
+        },
+        {
+          "window": 85053,
+          "record": 6233,
+          "probability_before": 0.9355293396321137,
+          "probability_after": 0.9418579427787218,
+          "different_nodes": [
+            {
+              "feature": 104,
+              "training": 0.2610823910085231,
+              "inference": 0.2610823910085242,
+              "threshold": 0.2610823910085231
+            }
+          ]
+        },
+        {
+          "window": 97560,
+          "record": 7120,
+          "probability_before": 0.9738205398604768,
+          "probability_after": 0.9724937012886791,
+          "different_nodes": [
+            {
+              "feature": 102,
+              "training": -0.14385721475112156,
+              "inference": -0.1438572147511215,
+              "threshold": -0.14385721475112156
+            }
+          ]
+        },
+        {
+          "window": 98979,
+          "record": 7227,
+          "probability_before": 0.016645946304648284,
+          "probability_after": 0.01279614168421775,
+          "different_nodes": [
+            {
+              "feature": 102,
+              "training": -0.16374546656043945,
+              "inference": -0.1637454665604393,
+              "threshold": -0.16374546656043945
+            },
+            {
+              "feature": 102,
+              "training": -0.16374546656043945,
+              "inference": -0.1637454665604393,
+              "threshold": -0.16374546656043945
+            },
+            {
+              "feature": 102,
+              "training": -0.16374546656043945,
+              "inference": -0.1637454665604393,
+              "threshold": -0.16374546656043945
+            },
+            {
+              "feature": 102,
+              "training": -0.16374546656043945,
+              "inference": -0.1637454665604393,
+              "threshold": -0.16374546656043945
+            },
+            {
+              "feature": 102,
+              "training": -0.16374546656043945,
+              "inference": -0.1637454665604393,
+              "threshold": -0.16374546656043945
+            },
+            {
+              "feature": 102,
+              "training": -0.16374546656043945,
+              "inference": -0.1637454665604393,
+              "threshold": -0.16374546656043945
+            }
+          ]
+        },
+        {
+          "window": 100371,
+          "record": 7333,
+          "probability_before": 0.00464012558128189,
+          "probability_after": 0.0049045006712036265,
+          "different_nodes": [
+            {
+              "feature": 100,
+              "training": -0.2428584894737113,
+              "inference": -0.24285848947371078,
+              "threshold": -0.2428584894737113
+            }
+          ]
+        },
+        {
+          "window": 108980,
+          "record": 7983,
+          "probability_before": 0.009180868351800472,
+          "probability_after": 0.009482730853531861,
+          "different_nodes": [
+            {
+              "feature": 100,
+              "training": -0.2631318533201693,
+              "inference": -0.2631318533201683,
+              "threshold": -0.2631318533201693
+            }
+          ]
+        },
+        {
+          "window": 115987,
+          "record": 8499,
+          "probability_before": 0.021211656851815076,
+          "probability_after": 0.01801530048194357,
+          "different_nodes": [
+            {
+              "feature": 102,
+              "training": 0.009285597450423946,
+              "inference": 0.00928559745042405,
+              "threshold": 0.009285597450423946
+            },
+            {
+              "feature": 102,
+              "training": 0.009285597450423946,
+              "inference": 0.00928559745042405,
+              "threshold": 0.009285597450423946
+            },
+            {
+              "feature": 102,
+              "training": 0.009285597450423946,
+              "inference": 0.00928559745042405,
+              "threshold": 0.009285597450423946
+            }
+          ]
+        },
+        {
+          "window": 138130,
+          "record": 10166,
+          "probability_before": 0.992664656587103,
+          "probability_after": 0.9922511076011786,
+          "different_nodes": [
+            {
+              "feature": 103,
+              "training": 0.4238073045112996,
+              "inference": 0.4238073045112998,
+              "threshold": 0.4238073045112996
+            }
+          ]
+        },
+        {
+          "window": 154330,
+          "record": 11247,
+          "probability_before": 0.0020511686659597816,
+          "probability_after": 0.0021772055460871726,
+          "different_nodes": [
+            {
+              "feature": 100,
+              "training": -0.23587943775285689,
+              "inference": -0.23587943775285594,
+              "threshold": -0.23587943775285689
+            }
+          ]
+        },
+        {
+          "window": 164230,
+          "record": 12022,
+          "probability_before": 0.9942366572500981,
+          "probability_after": 0.9940866905604743,
+          "different_nodes": [
+            {
+              "feature": 102,
+              "training": 0.019306914314623544,
+              "inference": 0.019306914314623558,
+              "threshold": 0.019306914314623544
+            },
+            {
+              "feature": 102,
+              "training": 0.019306914314623544,
+              "inference": 0.019306914314623558,
+              "threshold": 0.019306914314623544
+            },
+            {
+              "feature": 102,
+              "training": 0.019306914314623544,
+              "inference": 0.019306914314623558,
+              "threshold": 0.019306914314623544
+            },
+            {
+              "feature": 102,
+              "training": 0.019306914314623544,
+              "inference": 0.019306914314623558,
+              "threshold": 0.019306914314623544
+            },
+            {
+              "feature": 102,
+              "training": 0.019306914314623544,
+              "inference": 0.019306914314623558,
+              "threshold": 0.019306914314623544
+            },
+            {
+              "feature": 102,
+              "training": 0.019306914314623544,
+              "inference": 0.019306914314623558,
+              "threshold": 0.019306914314623544
+            }
+          ]
+        },
+        {
+          "window": 170643,
+          "record": 12532,
+          "probability_before": 0.9859050047234788,
+          "probability_after": 0.9863995386123681,
+          "different_nodes": [
+            {
+              "feature": 104,
+              "training": 0.10072090995444442,
+              "inference": 0.10072090995444469,
+              "threshold": 0.10072090995444442
+            }
+          ]
+        },
+        {
+          "window": 171193,
+          "record": 12575,
+          "probability_before": 0.0050124959961876025,
+          "probability_after": 0.005222680910469251,
+          "different_nodes": [
+            {
+              "feature": 107,
+              "training": -0.48875693864969255,
+              "inference": -0.48875693864969205,
+              "threshold": -0.48875693864969255
+            },
+            {
+              "feature": 107,
+              "training": -0.48875693864969255,
+              "inference": -0.48875693864969205,
+              "threshold": -0.48875693864969255
+            }
+          ]
+        },
+        {
+          "window": 199610,
+          "record": 14842,
+          "probability_before": 0.648422343644321,
+          "probability_after": 0.639162187530717,
+          "different_nodes": [
+            {
+              "feature": 102,
+              "training": -0.1250208183740529,
+              "inference": -0.12502081837405277,
+              "threshold": -0.1250208183740529
+            }
+          ]
+        },
+        {
+          "window": 201757,
+          "record": 15014,
+          "probability_before": 0.005797922355582699,
+          "probability_after": 0.006064873026855039,
+          "different_nodes": [
+            {
+              "feature": 104,
+              "training": 0.7645779318630143,
+              "inference": 0.7645779318630146,
+              "threshold": 0.7645779318630143
+            }
+          ]
+        },
+        {
+          "window": 201768,
+          "record": 15015,
+          "probability_before": 0.005850969843714224,
+          "probability_after": 0.006120347916671688,
+          "different_nodes": [
+            {
+              "feature": 104,
+              "training": 0.7645779318630143,
+              "inference": 0.7645779318630146,
+              "threshold": 0.7645779318630143
+            }
+          ]
+        },
+        {
+          "window": 204481,
+          "record": 15231,
+          "probability_before": 0.03229406149189266,
+          "probability_after": 0.03687450760997309,
+          "different_nodes": [
+            {
+              "feature": 104,
+              "training": 0.05921923876003407,
+              "inference": 0.05921923876003442,
+              "threshold": 0.05921923876003407
+            },
+            {
+              "feature": 104,
+              "training": 0.05921923876003407,
+              "inference": 0.05921923876003442,
+              "threshold": 0.05921923876003407
+            }
+          ]
+        }
+      ],
+      "changed_record_details": [
+        {
+          "record": 5452,
+          "kind": "real",
+          "split": "train",
+          "before": 0.9024451866069156,
+          "after": 0.902327422929909
+        },
+        {
+          "record": 6233,
+          "kind": "real",
+          "split": "train",
+          "before": 0.9793557606952544,
+          "after": 0.9796097438596417
+        },
+        {
+          "record": 7120,
+          "kind": "real",
+          "split": "train",
+          "before": 0.907002865023663,
+          "after": 0.9061675325132128
+        },
+        {
+          "record": 7227,
+          "kind": "real",
+          "split": "train",
+          "before": 0.016514460504794094,
+          "after": 0.012370919955212879
+        },
+        {
+          "record": 7333,
+          "kind": "real",
+          "split": "train",
+          "before": 0.004312018799113524,
+          "after": 0.004472278735281784
+        },
+        {
+          "record": 7983,
+          "kind": "real",
+          "split": "train",
+          "before": 0.008988649719466573,
+          "after": 0.009315955593754078
+        },
+        {
+          "record": 8499,
+          "kind": "real",
+          "split": "train",
+          "before": 0.08638580300343657,
+          "after": 0.0863881361556392
+        },
+        {
+          "record": 10166,
+          "kind": "real",
+          "split": "train",
+          "before": 0.9233515476642006,
+          "after": 0.9232484288207781
+        },
+        {
+          "record": 11247,
+          "kind": "real",
+          "split": "train",
+          "before": 0.004146008152277238,
+          "after": 0.004144191298061488
+        },
+        {
+          "record": 12022,
+          "kind": "synthetic",
+          "split": "train",
+          "before": 0.9921181361131692,
+          "after": 0.992079537821472
+        },
+        {
+          "record": 12532,
+          "kind": "synthetic",
+          "split": "train",
+          "before": 0.979705054042504,
+          "after": 0.9798868053373723
+        },
+        {
+          "record": 12575,
+          "kind": "synthetic",
+          "split": "train",
+          "before": 0.004750352389279337,
+          "after": 0.00499754327991103
+        },
+        {
+          "record": 14842,
+          "kind": "synthetic",
+          "split": "train",
+          "before": 0.6484223233571673,
+          "after": 0.6391621654443308
+        },
+        {
+          "record": 15015,
+          "kind": "synthetic",
+          "split": "train",
+          "before": 0.011974810944889334,
+          "after": 0.01196340656889903
+        },
+        {
+          "record": 15231,
+          "kind": "synthetic",
+          "split": "train",
+          "before": 0.0316302935021246,
+          "after": 0.03546467907566959
+        }
+      ]
+    }
+  },
+  "interpretation": "PCA matrix-operation ordering introduces roundoff. A few exact tree-threshold ties change branches. This diagnostic does not relax export checks or change fitted models, labels, thresholds, or held-out results."
+}

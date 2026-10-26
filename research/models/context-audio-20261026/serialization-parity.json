@@ -1,0 +1,9 @@
+{
+  "records": 25794,
+  "maximum_absolute_error": {
+    "context-hybrid": 1.2490009027033011e-15,
+    "context-softmax": 9.992007221626409e-16,
+    "context-real-augmentation": 1.7208456881689926e-15,
+    "boundary-control": 9.992007221626409e-16
+  }
+}

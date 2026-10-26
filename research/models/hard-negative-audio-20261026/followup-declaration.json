@@ -1,0 +1,50 @@
+{
+  "created_at": "2026-10-26T08:47:23.057167+00:00",
+  "entry_sha256": "09ee025a46741b161a4f20cb7233978d5548c311f0dd1388e13bc0eceebf4ae1",
+  "trainer_sha256": "065a1476f68bd01e08fe41decf58b7ef6d759346d0028eb78b606c7061a4d170",
+  "seed_run": "research/artifacts/codec-stable-study-20261026",
+  "primary": "hard-negative-mixed",
+  "candidates": {
+    "hard-negative-mixed": {
+      "audio": false,
+      "augment": true,
+      "power": 8,
+      "consistency": 0,
+      "leaves": 7,
+      "depth": 3,
+      "l2": 10.0,
+      "min_leaf": 30,
+      "rounds": 3,
+      "hard_mass": 0.75,
+      "hard_count": 3
+    },
+    "hard-negative-max": {
+      "audio": false,
+      "augment": true,
+      "power": 8,
+      "consistency": 0,
+      "leaves": 7,
+      "depth": 3,
+      "l2": 10.0,
+      "min_leaf": 30,
+      "rounds": 3,
+      "hard_mass": 1.0,
+      "hard_count": 1
+    },
+    "all-window-control": {
+      "audio": false,
+      "augment": true,
+      "power": 8,
+      "consistency": 0,
+      "leaves": 7,
+      "depth": 3,
+      "l2": 10.0,
+      "min_leaf": 30,
+      "rounds": 3,
+      "hard_mass": 0.0,
+      "hard_count": 1
+    }
+  },
+  "protocol": "Same bounded input, proposals, parent exclusions, source weights, no clipping feature, and 120-iteration small boosting heads as the previous tree run. All configurations use exactly three MIL rounds. Negative source weight is either uniform, 75% on top three events plus 25% uniform, or entirely on the top event. Mining uses training events only; unknown evaluation labels and evaluation codecs are excluded.",
+  "limitations": "Adaptive research after the first robust-model study; not new independent validation. Candidate budget and hyperparameters fixed before these fits."
+}

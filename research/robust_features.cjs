@@ -411,7 +411,14 @@
         }
     }
     const names = Object.keys(rows[0]).sort();
-    return { names, physical: rows.map((r) => names.map((n) => r[n])), windows, patches, silent };
+    return {
+      names,
+      physical: rows.map((r) => names.map((n) => r[n])),
+      windows,
+      patches,
+      silent,
+      contentPositions: points.map((point) => (point - 120) * 0.05)
+    };
   }
   if (typeof module !== 'undefined') module.exports = { extract, canonical, percentile, proposals };
   else globalThis.SpokoynoFeatures = { extract, canonical, percentile, proposals };

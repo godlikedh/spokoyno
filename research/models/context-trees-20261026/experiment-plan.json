@@ -1,0 +1,108 @@
+{
+  "created_at": "2026-10-26T09:10:11.669582+00:00",
+  "source_sha256": "065a1476f68bd01e08fe41decf58b7ef6d759346d0028eb78b606c7061a4d170",
+  "dataset_sha256": "1ce733aed3a571be3ecc1a433d3ff9fb9f747f81ecf4ca2a2de3c915d1f6996b",
+  "split_plan_sha256": "a677a10d39f8430bb95f895410e80e97f36168379804916dd80f050fc6bfea86",
+  "candidates": {
+    "context-boost": {
+      "audio": true,
+      "augment": true,
+      "power": 8,
+      "consistency": 0,
+      "leaves": 7,
+      "depth": 3,
+      "l2": 10.0,
+      "min_leaf": 30,
+      "rounds": 3,
+      "hard_mass": 0.75,
+      "hard_count": 3,
+      "context": true
+    },
+    "context-boost-control": {
+      "audio": true,
+      "augment": true,
+      "power": 8,
+      "consistency": 0,
+      "leaves": 7,
+      "depth": 3,
+      "l2": 10.0,
+      "min_leaf": 30,
+      "rounds": 3,
+      "hard_mass": 0.75,
+      "hard_count": 3,
+      "context": false
+    }
+  },
+  "primary": "context-boost",
+  "selection": "At fixed .6/.8, preserve every primary-caught inner positive in original and worst training-codec view; minimize total red negative counts across those views, then any-warning counts, then declaration order. Never use evaluation-only codec profiles.",
+  "limitations": "No derivative is a new independent example. Development corpus informed earlier research. Known families only. This run cannot establish absence of overfitting without new original recordings.",
+  "complete_plan_sha256": "04528afeb70e7fa71feb1dac61d2fe6289f03fd574b2f2e14c7e46477bd5fd2f",
+  "folds": [
+    {
+      "thread": "336185346",
+      "train_sources": 2959,
+      "test_sources": 537,
+      "inner_folds": 10
+    },
+    {
+      "thread": "336243339",
+      "train_sources": 3494,
+      "test_sources": 2,
+      "inner_folds": 10
+    },
+    {
+      "thread": "336272252",
+      "train_sources": 3156,
+      "test_sources": 335,
+      "inner_folds": 10
+    },
+    {
+      "thread": "336291305",
+      "train_sources": 3157,
+      "test_sources": 317,
+      "inner_folds": 10
+    },
+    {
+      "thread": "336466927",
+      "train_sources": 3110,
+      "test_sources": 340,
+      "inner_folds": 10
+    },
+    {
+      "thread": "336603044",
+      "train_sources": 3054,
+      "test_sources": 412,
+      "inner_folds": 10
+    },
+    {
+      "thread": "336679639",
+      "train_sources": 3227,
+      "test_sources": 260,
+      "inner_folds": 10
+    },
+    {
+      "thread": "336723954",
+      "train_sources": 2768,
+      "test_sources": 683,
+      "inner_folds": 10
+    },
+    {
+      "thread": "336991612",
+      "train_sources": 3207,
+      "test_sources": 214,
+      "inner_folds": 10
+    },
+    {
+      "thread": "337355133",
+      "train_sources": 3345,
+      "test_sources": 110,
+      "inner_folds": 10
+    },
+    {
+      "thread": "337690329",
+      "train_sources": 3186,
+      "test_sources": 286,
+      "inner_folds": 10
+    }
+  ]
+}

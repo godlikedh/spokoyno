@@ -1,0 +1,250 @@
+{
+  "fixtures": 27,
+  "maximum_score_error": 1.1102230246251565e-16,
+  "execution": "Node JavaScript on preserved browser PCM; this check does not launch a browser",
+  "results": [
+    {
+      "file": "17929233629432480892.mp4",
+      "milliseconds": 426.654542,
+      "predictions": {
+        "hard-negative-mixed": 0.9516138931407324,
+        "hard-negative-max": 0.9418253569917641,
+        "all-window-control": 0.9828909965431234
+      }
+    },
+    {
+      "file": "17929235424520630151.webm",
+      "milliseconds": 550.1455840000001,
+      "predictions": {
+        "hard-negative-mixed": 0.6965072303228398,
+        "hard-negative-max": 0.8081712429772858,
+        "all-window-control": 0.9161934943752683
+      }
+    },
+    {
+      "file": "17929246374352604972.mp4",
+      "milliseconds": 218.3878749999999,
+      "predictions": {
+        "hard-negative-mixed": 0.15276145013673356,
+        "hard-negative-max": 0.16268746488789,
+        "all-window-control": 0.3026202118987912
+      }
+    },
+    {
+      "file": "17929253560550736111.mp4",
+      "milliseconds": 550.9330829999999,
+      "predictions": {
+        "hard-negative-mixed": 0.6822969580491482,
+        "hard-negative-max": 0.6805632671860881,
+        "all-window-control": 0.8631536318810465
+      }
+    },
+    {
+      "file": "17929258136773388913.webm",
+      "milliseconds": 822.3547920000001,
+      "predictions": {
+        "hard-negative-mixed": 0.9443718368959872,
+        "hard-negative-max": 0.9505648381798644,
+        "all-window-control": 0.9807843575544042
+      }
+    },
+    {
+      "file": "17929289055560894598.webm",
+      "milliseconds": 725.0657919999999,
+      "predictions": {
+        "hard-negative-mixed": 0.7992010027053497,
+        "hard-negative-max": 0.8401624198779187,
+        "all-window-control": 0.9051483534343112
+      }
+    },
+    {
+      "file": "17929291025992177046.webm",
+      "milliseconds": 369.3314999999998,
+      "predictions": {
+        "hard-negative-mixed": 0.2899115809835033,
+        "hard-negative-max": 0.27317802374480593,
+        "all-window-control": 0.5310933698935618
+      }
+    },
+    {
+      "file": "17929309020131362624.webm",
+      "milliseconds": 890.7117910000002,
+      "predictions": {
+        "hard-negative-mixed": 0.9744073730392069,
+        "hard-negative-max": 0.9516182569707671,
+        "all-window-control": 0.980344065332143
+      }
+    },
+    {
+      "file": "17929312599970679631.webm",
+      "milliseconds": 1480.1178339999997,
+      "predictions": {
+        "hard-negative-mixed": 0.6708391459963322,
+        "hard-negative-max": 0.6315858644830804,
+        "all-window-control": 0.9110770574657423
+      }
+    },
+    {
+      "file": "17929312600881938742.webm",
+      "milliseconds": 1204.8663750000005,
+      "predictions": {
+        "hard-negative-mixed": 0.4051137144638078,
+        "hard-negative-max": 0.35632627105637493,
+        "all-window-control": 0.8306528175339418
+      }
+    },
+    {
+      "file": "17929312601933009367.webm",
+      "milliseconds": 255.96308299999964,
+      "predictions": {
+        "hard-negative-mixed": 0.9813472361544486,
+        "hard-negative-max": 0.948476207625458,
+        "all-window-control": 0.9874484459585763
+      }
+    },
+    {
+      "file": "17929314749450126327.webm",
+      "milliseconds": 339.0967500000006,
+      "predictions": {
+        "hard-negative-mixed": 0.9754790855634009,
+        "hard-negative-max": 0.948659383155357,
+        "all-window-control": 0.9790690925474255
+      }
+    },
+    {
+      "file": "17929314751662663260.webm",
+      "milliseconds": 614.5413750000007,
+      "predictions": {
+        "hard-negative-mixed": 0.9134206183238283,
+        "hard-negative-max": 0.7173405374979394,
+        "all-window-control": 0.9871507635532999
+      }
+    },
+    {
+      "file": "17929323417171926603.webm",
+      "milliseconds": 262.357958999999,
+      "predictions": {
+        "hard-negative-mixed": 0.9880591235073853,
+        "hard-negative-max": 0.9824317468389937,
+        "all-window-control": 0.9954358258189908
+      }
+    },
+    {
+      "file": "17929369520563549638.mp4",
+      "milliseconds": 243.4242919999997,
+      "predictions": {
+        "hard-negative-mixed": 0.20309243555205592,
+        "hard-negative-max": 0.14246267776355423,
+        "all-window-control": 0.44886016977513904
+      }
+    },
+    {
+      "file": "17929377550172852142.mp4",
+      "milliseconds": 171.87695899999926,
+      "predictions": {
+        "hard-negative-mixed": 0.928385677553591,
+        "hard-negative-max": 0.9098753299500573,
+        "all-window-control": 0.9406492686873039
+      }
+    },
+    {
+      "file": "17885426225650373621.mp4",
+      "milliseconds": 233.40287499999977,
+      "predictions": {
+        "hard-negative-mixed": 0.21213932052519122,
+        "hard-negative-max": 0.21577247800149596,
+        "all-window-control": 0.4525971717334221
+      }
+    },
+    {
+      "file": "17929388634960411428.mp4",
+      "milliseconds": 599.4662500000013,
+      "predictions": {
+        "hard-negative-mixed": 0.7425199134181433,
+        "hard-negative-max": 0.7903923215638488,
+        "all-window-control": 0.9260478273838592
+      }
+    },
+    {
+      "file": "17929395998260540420.mp4",
+      "milliseconds": 413.6241660000014,
+      "predictions": {
+        "hard-negative-mixed": 0.10963243895792328,
+        "hard-negative-max": 0.12251267450846737,
+        "all-window-control": 0.3340956143045579
+      }
+    },
+    {
+      "file": "17894991604970318432.mp4",
+      "milliseconds": 383.96983399999954,
+      "predictions": {
+        "hard-negative-mixed": 0.13091173947799287,
+        "hard-negative-max": 0.1382327988068271,
+        "all-window-control": 0.24940220446078484
+      }
+    },
+    {
+      "file": "17929441862380303154.webm",
+      "milliseconds": 416.83795800000007,
+      "predictions": {
+        "hard-negative-mixed": 0.6870460761032587,
+        "hard-negative-max": 0.4962171814979523,
+        "all-window-control": 0.8706108168828153
+      }
+    },
+    {
+      "file": "17929471544543809082.mp4",
+      "milliseconds": 259.8518330000006,
+      "predictions": {
+        "hard-negative-mixed": 0.3025221184795096,
+        "hard-negative-max": 0.2677173727868686,
+        "all-window-control": 0.714766964886375
+      }
+    },
+    {
+      "file": "17929480884480367074.webm",
+      "milliseconds": 284.34141700000146,
+      "predictions": {
+        "hard-negative-mixed": 0.9717005122569593,
+        "hard-negative-max": 0.9636587003315827,
+        "all-window-control": 0.988105003399777
+      }
+    },
+    {
+      "file": "17929484944890327872.webm",
+      "milliseconds": 243.89841700000034,
+      "predictions": {
+        "hard-negative-mixed": 0.7905786975085322,
+        "hard-negative-max": 0.5930575626394466,
+        "all-window-control": 0.8351146635317547
+      }
+    },
+    {
+      "file": "17929498438732758260.mp4",
+      "milliseconds": 146.55054199999904,
+      "predictions": {
+        "hard-negative-mixed": 0.6507991561298836,
+        "hard-negative-max": 0.7802844867408605,
+        "all-window-control": 0.8337153987472311
+      }
+    },
+    {
+      "file": "17929502589060439332.mp4",
+      "milliseconds": 216.36724999999933,
+      "predictions": {
+        "hard-negative-mixed": 0.9758338134412777,
+        "hard-negative-max": 0.9733892001779049,
+        "all-window-control": 0.9893697435276593
+      }
+    },
+    {
+      "file": "17929508924060208542.webm",
+      "milliseconds": 467.0588750000006,
+      "predictions": {
+        "hard-negative-mixed": 0.9094487992928313,
+        "hard-negative-max": 0.8827853541823006,
+        "all-window-control": 0.9584786983019843
+      }
+    }
+  ]
+}
