@@ -32,6 +32,7 @@ All analysis stays in the browser. Decode, cache, and download failures are disp
 - [Hard-negative training, 32 new sound-context features, and controlled comparisons](research/CONTEXT_RESEARCH_20261026.md)
 - [Browser ML release, numerical parity, and installation verification](research/BROWSER_ML_RELEASE_20261026.md)
 - [Model download recovery and bundled-runtime fix (6.0.1)](research/BROWSER_MODEL_DELIVERY_20261027.md)
+- [New reviewed thread and frozen production ML scores (2026-10-27)](research/reviews/337727796.md)
 - [Versioned label policy](corpus/labels.json)
 
 The audio corpus and generated research artifacts are intentionally local. `corpus/audio/` contains 16 kHz WAV files, while `corpus/index.json` maps them to canonical media paths and hashes. Back up the entire ignored `corpus/` directory: expired imageboard media cannot necessarily be reconstructed from a fresh clone.
