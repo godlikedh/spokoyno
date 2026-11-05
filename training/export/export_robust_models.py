@@ -1,0 +1,124 @@
+#!/usr/bin/env python3
+"""Export the completed, audited experiment as non-executable JSON snapshots."""
+
+import argparse
+import json
+import shutil
+from pathlib import Path
+
+import numpy as np
+
+from training.models.robust_tree import window_probabilities
+from training.models.train_robust_models import load_data, pool, prepare
+from training.paths import corpus_path, source_path
+from training.storage import atomic_json, sha256
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--data-dir", type=Path, required=True)
+    parser.add_argument("--run", type=Path, required=True)
+    parser.add_argument("--audit", type=Path, help=argparse.SUPPRESS)
+    parser.add_argument("--output-dir", type=Path, required=True)
+    args = parser.parse_args()
+    args.output_dir.mkdir(parents=True, exist_ok=False)
+    data = load_data(args.data_dir)
+    results = json.loads((args.run / "results.json").read_text())
+    fit = args.run / "fits" / results["final_fit_key"]
+    meta = json.loads((fit / "manifest.json").read_text())
+    for name, expected in meta["files"].items():
+        if sha256(fit / name) != expected:
+            raise ValueError("final fit was changed")
+    transform = json.loads((fit / "transform.json").read_text())
+    original_models = json.loads((fit / "models.json").read_text())
+    models = {
+        name: {k: v for k, v in model.items() if k != "training_records"}
+        for name, model in original_models.items()
+    }
+    atomic_json(args.output_dir / "transform.json", transform)
+    atomic_json(args.output_dir / "models.json", models)
+    # Re-read the published files, rather than checking in-memory fit objects.
+    transform = json.loads((args.output_dir / "transform.json").read_text())
+    models = json.loads((args.output_dir / "models.json").read_text())
+    scores, errors = {}, {}
+    with np.load(fit / "scores.npz", allow_pickle=False) as expected:
+        for name, model in models.items():
+            probabilities = np.empty(len(data["owners"]))
+            for lo in range(0, len(probabilities), 4096):
+                sl = slice(lo, lo + 4096)
+                x = prepare(
+                    transform,
+                    data["physical"][sl],
+                    data["audio"][sl] if model["audio"] else None,
+                )
+                probabilities[sl] = window_probabilities(model, x)
+            scores[name] = pool(
+                probabilities, data["owners"], len(data["records"]), model["power"]
+            )[0]
+            errors[name] = float(np.max(np.abs(scores[name] - expected[name])))
+            if errors[name] > 1e-10:
+                raise ValueError(f"published model does not reproduce scores: {name}")
+    atomic_json(
+        args.output_dir / "evaluation.json",
+        {
+            key: results[key]
+            for key in (
+                "metrics",
+                "final_model",
+                "final_fit_key",
+            )
+        },
+    )
+    extra_sources = ()
+    if "context_features" in data:
+        extra_sources = ("context_features.py", "context_runtime.py")
+        context = data["context_features"]
+        if (
+            sha256(source_path("context_features.py"))
+            != context["feature_source_sha256"]
+        ):
+            raise ValueError("context extractor changed after matrix generation")
+        shutil.copyfile(
+            Path(context["head_directory"]) / "LICENSE", args.output_dir / "LICENSE"
+        )
+    manifest = {
+        "schema": 1,
+        "status": "research-only; within-experiment model selection is not production promotion",
+        "default_model": results["final_model"],
+        "thresholds": {"maybe": 0.6, "alert": 0.8},
+        "encoder": data["encoder"]["encoder"],
+        "feature_count": len(data["names"]),
+        "original_training_sources": len(meta["training_indices"]),
+        "training_hashes": meta["training_hashes"],
+        "dataset_sha256": sha256(args.data_dir / "manifest.json"),
+        "full_results_sha256": sha256(args.run / "results.json"),
+        "reload_maximum_score_error": errors,
+        "human_labels_sha256": sha256(corpus_path("labels.json")),
+        "human_intervals_sha256": sha256(corpus_path("events.json")),
+        "extractor_sha256": {
+            name: sha256(source_path(name))
+            for name in (
+                "robust_audio.py",
+                "acoustic_features.py",
+                "extract_features.py",
+                "extract_audio_context.py",
+                "train_robust_models.py",
+                "robust_tree.py",
+            )
+            + extra_sources
+        },
+        "files": {
+            p.name: sha256(p) for p in sorted(args.output_dir.iterdir()) if p.is_file()
+        },
+        "limitations": "Scores are not probabilities. The development corpus has been used in prior research. Synthetic and codec copies do not increase the number of independent positives. Nested source/thread exclusions reduce leakage but cannot establish performance on future threads. Published final models have seen current labels; use held-out predictions for corpus accuracy.",
+    }
+    atomic_json(args.output_dir / "manifest.json", manifest)
+    print(
+        json.dumps(
+            {"default_model": manifest["default_model"], "parity": errors}, indent=2
+        )
+    )
+
+
+if __name__ == "__main__":
+    main()
