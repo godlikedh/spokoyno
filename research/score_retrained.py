@@ -76,17 +76,12 @@ def publish(source: Path, output: Path) -> None:
         }
     experiment_summaries = []
     for result in results["experiments"]:
-        # Keep every positive held-out result inspectable in Git. Full per-group
-        # predictions and all fold models remain in the immutable local run.
-        compact = {k: v for k, v in result.items() if not k.endswith("predictions")}
-        compact["held_out_positive_predictions"] = [
-            r for r in result["held_out_predictions"] if r["label"] == "positive"
-        ]
-        compact["latest_thread_positive_predictions"] = [
-            r
-            for r in result["latest_thread_excluded_predictions"]
-            if r["label"] == "positive"
-        ]
+        # Publish aggregate results; per-record predictions and fold fits are local.
+        compact = {
+            k: v
+            for k, v in result.items()
+            if not k.endswith("predictions") and k != "folds"
+        }
         compact["final_model_manifest"] = artifacts[result["name"]]["manifest"]
         experiment_summaries.append(compact)
     atomic_json(
@@ -97,17 +92,6 @@ def publish(source: Path, output: Path) -> None:
             "source_results_sha256": sha256(source / "results.json"),
             "source_run": str(source),
             "source_plan_sha256": sha256(source / "plan.json"),
-            "plan": results["plan"]
-            | {
-                "folds": [
-                    {
-                        "thread": f["thread"],
-                        "train_groups": len(f["train"]),
-                        "test_groups": len(f["test"]),
-                    }
-                    for f in results["plan"]["folds"]
-                ]
-            },
             "models": artifacts,
             "experiments": experiment_summaries,
             "warning": "Published research snapshots, not browser promotion. Joblib files are executable pickle; only load artifacts from a trusted source. Fold choice/model comparison used this development corpus; future evaluation required.",

@@ -7,6 +7,7 @@ import unittest
 from pathlib import Path
 
 import numpy as np
+from acoustic_artifacts import load_snapshot
 from acoustic_features import modulation
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -26,6 +27,19 @@ def javascript(script, payload):
 
 
 class BrowserMLTests(unittest.TestCase):
+    def test_release_model_matches_retained_training_snapshot(self):
+        snapshot = ROOT / "research/models/acoustic-mil-20261025"
+        manifest, models = load_snapshot(snapshot)
+        released = json.loads((ROOT / "ml/assets/model.json").read_text())
+        self.assertEqual(released["model"], models[released["name"]])
+        self.assertIn(
+            released["snapshot_sha256"],
+            {
+                hashlib.sha256((snapshot / "manifest.json").read_bytes()).hexdigest(),
+                manifest.get("original_manifest_sha256"),
+            },
+        )
+
     def test_release_resources_match_sources_and_manifest(self):
         assets = ROOT / "ml/assets"
         manifest = json.loads((assets / "manifest.json").read_text())

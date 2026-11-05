@@ -1,13 +1,33 @@
 """Source-level weighting, evaluation isolation, and analytic objective checks."""
 
 import unittest
+from pathlib import Path
 
 import numpy as np
+from robust_detector import load_snapshot
 from scipy.optimize import check_grad
 from train_robust_models import eligible_records, group_weights, objective, pool
 
 
 class RobustTrainingTests(unittest.TestCase):
+    def test_published_snapshots_load_without_training_evidence(self):
+        root = Path(__file__).resolve().parent / "models"
+        for name in (
+            "robust-audio-20261026",
+            "codec-stable-audio-20261026",
+            "robust-trees-20261026",
+            "hard-negative-audio-20261026",
+            "context-audio-20261026",
+        ):
+            with self.subTest(snapshot=name):
+                manifest, transform, models = load_snapshot(root / name)
+                self.assertIn(manifest["default_model"], models)
+                self.assertTrue(transform)
+                self.assertTrue(
+                    set(manifest["files"])
+                    <= {"models.json", "transform.json", "evaluation.json", "LICENSE"}
+                )
+
     def test_evaluation_profiles_and_every_parent_are_excluded(self):
         rows = [
             {"split": "base", "label": "positive", "parents": [1]},

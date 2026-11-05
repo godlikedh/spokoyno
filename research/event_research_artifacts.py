@@ -31,15 +31,10 @@ def load_fit(directory):
 
 
 def compact_results(result):
-    return {key: value for key, value in result.items() if key != "predictions"} | {
-        "held_out_positives": {
-            name: [r for r in rows if r["label"] == "positive"]
-            for name, rows in result["predictions"].items()
-        },
-        "held_out_false_alerts": {
-            name: [r for r in rows if r["label"] == "negative" and r["score"] >= 0.8]
-            for name, rows in result["predictions"].items()
-        },
+    return {
+        key: value
+        for key, value in result.items()
+        if key not in ("predictions", "folds", "selection_decisions")
     }
 
 
@@ -47,7 +42,7 @@ def publish(round_one, round_two, output):
     if output.exists():
         raise ValueError("refusing to overwrite snapshot")
     data = load_inputs()
-    runs, plans, results, models, manifests = [], [], [], {}, []
+    runs, results, models, manifests = [], [], {}, []
     for run in (round_one, round_two):
         plan = json.loads((run / "plan.json").read_text())
         result = json.loads((run / "results.json").read_text())
@@ -69,7 +64,6 @@ def publish(round_one, round_two, output):
                     atol=1e-12,
                 )
         models.update(loaded)
-        plans.append({k: v for k, v in plan.items() if k != "folds"})
         results.append(compact_results(result))
         manifests.append(spec)
         runs.append(
@@ -126,7 +120,7 @@ def publish(round_one, round_two, output):
     atomic_json(output / "manifest.json", manifest)
     atomic_json(
         output / "results-summary.json",
-        {"schema": 1, "status": "shadow-only", "plans": plans, "rounds": results},
+        {"schema": 1, "status": "shadow-only", "rounds": results},
     )
     print(f"published {len(models)} frozen research models to {output}")
 

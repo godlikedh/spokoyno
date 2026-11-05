@@ -3537,17 +3537,11 @@
     "robust_tree.py": "a2be3788c7518c8459c57b843679f4423bd132eae56613dcf06325de1843464c"
   },
   "files": {
-    "audit.json": "f39f9e68a205cfc61f32830195d33717b5c4b8cb210b3da501e9da604a2fdb7b",
-    "browser.json": "d539486d16c62d4ae67430417ff60329f5ba3fd9ae3821e8396caaeb4b8191b7",
-    "delay-invariance.json": "6888f6f8eba4cf34e09358db1b32e496a750a68dc3954a1d78ddc589c8e2e428",
-    "evaluation.json": "7402b2ea15d26f4bb4cc76bb31c7acc1001083fadcad0201a8b93edb83b46d59",
-    "experiment-plan.json": "e96f2c4a03975fd64f8db8f50cb770fcd036a70e1021c707b29d2e4bf764b875",
-    "heldout-errors.json": "ef4aba7299e54cdd628d2b5a0afa6bb6fe00952550188eb32a7086baf63c812d",
+    "evaluation.json": "037847894737d4e68167ab108128cbf9d6dfabf09b46b3142b2dc139400bc2e9",
     "models.json": "0d38bc13d9bea426ec85428a6c7ae9cc139616ce239b21043cbde7f46f19dbc9",
-    "serialization-parity.json": "06ef117749f8e9eccde319326f4b8a38fc4dcba1d59b2ae2806254eaee23e030",
-    "stress.json": "419ddcdd30b0266f023655aae727aad8ab23b40328f24bfbd9828ccc76668764",
     "transform.json": "6a3e2bb536be84cf0b7497590d118bee421aeaa7c60c744ad23f6c67eb266856"
   },
   "limitations": "Scores are not probabilities. The development corpus has been used in prior research. Synthetic and codec copies do not increase the number of independent positives. Nested source/thread exclusions reduce leakage but cannot establish performance on future threads. Published final models have seen current labels; use held-out predictions for corpus accuracy.",
-  "status": "research-only; within-experiment model selection is not production promotion"
+  "status": "research-only; within-experiment model selection is not production promotion",
+  "original_manifest_sha256": "39a2ca7bdac204b076f80737754f7413034f48f669ef23d7e17190a51b228dd5"
 }
