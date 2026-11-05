@@ -3538,17 +3538,10 @@
     "robust_tree.py": "a2be3788c7518c8459c57b843679f4423bd132eae56613dcf06325de1843464c"
   },
   "files": {
-    "audit.json": "068a68efdd1a83504ab3798510ed63d49e68a06d0ca0244fc1ff3f86cddf1f05",
-    "browser.json": "63de937db8f365c1e752f5a7806ff22a478280442b2c261df14d13cf46fd85cc",
-    "delay-invariance.json": "6888f6f8eba4cf34e09358db1b32e496a750a68dc3954a1d78ddc589c8e2e428",
-    "evaluation.json": "58a0b667f208256b62093cc97f1571eeadf49ed379b953d795cad6d79a8b1387",
-    "experiment-plan.json": "7841439f8fb2fe0e7148b93cae399b020645d4acfffb9c201214f503c394c45f",
-    "followup-declaration.json": "b9eeb34bb1fa7e515e09ba5b83287d363852e50c567ea23298856892bf4d1461",
-    "heldout-errors.json": "267eb2f6b0b0220aa73e246dc11ad5947d5aa09ffc32a1d4e14dbf9f27242cda",
+    "evaluation.json": "7683a4e12245ca062f92307eb2b45e521c7d0bb0f0c39bd277f6d39bbd8a84e0",
     "models.json": "6e2d6d49bcaeca795208539849244b67d5b00a6c94f1153ad6bf662ea533ffb5",
-    "serialization-parity.json": "b33e7960e272331fd443a08f1f83769e6e0d71b2c9693621869d3af5a37cd124",
-    "stress.json": "8e477a303eae0234c24572fe140d4ad0e09e0fb5533b583c97187352fe0960fa",
     "transform.json": "6a3e2bb536be84cf0b7497590d118bee421aeaa7c60c744ad23f6c67eb266856"
   },
-  "limitations": "Scores are not probabilities. The development corpus has been used in prior research. Synthetic and codec copies do not increase the number of independent positives. Nested source/thread exclusions reduce leakage but cannot establish performance on future threads. Published final models have seen current labels; use held-out predictions for corpus accuracy."
+  "limitations": "Scores are not probabilities. The development corpus has been used in prior research. Synthetic and codec copies do not increase the number of independent positives. Nested source/thread exclusions reduce leakage but cannot establish performance on future threads. Published final models have seen current labels; use held-out predictions for corpus accuracy.",
+  "original_manifest_sha256": "a34f3d998d2990dc907b9ba7c6d0cdcb194fd81f97f099765f74dc8607fd8a08"
 }

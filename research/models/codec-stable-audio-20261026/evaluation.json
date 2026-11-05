@@ -436,52 +436,6 @@
       }
     }
   },
-  "selection_decisions": [
-    {
-      "thread": "336185346",
-      "chosen": "codec-stable-hybrid"
-    },
-    {
-      "thread": "336243339",
-      "chosen": "noclip-hybrid"
-    },
-    {
-      "thread": "336272252",
-      "chosen": "codec-stable-hybrid"
-    },
-    {
-      "thread": "336291305",
-      "chosen": "codec-stable-hybrid"
-    },
-    {
-      "thread": "336466927",
-      "chosen": "noclip-hybrid"
-    },
-    {
-      "thread": "336603044",
-      "chosen": "noclip-hybrid"
-    },
-    {
-      "thread": "336679639",
-      "chosen": "codec-stable-hybrid"
-    },
-    {
-      "thread": "336723954",
-      "chosen": "codec-stable-hybrid"
-    },
-    {
-      "thread": "336991612",
-      "chosen": "codec-stable-hybrid"
-    },
-    {
-      "thread": "337355133",
-      "chosen": "noclip-hybrid"
-    },
-    {
-      "thread": "337690329",
-      "chosen": "codec-stable-physical"
-    }
-  ],
   "final_model": "codec-stable-hybrid",
   "final_fit_key": "e31db4c2c365b07b"
 }

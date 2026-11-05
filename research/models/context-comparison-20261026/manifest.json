@@ -24,13 +24,7 @@
   "human_labels_sha256": "2024f8dec02d86307081626275614a23d9e3923be4efd79723bafe48ceef4247",
   "human_intervals_sha256": "ece77d2bceb330becd6e8c49ce16b2a84d0089381b76687f3ef81c2195caa911",
   "files": {
-    "comparison.json": "a921c1004635f9be440af63415b4eb5814616165eac96323e08c5ed51b70dcc9",
-    "context-browser-runtime.json": "901c556e561c9ab07b7536b004f043543df7de5865076afc8ee94bdb195aa6d9",
-    "context-tree-browser-runtime.json": "6afac87d665f84fcab108a85cd815fb533a2aa99d1a905f4a2e13fadef9141b8",
-    "environment.json": "2ac4f86ea3f7454c8e94580d586731139f40d8daf175cb4b1d9fa32ba07ab805",
-    "hard-negative-javascript-runtime.json": "ea79be9edc295c01bb74470b66ba9e7567f2503dff6cc1560041f5803c7a75e7",
-    "semantic-head-export.json": "2e18c3746075a00f748a20a52e882b84ade95745371ad90a107c3503f81f3afc",
-    "context-tree-serialization-failure.json": "e95fc591f05a8065fd8e7406d88d167cd6d14d2c06dd7588d5c322c0ca5cf89b"
+    "comparison.json": "a921c1004635f9be440af63415b4eb5814616165eac96323e08c5ed51b70dcc9"
   },
   "validation": {
     "python_tests": 82,
@@ -48,5 +42,6 @@
       "context-boost-control"
     ],
     "reason": "PCA roundoff crossed tree thresholds; full-matrix reproduction failed. Published tree artifacts contain evaluation evidence only."
-  }
+  },
+  "original_manifest_sha256": "74ce7b078c223ba3cf695e348cab0b99159714b12ef68ef025918843d5cd8b8e"
 }

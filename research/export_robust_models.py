@@ -17,7 +17,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--data-dir", type=Path, required=True)
     parser.add_argument("--run", type=Path, required=True)
-    parser.add_argument("--audit", type=Path, required=True)
+    parser.add_argument("--audit", type=Path, help=argparse.SUPPRESS)
     parser.add_argument("--output-dir", type=Path, required=True)
     args = parser.parse_args()
     args.output_dir.mkdir(parents=True, exist_ok=False)
@@ -58,64 +58,16 @@ def main():
             if errors[name] > 1e-10:
                 raise ValueError(f"published model does not reproduce scores: {name}")
     atomic_json(
-        args.output_dir / "serialization-parity.json",
-        {"records": len(data["records"]), "maximum_absolute_error": errors},
-    )
-    atomic_json(
         args.output_dir / "evaluation.json",
         {
             key: results[key]
             for key in (
                 "metrics",
-                "selection_decisions",
                 "final_model",
                 "final_fit_key",
             )
         },
     )
-    # Keep all positive predictions and every false warning; full arrays remain
-    # in the local immutable run and are identified by checksum below.
-    atomic_json(
-        args.output_dir / "heldout-errors.json",
-        {
-            name: {
-                view: [
-                    row
-                    for row in rows
-                    if row["label"] == "positive" or row["score"] >= 0.6
-                ]
-                for view, rows in views.items()
-            }
-            for name, views in results["predictions"].items()
-        },
-    )
-    plan = json.loads((args.run / "plan.json").read_text())
-    atomic_json(
-        args.output_dir / "experiment-plan.json",
-        {
-            **{k: v for k, v in plan.items() if k != "folds"},
-            "complete_plan_sha256": sha256(args.run / "plan.json"),
-            "folds": [
-                {
-                    "thread": f["thread"],
-                    "train_sources": len(f["train"]),
-                    "test_sources": len(f["test"]),
-                    "inner_folds": len(f["inner"]),
-                }
-                for f in plan["folds"]
-            ],
-        },
-    )
-    for source, target in (
-        (args.audit / "summary.json", "audit.json"),
-        (args.audit / "browser.json", "browser.json"),
-        (args.audit / "stress.json", "stress.json"),
-        (args.audit / "delay-invariance.json", "delay-invariance.json"),
-    ):
-        shutil.copyfile(source, args.output_dir / target)
-    for name in ("followup-declaration.json", "resume-provenance.json"):
-        if (args.run / name).exists():
-            shutil.copyfile(args.run / name, args.output_dir / name)
     extra_sources = ()
     if "context_features" in data:
         extra_sources = ("context_features.py", "context_runtime.py")
@@ -139,6 +91,7 @@ def main():
         "training_hashes": meta["training_hashes"],
         "dataset_sha256": sha256(args.data_dir / "manifest.json"),
         "full_results_sha256": sha256(args.run / "results.json"),
+        "reload_maximum_score_error": errors,
         "human_labels_sha256": sha256(Path("corpus/labels.json")),
         "human_intervals_sha256": sha256(Path("corpus/events.json")),
         "extractor_sha256": {

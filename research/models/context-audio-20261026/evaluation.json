@@ -436,52 +436,6 @@
       }
     }
   },
-  "selection_decisions": [
-    {
-      "thread": "336185346",
-      "chosen": "boundary-control"
-    },
-    {
-      "thread": "336243339",
-      "chosen": "context-hybrid"
-    },
-    {
-      "thread": "336272252",
-      "chosen": "context-hybrid"
-    },
-    {
-      "thread": "336291305",
-      "chosen": "boundary-control"
-    },
-    {
-      "thread": "336466927",
-      "chosen": "context-hybrid"
-    },
-    {
-      "thread": "336603044",
-      "chosen": "context-hybrid"
-    },
-    {
-      "thread": "336679639",
-      "chosen": "context-hybrid"
-    },
-    {
-      "thread": "336723954",
-      "chosen": "context-hybrid"
-    },
-    {
-      "thread": "336991612",
-      "chosen": "boundary-control"
-    },
-    {
-      "thread": "337355133",
-      "chosen": "boundary-control"
-    },
-    {
-      "thread": "337690329",
-      "chosen": "context-hybrid"
-    }
-  ],
   "final_model": "boundary-control",
   "final_fit_key": "e31db4c2c365b07b"
 }

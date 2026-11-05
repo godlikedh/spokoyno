@@ -3538,18 +3538,10 @@
     "robust_tree.py": "a2be3788c7518c8459c57b843679f4423bd132eae56613dcf06325de1843464c"
   },
   "files": {
-    "audit.json": "c22976ccde5e42e6b6bca84ec2f88cdc1c195d37a3470e7d5ef61018cefd19a9",
-    "browser.json": "07d023c5971c8784e396b1e863f8601ad8cef85cbcf81d4937140be9cb83b86b",
-    "delay-invariance.json": "6888f6f8eba4cf34e09358db1b32e496a750a68dc3954a1d78ddc589c8e2e428",
-    "evaluation.json": "6a6b3fad2452b0257c8fbb1df592a6c38f6aff680145580e8fb3246ade87e553",
-    "experiment-plan.json": "df91ca26cbb6c075965790d79487cd645ec2ae7b7046eb7252d29aa5af20f7b2",
-    "followup-declaration.json": "63b780863007e4f154de8558bd658f36c6ca7476e1b19e178f7875eb20c707c4",
-    "heldout-errors.json": "e1f6728dd74997d0b689479eff7defdd493646d7a7318277716863127b3b6256",
+    "evaluation.json": "57ab5850501351176a32fe66c70315bd4028a142d4c143cb52dead0cc7ca5f6d",
     "models.json": "050dd31723999008cbbb7d2c163f8ceac866860bfe6e61a5ed8133192c0060a5",
-    "resume-provenance.json": "1492d27ff9fb2e8bc5e4be62d8dc61a04f41f0d081c4db32ad51564537c23137",
-    "serialization-parity.json": "c1a5e7156c92478ad756666ea5acad8a64011f9d5c0b48fe890cb7ea903b0806",
-    "stress.json": "669eff4094fc56467ae0d1a7bfe452d4a4051c55baa2f52d1cb73ab96549e16b",
     "transform.json": "6a3e2bb536be84cf0b7497590d118bee421aeaa7c60c744ad23f6c67eb266856"
   },
-  "limitations": "Scores are not probabilities. The development corpus has been used in prior research. Synthetic and codec copies do not increase the number of independent positives. Nested source/thread exclusions reduce leakage but cannot establish performance on future threads. Published final models have seen current labels; use held-out predictions for corpus accuracy."
+  "limitations": "Scores are not probabilities. The development corpus has been used in prior research. Synthetic and codec copies do not increase the number of independent positives. Nested source/thread exclusions reduce leakage but cannot establish performance on future threads. Published final models have seen current labels; use held-out predictions for corpus accuracy.",
+  "original_manifest_sha256": "276065a93185828cff1b175eeafbffe346efad1d24b67603e133514cf51cd35a"
 }

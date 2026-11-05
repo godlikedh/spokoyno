@@ -60,36 +60,17 @@ def publish(args):
             for name, model in models.items()
         },
     )
-    summary = {k: v for k, v in results.items() if k != "predictions"}
-    summary["held_out_positives_and_false_warnings"] = {
-        name: [r for r in rows if r["label"] == "positive" or r["score"] >= 0.6]
-        for name, rows in results["predictions"].items()
+    summary = {
+        k: v
+        for k, v in results.items()
+        if k not in ("predictions", "folds", "selection_decisions")
     }
     summary["round_one_metrics"] = json.loads((args.run / "results.json").read_text())[
         "metrics"
     ]
     ablation = json.loads((args.ablation / "results.json").read_text())
     summary["ablation_metrics"] = ablation["metrics"]
-    summary["ablation_positive_predictions"] = {
-        n: [r for r in rows if r["label"] == "positive"]
-        for n, rows in ablation["predictions"].items()
-    }
     atomic_json(args.output_dir / "results-summary.json", summary)
-    for filename in ("summary.json", "browser.json", "stress.json"):
-        atomic_json(
-            args.output_dir / ("audit-" + filename),
-            json.loads((args.audit / filename).read_text()),
-        )
-    for label, directory in (
-        ("round-one", args.run),
-        ("round-two", args.followup),
-        ("ablation", args.ablation),
-    ):
-        plan = json.loads((directory / "plan.json").read_text())
-        # Split identities are hashed; complete full plans remain local with fits.
-        compact = {k: v for k, v in plan.items() if k != "folds"}
-        compact["complete_plan_sha256"] = sha256(directory / "plan.json")
-        atomic_json(args.output_dir / f"{label}-plan.json", compact)
     data = load_inputs()
     fm, fa = load_matrix(args.features)
     legacy = fa["legacy_indices"] >= 0
@@ -226,8 +207,9 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
     export = commands.add_parser("publish")
-    for name in ("run", "followup", "ablation", "audit", "features", "output-dir"):
+    for name in ("run", "followup", "ablation", "features", "output-dir"):
         export.add_argument("--" + name, type=Path, required=True)
+    export.add_argument("--audit", type=Path, help=argparse.SUPPRESS)
     score_parser = commands.add_parser("score")
     score_parser.add_argument("--snapshot", type=Path, required=True)
     score_parser.add_argument("--media", type=Path, required=True)

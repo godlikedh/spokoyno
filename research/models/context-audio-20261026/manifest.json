@@ -3541,17 +3541,10 @@
   },
   "files": {
     "LICENSE": "5b17814bf0de8cf65069bc6d7cc38cff19fcaa864d243423ad3ef3db01b52385",
-    "audit.json": "e5029481e94b333be9c670d67a57bf93be9bc457ff7f89434ace1c8db8fd611e",
-    "browser.json": "1ae826c57d78a56014e78859e84b018f9892205ad543b30e8c2f4e7ba775aa96",
-    "delay-invariance.json": "6888f6f8eba4cf34e09358db1b32e496a750a68dc3954a1d78ddc589c8e2e428",
-    "evaluation.json": "d898e178cb2df6dfe50a5375d9df6a9030c6e5d9f930c6428d7bc7b1c3b36236",
-    "experiment-plan.json": "6e9f278102082f5bf69c0b8b42c0cce74de2cbba172291bf6edb42b14e111c79",
-    "followup-declaration.json": "b4d9a6c7656f72cf504201b5a7c0b79465867d306c7c72f3fbddcbe4dc73bd44",
-    "heldout-errors.json": "9fe7e18d54dac665e9d07ab7766c5e3866571ca50fd2772d46d0733042bbe51e",
+    "evaluation.json": "8327e05fcbe5a6a507d74b8bcf5bd8a527c9193d93202032b85ec0b8beab934f",
     "models.json": "1ae490da325067cdd2815715a121313ece4d09ac12d55f013b12238d88d6ba08",
-    "serialization-parity.json": "aeb73b0d5b2e977357f4114f469270db91fb111a24c1920d0192e7910066d114",
-    "stress.json": "058aa2029ed599fc2e90deed159e9abf0580c82bfe14e9ace3bb7fc9fc69c735",
     "transform.json": "bf6b5e8c7d90b190a96e8cd1b1fd6c87d8da76acbcc0443151a586186bc07e94"
   },
-  "limitations": "Scores are not probabilities. The development corpus has been used in prior research. Synthetic and codec copies do not increase the number of independent positives. Nested source/thread exclusions reduce leakage but cannot establish performance on future threads. Published final models have seen current labels; use held-out predictions for corpus accuracy."
+  "limitations": "Scores are not probabilities. The development corpus has been used in prior research. Synthetic and codec copies do not increase the number of independent positives. Nested source/thread exclusions reduce leakage but cannot establish performance on future threads. Published final models have seen current labels; use held-out predictions for corpus accuracy.",
+  "original_manifest_sha256": "55f1e86bcc632006b9a987b2cc841d43dac4aa33116053dc3eae1c2911955f81"
 }

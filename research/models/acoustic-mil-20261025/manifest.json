@@ -14028,15 +14028,9 @@
     "extract_audio_context.py": "beb8bfb53ce273b12921ab12e0db3006c0ddaa0f6463979c9dccc42194382e8d"
   },
   "files": {
-    "results-summary.json": "db73154bf4835879f6efe858bd5a8915e35b4ab7f4f580df07a598c5de63e0fb",
-    "audit-summary.json": "d6f3bd900d11bcce3d48b8fc090047e93626dd3b3fc4acb0da86d5987dcac59c",
-    "audit-stress.json": "1deebbe0386c98630b514c4803bd1bed1f60c7c62b74405a8c9617f9b7fea81b",
-    "round-one-plan.json": "d2b640668c001f777a3b48917fdcc0048a9133b77588afa40f071e3c0609288a",
-    "ablation-plan.json": "c06758610f2b654f1b517ba8447dca78464ee23277673734d875167be5773775",
+    "results-summary.json": "a5cf83c9121ba59ef07ca2ac8a97d9725ecc3bfa5530403e3286ca023dd481d7",
     "models.json": "f3b6d56d8cb95517b67f7c9c9ac5c17ad2cc697f9b8cbb8eb2e54a5ed923cba9",
-    "round-two-plan.json": "b56e683d61feaab1f3cd05391bab1be9fe6a32f92c12e34ccb4e19c8434cc415",
-    "transform.json": "24e960f2dae8d724b78621f4c9d59a4f8418aca8ee06d7a3335f1e486cf76e9d",
-    "audit-browser.json": "5de091b0bbe5a97de26f2ff5a104315e1f405a383b79896fa583a472c32213e1"
+    "transform.json": "24e960f2dae8d724b78621f4c9d59a4f8418aca8ee06d7a3335f1e486cf76e9d"
   },
   "reload_maximum_score_error": {
     "event-hybrid": 8.137850307722346e-14,
@@ -14057,5 +14051,6 @@
     "synthetic-mil-5pct": 4.440892098500626e-16,
     "synthetic-mil-20pct": 4.440892098500626e-16
   },
-  "validation": "30 positive and 3466 negative real audio groups, thread/known-family excluded; adaptive development research, not prospective validation. Nested selector regressed and is rejected. See report for browser and stress limits."
+  "validation": "30 positive and 3466 negative real audio groups, thread/known-family excluded; adaptive development research, not prospective validation. Nested selector regressed and is rejected. See report for browser and stress limits.",
+  "original_manifest_sha256": "538af19d0fa071dcfd01a64bff87722b44ec6b971df83c55642721b12bac34b9"
 }
