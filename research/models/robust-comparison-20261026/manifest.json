@@ -1,7 +1,0 @@
-{
-  "status": "No new candidate passed the overall promotion gate. Previous synthetic-mil-20pct remains the research baseline.",
-  "files": {
-    "comparison.json": "3bb2fb334eb1e7c27ca214cb8adb13e06e2caa29f5b0403f871c494651a4a325"
-  },
-  "original_manifest_sha256": "1620158e1127af70688845f6c7f91f444f41e709e571f7b1020b26309de731f6"
-}

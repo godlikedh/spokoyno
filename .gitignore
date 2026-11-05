@@ -1,33 +1,11 @@
-/corpus/audio/
-/corpus/index.json
-/corpus/manifests/
+# Local dataset: audio, labels, exact timings, source snapshots, and index.
+/corpus/
+# Generated features, encoders, training runs, and model snapshots.
+/artifacts/
+# Existing local snapshots and the interpreter used by .venv-audio.
+/research/
 /.venv/
 /.venv-audio/
-/research/artifacts/
-# Only final model payloads, checksums, licenses, and result summaries belong in Git.
-/research/models/**
-!/research/models/**/
-!/research/models/**/manifest.json
-!/research/models/**/model.joblib
-!/research/models/**/models.joblib
-!/research/models/**/models.json
-!/research/models/**/transform.json
-!/research/models/**/policy.json
-!/research/models/**/shadow-model.json
-!/research/models/**/challenger-model.json
-!/research/models/**/model-results.json
-!/research/models/**/results-summary.json
-!/research/models/**/evaluation.json
-!/research/models/**/evaluation-summary.json
-!/research/models/**/comparison.json
-!/research/models/**/LICENSE*
-!/research/models/**/*LICENSE.txt
-!/research/models/**/THIRD_PARTY_NOTICE.txt
-/research/reviews/
-/research/thread-*.json
-/research/thread-*.csv
-/research/thread-*.md
-/research/supplemental-positives.*
 /.ruff_cache/
 /.pytest_cache/
 /node_modules/

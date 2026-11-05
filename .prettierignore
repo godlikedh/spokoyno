@@ -1,13 +1,7 @@
 .venv/
 .venv-audio/
-corpus/audio/
-corpus/index.json
-corpus/manifests/
-research/artifacts/
-research/models/*.json
-# Exporters own the byte representation of checksum-verified model snapshots.
-research/models/**/*.json
+corpus/
+artifacts/
+research/
 # Generated, checksummed browser model resources and vendored runtime.
 ml/assets/
-research/thread-*
-research/supplemental-positives.*
